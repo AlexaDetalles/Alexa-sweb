@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ALEXA | Detalles & Obsequios</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,600;1,400&family=Montserrat:wght@100;300;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            /* NUEVA PALETA: Negros, Blancos y Rojos */
+            --p-rojo: #e63946;
+            --p-rojo-luz: #ff4d6d;
+            --p-dorado: #d4af37;
+            --p-negro: #050505;
+            --p-blanco: #ffffff;
+            --f-serif: 'Cormorant Garamond', serif;
+            --f-sans: 'Montserrat', sans-serif;
+            --ease: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--p-negro); color: var(--p-blanco); font-family: var(--f-sans); overflow-x: hidden; }
+
+        /* --- LOADER --- */
+        .loader {
+            position: fixed; inset: 0; background: var(--p-negro);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999; transition: 1s var(--ease);
+        }
+        .loader.hide { opacity: 0; pointer-events: none; }
+        .loader h2 { font-family: var(--f-serif); letter-spacing: 15px; font-weight: 300; color: var(--p-rojo); animation: pulse 2s infinite; }
+
+        /* --- NAVIGATION --- */
+        nav {
+            position: fixed; top: 0; width: 100%; padding: 30px 5%;
+            display: flex; justify-content: space-between; align-items: center;
+            z-index: 1000; transition: 0.5s var(--ease);
+        }
+        nav.scrolled { background: rgba(5,5,5,0.8); backdrop-filter: blur(20px); padding: 20px 5%; }
+        .nav-logo { font-family: var(--f-serif); font-size: 1.5rem; letter-spacing: 8px; text-decoration: none; color: white; }
+        .nav-logo span { color: var(--p-rojo); }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            /* Imagen de fondo más acorde a regalos/detalles */
+            background: linear-gradient(to bottom, rgba(0,0,0,0.4), var(--p-negro)),
+                        url('https://images.unsplash.com/photo-1513201099705-a9746e1e201f?q=80&w=2000') center/cover;
+            background-attachment: fixed;
+        }
+        .hero h1 { font-family: var(--f-serif); font-size: clamp(2.5rem, 10vw, 6rem); font-weight: 300; font-style: italic; opacity: 0; transform: translateY(30px); }
+        .hero h1 b { color: var(--p-rojo); font-weight: 300; }
+        .hero p { font-size: 0.7rem; letter-spacing: 6px; text-transform: uppercase; margin-top: 20px; opacity: 0; color: var(--p-blanco); }
+
+        /* --- QUICK ACCESS CARDS --- */
+        .quick-access {
+            padding: 100px 5%;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px; margin-top: -100px;
+        }
+        .access-card {
+            position: relative; height: 450px; overflow: hidden;
+            display: flex; align-items: flex-end; padding: 40px;
+            text-decoration: none; color: white; border-radius: 4px;
+            transition: var(--ease) 0.6s;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* ESTILO ESPECIAL: BOTÓN DETALLES (DORADO Y ROJO) */
+        .card-detalles {
+            border: 2px solid var(--p-dorado) !important;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.2);
+        }
+        .card-detalles h3 { color: var(--p-rojo); text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        .card-detalles .btn-small { border-bottom: 1px solid var(--p-dorado) !important; color: var(--p-dorado); font-weight: 600; }
+
+        .access-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -1; transition: 1s var(--ease); filter: brightness(0.4); }
+        .access-card:hover img { transform: scale(1.08); filter: brightness(0.6); }
+        .access-card h3 { font-family: var(--f-serif); font-size: 2.2rem; font-weight: 300; letter-spacing: 3px; }
+        .access-card .btn-small { font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase; border-bottom: 1px solid var(--p-rojo); margin-top: 10px; display: inline-block; transition: 0.3s; }
+        .access-card:hover .btn-small { letter-spacing: 5px; }
+
+        /* --- ANIMACIONES DE SALIDA --- */
+        .page-exit { opacity: 0 !important; transform: translateY(-30px) !important; transition: 0.8s var(--ease) !important; }
+        .card-active { transform: scale(1.02) !important; border-color: var(--p-rojo) !important; z-index: 50; }
+
+        .reveal { opacity: 0; transform: translateY(50px); transition: 1.2s var(--ease); }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        footer { padding: 80px 5%; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+        .footer-logo { font-family: var(--f-serif); font-size: 2rem; letter-spacing: 12px; margin-bottom: 20px; }
+        .footer-logo span { color: var(--p-rojo); }
+
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+        @media (max-width: 768px) {
+            .quick-access { margin-top: 0; padding: 40px 5%; }
+            .hero h1 { font-size: 3.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loader" id="loader">
+        <h2>ALEXA</h2>
+    </div>
+
+    <nav id="navbar">
+        <a href="index.html" class="nav-logo">ALEXA<span>.</span></a>
+        <a href="redes.html" style="color: white; text-decoration: none; font-size: 0.7rem; letter-spacing: 3px; border: 1px solid var(--p-rojo); padding: 8px 15px; background: rgba(230, 57, 70, 0.1);">CONCIERGE</a>
+    </nav>
+
+    <section class="hero">
+        <h1 id="heroTitle">Detalles & <b>Obsequios</b></h1>
+        <p id="heroSubtitle">Hechos para momentos inolvidables</p>
+    </section>
+
+    <main class="quick-access">
+        <a href="detalles/index.html" class="access-card reveal transition-link card-detalles">
+            <img src="https://images.unsplash.com/photo-1549465220-1a8b9238cd48?q=80&w=1000" alt="Detalles">
+            <div>
+                <h3>Arreglos & Regalos</h3>
+                <span class="btn-small">Ver Catálogo</span>
+            </div>
+        </a>
+
+        <a href="catalogo.html" class="access-card reveal transition-link" style="transition-delay: 0.1s;">
+            <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?q=80&w=1000" alt="Ropa">
+            <div>
+                <h3>Línea de Ropa</h3>
+                <span class="btn-small" style="border-color: white;">Explorar Prendas</span>
+            </div>
+        </a>
+
+        <a href="redes.html" class="access-card reveal transition-link" style="transition-delay: 0.2s;">
+            <img src="https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?q=80&w=1000" alt="VIP">
+            <div>
+                <h3>Atención Personalizada</h3>
+                <span class="btn-small">Concierge VIP</span>
+            </div>
+        </a>
+    </main>
+
+    <footer>
+        <div class="footer-logo">ALEXA<span>.</span></div>
+        <p style="font-size: 0.6rem; letter-spacing: 4px; opacity: 0.4;">DETALLES QUE PERMANECEN • 2026</p>
+    </footer>
+
+    <script>
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            const h1 = document.getElementById('heroTitle');
+            const p = document.getElementById('heroSubtitle');
+
+            setTimeout(() => {
+                loader.classList.add('hide');
+                h1.style.opacity = '1';
+                h1.style.transform = 'translateY(0)';
+                h1.style.transition = '1.5s var(--ease)';
+                
+                setTimeout(() => {
+                    p.style.opacity = '0.8';
+                    p.style.transition = '1.5s var(--ease)';
+                }, 500);
+            }, 1000);
+        });
+
+        document.querySelectorAll('.transition-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                const destination = this.href;
+                if (destination && destination.includes('.html')) {
+                    e.preventDefault();
+                    this.classList.add('card-active');
+                    document.querySelectorAll('section, main, nav, footer').forEach(el => {
+                        if (el !== this.parentElement) el.classList.add('page-exit');
+                    });
+                    setTimeout(() => {
+                        window.location.href = destination;
+                    }, 700);
+                }
+            });
+        });
+
+        window.addEventListener('scroll', () => {
+            document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 50);
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('active');
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>
