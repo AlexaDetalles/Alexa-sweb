@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>ALEXA | Love Collection</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,800;1,400&family=Plus+Jakarta+Sans:wght@200;300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-void: #050203; 
+            --love-red: #ff0033; 
+            --deep-crimson: #800010;
+            --soft-rose: #ffb7c5; 
+            --text-main: #fff0f5; 
+            --glass-surface: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --card-radius: 24px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background-color: var(--bg-void); 
+            color: var(--text-main); 
+            font-family: var(--font-sans); 
+            overflow-x: hidden; 
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            transition: opacity 0.5s ease;
+        }
+
+        /* --- BACKGROUND FX --- */
+        #heartCanvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+        .ambient-light {
+            position: fixed; top: -10%; left: 50%; transform: translateX(-50%);
+            width: 140vw; height: 100vh;
+            background: radial-gradient(circle, rgba(255, 0, 51, 0.08) 0%, transparent 70%);
+            z-index: -2; pointer-events: none; filter: blur(100px);
+        }
+
+        /* --- LOADER --- */
+        #loader-screen {
+            position: fixed; inset: 0; z-index: 10000;
+            background: var(--bg-void); display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.8s ease, visibility 0.8s;
+        }
+        .loader-heart {
+            font-size: 3rem; color: var(--love-red);
+            filter: drop-shadow(0 0 30px rgba(230, 57, 70, 0.6));
+            animation: pulse-beat 1.2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+
+        /* --- CONTENEDOR --- */
+        .container { 
+            max-width: 1300px; margin: 0 auto; 
+            padding: 100px 15px 150px; 
+            width: 100%; position: relative; z-index: 1; 
+        }
+        
+        header { text-align: center; margin-bottom: 40px; opacity: 0; animation: fadeUp 1s forwards 0.3s; }
+        .brand-subtitle { font-size: 0.75rem; letter-spacing: 5px; text-transform: uppercase; color: var(--soft-rose); font-weight: 700; margin-bottom: 10px; display: block; }
+        h1 { font-family: var(--font-serif); font-size: clamp(2.5rem, 8vw, 5rem); font-weight: 400; color: #fff; line-height: 1.1; margin-bottom: 15px; }
+        h1::after { content: ''; display: block; width: 50px; height: 2px; background: var(--love-red); margin: 20px auto 0; box-shadow: 0 0 15px var(--love-red); }
+
+        /* --- GRID --- */
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        @media (min-width: 768px) { .grid { grid-template-columns: repeat(3, 1fr); gap: 25px; } }
+        @media (min-width: 1100px) { .grid { grid-template-columns: repeat(4, 1fr); gap: 35px; } }
+
+        .card {
+            position: relative; background: var(--glass-surface); border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius); overflow: hidden; 
+            transition: all 0.5s cubic-bezier(0.2, 1, 0.3, 1);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            display: flex; flex-direction: column; opacity: 0;
+        }
+        .card.selected { border-color: var(--love-red); background: rgba(230, 57, 70, 0.08); box-shadow: 0 0 30px rgba(230, 57, 70, 0.2); }
+        .card.selected::before {
+            content: '\f004'; font-family: "Font Awesome 6 Free"; font-weight: 900;
+            position: absolute; top: 12px; right: 12px; background: var(--love-red);
+            color: white; width: 32px; height: 32px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 0.9rem; z-index: 10;
+            box-shadow: 0 0 15px var(--love-red);
+        }
+        .card-img-box { width: 100%; aspect-ratio: 1/1; overflow: hidden; }
+        .card img { width: 100%; height: 100%; object-fit: cover; transition: 1.5s; }
+        .card-info { padding: 15px; text-align: left; }
+        .card-title { font-family: var(--font-serif); font-size: 1.2rem; margin-bottom: 5px; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-price { color: var(--soft-rose); font-size: 1rem; font-weight: 700; }
+
+        /* --- HUD BAR --- */
+        .hud-bar {
+            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%) translateY(150%);
+            width: 92%; max-width: 500px; background: rgba(10, 5, 8, 0.85);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 100px;
+            padding: 10px 10px 10px 30px; display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8); transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); z-index: 1000;
+        }
+        .hud-bar.active { transform: translateX(-50%) translateY(0); }
+        .total-val { font-family: var(--font-serif); font-size: 1.5rem; color: #fff; font-weight: 600; }
+        .btn-continue {
+            background: linear-gradient(135deg, var(--love-red), var(--deep-crimson));
+            color: #fff; border: none; padding: 15px 30px; border-radius: 50px;
+            font-weight: 800; font-size: 0.85rem; letter-spacing: 1px; cursor: pointer;
+            text-transform: uppercase; display: flex; align-items: center; gap: 10px;
+        }
+
+        /* --- TUTORIAL SYSTEM (REDISEÑADO) --- */
+        #tour-overlay {
+            position: fixed; inset: 0; z-index: 9000;
+            pointer-events: none; opacity: 0; transition: opacity 0.5s ease;
+        }
+        #tour-overlay.active { opacity: 1; pointer-events: auto; background: rgba(0,0,0,0.4); }
+
+        .tour-focus {
+            position: relative; z-index: 9002 !important;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.8), 0 0 30px var(--love-red) !important;
+            transition: box-shadow 0.3s ease;
+            pointer-events: none; border-radius: inherit;
+        }
+
+        .tour-card {
+            position: fixed; z-index: 9010;
+            width: 90%; max-width: 350px;
+            background: rgba(15, 5, 8, 0.95);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 0, 51, 0.3); border-radius: 30px;
+            padding: 30px 25px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            opacity: 0; visibility: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            left: 50%; top: 50%; transform: translate(-50%, -50%) scale(0.9);
+        }
+        
+        /* Mobile adjustment for tutorial */
+        @media (max-width: 600px) {
+            .tour-card { top: auto !important; bottom: 30px !important; transform: translate(-50%, 0) scale(0.9) !important; }
+            .tour-card.visible { transform: translate(-50%, 0) scale(1) !important; }
+        }
+
+        .tour-card.visible { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+
+        .t-step-counter {
+            font-size: 0.7rem; color: var(--love-red); font-weight: 800;
+            text-transform: uppercase; letter-spacing: 3px; margin-bottom: 15px; display: block;
+        }
+        .t-icon-box {
+            width: 65px; height: 65px; margin: 0 auto 20px;
+            background: rgba(230, 57, 70, 0.1); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid rgba(230, 57, 70, 0.3);
+            box-shadow: 0 0 20px rgba(230, 57, 70, 0.2);
+        }
+        .t-icon { font-size: 1.6rem; color: var(--love-red); }
+        .t-title { font-family: var(--font-serif); font-size: 1.8rem; margin-bottom: 15px; color: #fff; }
+        .t-desc { font-size: 0.95rem; line-height: 1.6; color: rgba(255,240,245,0.8); margin-bottom: 30px; }
+        
+        .t-btn {
+            background: #fff; color: #000; border: none; padding: 15px 40px; border-radius: 50px;
+            font-size: 0.85rem; font-weight: 800; text-transform: uppercase;
+            cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .t-btn:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(230, 57, 70, 0.4); background: var(--soft-rose); }
+
+        .step-dots { display: flex; justify-content: center; gap: 8px; margin-top: 25px; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.15); transition: 0.4s; }
+        .dot.active { background: var(--love-red); width: 22px; border-radius: 10px; }
+
+        @keyframes pulse-beat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+    </style>
+<script src="metrics.js"></script>
+</head>
+<body>
+
+    <a href="../indexformh.html" class="btn-back" style="position: fixed;">
+        <i class="fa-solid fa-arrow-left"></i>
+    </a>
+
+    <canvas id="heartCanvas"></canvas>
+    <div class="ambient-light"></div>
+
+    <div id="loader-screen">
+        <i class="fas fa-heart loader-heart"></i>
+        <div style="margin-top: 15px; font-size: 0.7rem; letter-spacing: 2px; color: var(--soft-rose)">CARGANDO...</div>
+    </div>
+
+    <div id="tour-overlay">
+        <div class="tour-card" id="tour-card">
+            <span class="t-step-counter" id="t-counter">PASO 1 DE 3</span>
+            <div class="t-icon-box">
+                <i class="fa-solid fa-wand-magic-sparkles t-icon" id="t-icon-main"></i>
+            </div>
+            <h2 class="t-title" id="t-title">Título</h2>
+            <p class="t-desc" id="t-desc">Descripción</p>
+            <button class="t-btn" onclick="Tour.next()" id="t-btn-text">Siguiente</button>
+            <div class="step-dots" id="step-dots"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <header id="main-header">
+            <span class="brand-subtitle">Bienvenido a</span>
+            <h1>Love Collection</h1>
+        </header>
+
+        <div class="grid" id="grid">
+            </div>
+    </div>
+
+    <div class="hud-bar" id="hudBar">
+        <div class="total-meta">
+            <div class="total-val" id="totalDisplay">L. 0</div>
+        </div>
+        <button class="btn-continue" onclick="nextPage()">
+            Continuar <i class="fa-solid fa-chevron-right"></i>
+        </button>
+    </div>
+
+    <script>
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQk9YQ4byWizXiOowMTPwbwTxCFA8wibncFW4ZE30BDL2_I3E21rx3jKTtZIpmeNAZ4RREU10WfNkPY/pub?output=csv";
+        
+        let products = [];
+        let selectedProduct = null;
+
+        // Background Hearts
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+        let hearts = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Heart {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 20;
+                this.size = Math.random() * 10 + 5;
+                this.speed = Math.random() * 0.8 + 0.3;
+                this.opacity = Math.random() * 0.4 + 0.1;
+                this.fadeSpeed = Math.random() * 0.002 + 0.001;
+            }
+            update() {
+                this.y -= this.speed;
+                this.opacity -= this.fadeSpeed;
+                if(this.y < -20 || this.opacity <= 0) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.strokeStyle = '#ffb7c5';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                const x = this.x, y = this.y, s = this.size;
+                ctx.moveTo(x, y);
+                ctx.bezierCurveTo(x - s, y - s, x - s * 1.5, y + s / 2, x, y + s);
+                ctx.bezierCurveTo(x + s * 1.5, y + s / 2, x + s, y - s, x, y);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+        for(let i=0; i<15; i++) hearts.push(new Heart());
+        function anim() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            hearts.forEach(h => { h.update(); h.draw(); });
+            requestAnimationFrame(anim);
+        }
+        anim();
+
+        // Data Loading
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadData();
+            const loader = document.getElementById('loader-screen');
+            loader.style.opacity = '0';
+            setTimeout(() => { 
+                loader.style.visibility = 'hidden'; 
+                if(!localStorage.getItem('alexa_tour_step1_v4')) Tour.start();
+            }, 800);
+        });
+
+        async function loadData() {
+            try {
+                const res = await fetch(CSV_URL);
+                const data = await res.text();
+                const rows = data.split(/\r?\n/).slice(1);
+                products = rows.map(r => {
+                    const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    return {
+                        id: c[0]?.trim(),
+                        category: c[2]?.trim(),
+                        name: c[3]?.replace(/"/g,'').trim(),
+                        price: parseFloat(c[4]) || 0,
+                        code: c[5]?.trim(),
+                        img: c[6]?.trim()
+                    };
+                }).filter(p => p.category === 'Base');
+                renderGrid();
+            } catch (e) { console.error("Error CSV:", e); }
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = products.map((p, i) => `
+                <div class="card" id="card-${i}" onclick="selectItem('${p.id}', ${i})" 
+                     style="animation: fadeUp 0.8s forwards ${0.2 + (i*0.05)}s">
+                    <div class="card-img-box">
+                        <img src="${p.img}" loading="lazy" onerror="this.src='https://via.placeholder.com/400x400?text=ALEXA'">
+                    </div>
+                    <div class="card-info">
+                        <div class="card-title">${p.name}</div>
+                        <div class="card-price">L. ${p.price.toLocaleString()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectItem(id, index) {
+            selectedProduct = products.find(p => p.id === id);
+            document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+            document.getElementById(`card-${index}`).classList.add('selected');
+            document.getElementById('totalDisplay').innerText = `L. ${selectedProduct.price.toLocaleString()}`;
+            document.getElementById('hudBar').classList.add('active');
+            if(Tour.active && Tour.step === 1) setTimeout(() => Tour.next(), 600);
+        }
+
+        function nextPage() {
+            if(!selectedProduct) return;
+            localStorage.setItem('alexa_selected_product', JSON.stringify(selectedProduct));
+            localStorage.setItem('alexa_final_model', selectedProduct.name);
+            localStorage.setItem('alexa_total', selectedProduct.price);
+            localStorage.setItem('alexa_code_step1', selectedProduct.code);
+            
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                window.location.href = "personalizar2.html";
+            }, 500);
+        }
+
+        // --- TUTORIAL SYSTEM ---
+        const Tour = {
+            active: false,
+            step: 0,
+            data: [
+                { el: '#main-header', icon: 'fa-heart', title: 'Bienvenido', desc: 'Estás a punto de crear algo único. Déjanos guiarte en este proceso de creación.' },
+                { el: '#grid', focusEl: '#card-0', icon: 'fa-box-open', title: 'Elige la Base', desc: 'Selecciona el estilo que más te guste. Cada base tiene un encanto especial.' },
+                { el: '#hudBar', icon: 'fa-check-circle', title: '¡Listo!', desc: 'Aquí verás el precio actualizado. Presiona continuar cuando estés lista para el siguiente paso.', forceShow: true }
+            ],
+            start() {
+                this.active = true;
+                document.getElementById('tour-overlay').classList.add('active');
+                const dots = document.getElementById('step-dots');
+                dots.innerHTML = this.data.map((_, i) => `<div class="dot" id="dot-${i}"></div>`).join('');
+                this.render();
+            },
+            render() {
+                if(this.step >= this.data.length) return this.end();
+                const item = this.data[this.step];
+                const card = document.getElementById('tour-card');
+                card.classList.remove('visible');
+
+                setTimeout(() => {
+                    document.querySelectorAll('.tour-focus').forEach(e => e.classList.remove('tour-focus'));
+                    let target = document.querySelector(item.focusEl || item.el);
+                    
+                    if(target) {
+                        target.classList.add('tour-focus');
+                        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        
+                        // Dynamic positioning for desktop
+                        if (window.innerWidth > 600) {
+                            const rect = target.getBoundingClientRect();
+                            if (rect.top > window.innerHeight / 2) {
+                                card.style.top = (rect.top - 200) + 'px';
+                            } else {
+                                card.style.top = (rect.bottom + 20) + 'px';
+                            }
+                        }
+                    }
+                    
+                    if(item.forceShow) document.getElementById('hudBar').classList.add('active');
+                    
+                    document.getElementById('t-counter').innerText = `PASO ${this.step + 1} DE ${this.data.length}`;
+                    document.getElementById('t-title').innerText = item.title;
+                    document.getElementById('t-desc').innerText = item.desc;
+                    document.getElementById('t-icon-main').className = `fa-solid ${item.icon} t-icon`;
+                    document.getElementById('t-btn-text').innerText = this.step === this.data.length - 1 ? "Comenzar" : "Siguiente";
+                    
+                    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === this.step));
+                    card.classList.add('visible');
+                }, 400);
+            },
+            next() { this.step++; this.render(); },
+            end() {
+                this.active = false;
+                document.getElementById('tour-overlay').classList.remove('active');
+                document.querySelectorAll('.tour-focus').forEach(e => e.classList.remove('tour-focus'));
+                localStorage.setItem('alexa_tour_step1_v4', 'true');
+                if(!selectedProduct) document.getElementById('hudBar').classList.remove('active');
+            }
+        };
+    </script>
+</body>
+</html>

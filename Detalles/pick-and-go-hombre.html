@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ALEXA | Pick & Go Hombre</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,600&family=Montserrat:wght@300;500;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #09090b;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --border-light: rgba(255, 255, 255, 0.08);
+
+            --blue-neon: #3a86ff;
+            --blue-glow: #00b4d8;
+            --blue-soft: #ade8f4;
+
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+
+            --font-serif: 'Cormorant Garamond', serif;
+            --font-sans: 'Montserrat', sans-serif;
+
+            --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-smooth: cubic-bezier(0.23, 1, 0.32, 1);
+            --glass: blur(16px) saturate(180%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: radial-gradient(circle at 50% 0%, rgba(58,134,255,.15), transparent 60%);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            overflow-x: hidden;
+            padding-top: 90px;
+            min-height: 100vh;
+        }
+
+        /* LOADER */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-dark);
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity .6s ease, visibility .6s;
+        }
+
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 0%, var(--blue-neon) 100%);
+            animation: spin 1s linear infinite;
+            mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff 0);
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #fff 0);
+            margin-bottom: 20px;
+        }
+
+        .loader-text {
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: var(--blue-soft);
+            opacity: 0;
+            animation: fadeIn 1s ease forwards .3s;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* HEADER */
+        header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 80px;
+            background: rgba(9,9,11,.6);
+            backdrop-filter: var(--glass);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            z-index: 1000;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .logo {
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            font-style: italic;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .logo span {
+            color: var(--blue-neon);
+            text-shadow: 0 0 10px rgba(58,134,255,.5);
+        }
+
+        .cart-trigger {
+            position: relative;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: .3s var(--ease-elastic);
+        }
+
+        .cart-trigger:active { transform: scale(.9); }
+        .cart-trigger i { color: var(--blue-soft); }
+
+        #cartBadge {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--blue-glow);
+            color: #fff;
+            font-size: .65rem;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg-dark);
+        }
+
+        /* GRID */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 10px 15px 140px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        @media (min-width: 768px) {
+            .products-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+        }
+
+        .product-card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            display: flex;
+            flex-direction: column;
+            transition: .4s var(--ease-smooth);
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,.5);
+        }
+
+        .img-container {
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            background: #111;
+        }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: .6s var(--ease-smooth);
+        }
+
+        .product-card:hover img { transform: scale(1.05); }
+
+        .info {
+            padding: 15px;
+            flex-grow: 1;
+        }
+
+        .info h3 {
+            font-size: .95rem;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .info p {
+            color: var(--blue-neon);
+            font-weight: 800;
+        }
+
+        .action-area { padding: 12px; }
+
+        .buy-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 16px;
+            border: none;
+            font-weight: 800;
+            font-size: .75rem;
+            cursor: pointer;
+        }
+
+        .qty-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,.1);
+            border-radius: 16px;
+            padding: 0 6px;
+            height: 40px;
+        }
+
+        .qty-controls button {
+            width: 32px;
+            height: 32px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        /* PILL */
+        #pill {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150%);
+            width: 92%;
+            max-width: 420px;
+            background: rgba(20,20,23,.85);
+            backdrop-filter: blur(20px);
+            border-radius: 100px;
+            padding: 8px 8px 8px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: .5s var(--ease-elastic);
+            border: 1px solid rgba(255,255,255,.15);
+        }
+
+        #pill.active { transform: translateX(-50%) translateY(0); }
+
+        #pillTotal {
+            color: var(--blue-neon);
+            font-weight: 800;
+        }
+
+        #pill button {
+            background: var(--blue-neon);
+            border: none;
+            padding: 14px 28px;
+            border-radius: 100px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* SIDEBAR */
+        .cart-sidebar {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.6);
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            pointer-events: none;
+            transition: .3s;
+            z-index: 5000;
+        }
+
+        .cart-sidebar.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .cart-content {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 100%;
+            max-width: 400px;
+            background: #09090b;
+            transform: translateX(100%);
+            transition: .4s var(--ease-elastic);
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border-light);
+        }
+
+        .cart-sidebar.open .cart-content { transform: translateX(0); }
+    </style>
+<script src="metrics.js"></script>
+</head>
+
+<body>
+
+<div id="loader">
+    <div class="loader-spinner"></div>
+    <div class="loader-text">Pick & Go</div>
+</div>
+
+<header>
+    <a href="../../index.html" class="logo">ALEXA<span>.</span></a>
+    <div class="cart-trigger" onclick="toggleCart(true)">
+        <i class="fa-solid fa-bag-shopping"></i>
+        <span id="cartBadge">0</span>
+    </div>
+</header>
+
+<div class="products-grid" id="grid"></div>
+
+<div id="pill">
+    <span>Total: <span id="pillTotal">L. 0</span></span>
+    <button onclick="toggleCart(true)">VER BOLSA</button>
+</div>
+
+<script>
+    const CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT_GLYKFFT9BTUnGoYIxsK8x24006DuflBHsz0GOzhdk1lcF_oS7Id4zV1kax0EH_9VQmrmLH6uVitC/pub?output=csv";
+    let products = [];
+    let cart = JSON.parse(localStorage.getItem('alexa_pag_hombre_cart')) || {};
+
+    async function load() {
+        const res = await fetch(CSV);
+        const data = await res.text();
+        const rows = data.split(/\r?\n/).slice(1);
+
+        products = rows.map(r => {
+            const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            if (c.length < 6) return null;
+            return {
+                id: c[0].replace(/"/g,'').trim(),
+                name: c[1].replace(/"/g,'').trim(),
+                price: parseFloat(c[2]),
+                img: c[3].replace(/"/g,'').trim(),
+                tag: c[5].replace(/"/g,'').trim()
+            };
+        }).filter(p => p && p.tag === 'PAGH');
+
+        render();
+        updateUI();
+
+        document.getElementById('loader').style.opacity = 0;
+        setTimeout(() => document.getElementById('loader').style.visibility = 'hidden', 600);
+    }
+
+    function render() {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = products.map(p => {
+            const q = cart[p.id]?.qty || 0;
+            return `
+                <div class="product-card">
+                    <div class="img-container">
+                        <img src="${p.img}" loading="lazy">
+                    </div>
+                    <div class="info">
+                        <h3>${p.name}</h3>
+                        <p>L. ${p.price.toLocaleString()}</p>
+                    </div>
+                    <div class="action-area">
+                        ${q === 0
+                            ? `<button class="buy-btn" onclick="updateQty('${p.id}',1)">AGREGAR</button>`
+                            : `<div class="qty-controls">
+                                <button onclick="updateQty('${p.id}',-1)">-</button>
+                                <span>${q}</span>
+                                <button onclick="updateQty('${p.id}',1)">+</button>
+                               </div>`
+                        }
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updateQty(id, d) {
+        const p = products.find(x => x.id === id);
+        if (!cart[id]) cart[id] = { ...p, qty: 0 };
+        cart[id].qty += d;
+        if (cart[id].qty <= 0) delete cart[id];
+        localStorage.setItem('alexa_pag_hombre_cart', JSON.stringify(cart));
+        render();
+        updateUI();
+    }
+
+    function updateUI() {
+        const count = Object.values(cart).reduce((s,i)=>s+i.qty,0);
+        const total = Object.values(cart).reduce((s,i)=>s+i.price*i.qty,0);
+
+        document.getElementById('pillTotal').innerText = `L. ${total.toLocaleString()}`;
+        document.getElementById('cartBadge').style.display = count ? 'flex' : 'none';
+        document.getElementById('cartBadge').innerText = count;
+        document.getElementById('pill').classList.toggle('active', count > 0);
+    }
+
+    function toggleCart(open) {}
+
+    window.onload = load;
+</script>
+
+</body>
+</html>

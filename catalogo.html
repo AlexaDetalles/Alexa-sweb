@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo | Alexa Official</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Montserrat:wght@200;300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --p-oro: #c5a059;         /* Oro Premium */
+            --p-negro: #050505;       /* Negro Profundo */
+            --p-glass: rgba(255, 255, 255, 0.03);
+            --f-serif: 'Cormorant Garamond', serif;
+            --f-sans: 'Montserrat', sans-serif;
+            --ease: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--p-negro); 
+            color: white; 
+            font-family: var(--f-sans); 
+            overflow-x: hidden;
+            opacity: 0; 
+            animation: fadeIn 1s var(--ease) forwards 0.5s;
+        }
+
+        /* TEXTURA DE FONDO (LUJO SILENCIOSO) */
+        body::before {
+            content: ""; position: fixed; inset: 0;
+            background: url('https://grainy-gradients.vercel.app/noise.svg');
+            opacity: 0.03; pointer-events: none; z-index: 50;
+        }
+
+        /* --- CORTINA DE ENTRADA --- */
+        #curtain {
+            position: fixed; inset: 0; background: var(--p-oro); z-index: 9999;
+            transform: scaleY(0); transform-origin: top;
+            animation: curtainDrop 1.2s cubic-bezier(0.8, 0, 0.2, 1) forwards;
+        }
+        @keyframes curtainDrop {
+            0% { transform: scaleY(0); transform-origin: top; }
+            45% { transform: scaleY(1); transform-origin: top; }
+            55% { transform: scaleY(1); transform-origin: bottom; }
+            100% { transform: scaleY(0); transform-origin: bottom; }
+        }
+        @keyframes fadeIn { to { opacity: 1; } }
+
+        /* --- NAVEGACIÓN --- */
+        nav {
+            position: fixed; top: 0; width: 100%; height: 80px;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; mix-blend-mode: difference;
+        }
+        .nav-logo { 
+            font-family: var(--f-serif); font-size: 1.5rem; letter-spacing: 10px; 
+            text-decoration: none; color: white; font-weight: 300; 
+            text-transform: uppercase;
+        }
+
+        /* --- HEADER --- */
+        header {
+            padding: 140px 20px 60px; text-align: center; position: relative;
+        }
+        header h1 { 
+            font-family: var(--f-serif); font-size: clamp(2.5rem, 6vw, 4rem); 
+            letter-spacing: 4px; font-weight: 300; font-style: italic; 
+            background: linear-gradient(to bottom, #fff, #888); 
+            background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        header .subtitle {
+            font-size: 0.6rem; letter-spacing: 6px; text-transform: uppercase; 
+            margin-top: 15px; opacity: 0.6; display: block;
+        }
+
+        /* --- GRID PRINCIPAL --- */
+        .category-container { 
+            display: grid; 
+            /* Use auto-fit so 3 cards distribute evenly on wide screens */
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+            gap: 20px; 
+            padding: 0 15px 80px; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            align-items: stretch;
+        }
+
+        @media (min-width: 768px) {
+            /* keep slightly larger gap on tablet/desktop */
+            .category-container { gap: 24px; }
+        }
+
+        /* --- TARJETAS INTELIGENTES --- */
+        .category-card {
+            position: relative; height: auto; aspect-ratio: 4/3; min-height: 280px;
+            overflow: hidden; display: flex; text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: border-color 0.4s, transform 0.4s;
+        }
+
+        /* Capa de imagen */
+        .category-card img {
+            position: absolute; width: 100%; height: 100%;
+            object-fit: cover; transition: transform 1.2s var(--ease);
+            filter: brightness(0.6) grayscale(20%);
+        }
+
+        /* Gradiente para legibilidad */
+        .category-card::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent 60%);
+        }
+
+        .category-content { 
+            position: relative; z-index: 2; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+            padding: 40px; text-align: center;
+        }
+
+        .category-content h2 { 
+            font-family: var(--f-serif); font-size: 2rem; 
+            letter-spacing: 4px; color: white; font-weight: 400; 
+            margin-bottom: 5px; transition: transform 0.4s var(--ease);
+        }
+        
+        .category-content p {
+            font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase;
+            color: var(--p-oro); opacity: 0.8; margin-bottom: 20px;
+        }
+
+        .btn-line {
+            width: 0%; height: 1px; background: white; margin-bottom: 5px;
+            transition: width 0.4s var(--ease);
+        }
+
+        .cta-text {
+            font-size: 0.6rem; letter-spacing: 3px; text-transform: uppercase;
+            opacity: 0; transform: translateY(10px); transition: 0.4s var(--ease);
+        }
+
+        /* HOVER EFFECTS */
+        .category-card:hover { border-color: var(--p-oro); }
+        .category-card:hover img { transform: scale(1.08); filter: brightness(0.8) grayscale(0%); }
+        .category-card:hover h2 { transform: translateY(-10px); }
+        .category-card:hover .btn-line { width: 40px; }
+        .category-card:hover .cta-text { opacity: 1; transform: translateY(0); }
+
+        /* --- TREINTA BANNER (Minimalista) --- */
+        .treinta-box {
+            grid-column: 1 / -1; margin-top: 40px; 
+            padding: 80px 20px; text-align: center; position: relative;
+            background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1000');
+            background-size: cover; background-attachment: fixed;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .treinta-btn {
+            display: inline-block; padding: 15px 40px;
+            background: white; color: black; text-decoration: none;
+            font-size: 0.7rem; font-weight: 600; letter-spacing: 3px;
+            transition: 0.3s;
+        }
+        .treinta-btn:hover { background: var(--p-oro); color: white; transform: translateY(-3px); }
+
+        /* ANIMACIONES DE SCROLL */
+        .reveal { opacity: 0; transform: translateY(40px); transition: 1s var(--ease); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        footer { 
+            padding: 40px 0; text-align: center; color: rgba(255,255,255,0.2); 
+            font-size: 0.5rem; letter-spacing: 4px; text-transform: uppercase; 
+        }
+    </style>
+<script src="metrics.js"></script>
+</head>
+<body>
+
+    <div id="curtain"></div>
+    
+    <nav>
+        <a href="../index.html" class="nav-logo">ALEXA</a>
+    </nav>
+
+    <header>
+        
+        <span class="subtitle reveal">The Collections</span>
+        <h1 class="reveal">Official Catalog</h1>
+    </header>
+
+    <main class="category-container">
+        
+        <a href="Catalogo/Perfumes/index.html" class="category-card reveal">
+            <img src="https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=800&auto=format&fit=crop" loading="lazy" alt="Perfumes">
+            <div class="category-content">
+                <h2>Fragancias</h2>
+                <p>Signature Scents</p>
+                <div class="btn-line"></div>
+                <span class="cta-text">Explorar</span>
+            </div>
+        </a>
+
+
+        <a href="Catalogo/calzado/index.html" class="category-card reveal" style="transition-delay: 0.2s;">
+            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" loading="lazy" alt="Prendas">
+            <div class="category-content">
+                <h2>Calzado</h2>
+                <p>The art of Footwear</p>
+                <div class="btn-line"></div>
+                <span class="cta-text">Lo mejor de Calzado</span>
+            </div>
+        </a>
+
+        <a href="Catalogo/accesorios/index.html" class="category-card reveal" style="transition-delay: 0.3s;">
+            <img src="https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?q=80&w=800&auto=format&fit=crop" loading="lazy" alt="Accesorios">
+            <div class="category-content">
+                <h2>Accesorios</h2>
+                <p>The Final Touch</p>
+                <div class="btn-line"></div>
+                <span class="cta-text">Descubrir</span>
+            </div>
+        </a>
+
+        <div class="treinta-box reveal">
+            <h2 style="font-family: var(--f-serif); font-size: 2rem; margin-bottom: 10px; font-weight: 300; font-style: italic;">The Warehouse</h2>
+            <p style="font-size: 0.6rem; opacity: 0.6; margin-bottom: 30px; letter-spacing: 4px; text-transform: uppercase;">Acceso al inventario global</p>
+            <a href="https://menu.treinta.shop/menu/tiendasalexa-e627a5" target="_blank" class="treinta-btn">
+                ABRIR EN TREINTA
+            </a>
+        </div>
+
+    </main>
+
+    <footer>
+        Tiendas Alexa Official
+    </footer>
+
+    <script>
+        // Animación de Scroll simple y efectiva
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    // Una vez visible, dejamos de observar para ahorrar recursos
+                    observer.unobserve(entry.target); 
+                }
+            });
+        }, { threshold: 0.15 });
+
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

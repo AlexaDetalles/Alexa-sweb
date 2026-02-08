@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ALEXA | Resumen de Creación</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Plus+Jakarta+Sans:wght@300;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-void: #050203; 
+            --love-red: #00a8ff; 
+            --deep-crimson: #004e92;
+            --soft-rose: #a2d2ff; 
+            --text-main: #f0f8ff; 
+            --glass-surface: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --font-serif: 'Playfair Display', serif;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --card-radius: 24px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            background-color: var(--bg-void); 
+            color: var(--text-main); 
+            font-family: var(--font-sans); 
+            overflow-x: hidden; 
+            min-height: 100vh;
+            padding-bottom: 140px;
+        }
+
+        /* --- BACKGROUND FX --- */
+        #heartCanvas { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
+        .ambient-light {
+            position: fixed; top: -10%; left: 50%; transform: translateX(-50%);
+            width: 140vw; height: 100vh;
+            background: radial-gradient(circle, rgba(0, 168, 255, 0.08) 0%, transparent 70%);
+            z-index: -2; pointer-events: none; filter: blur(100px);
+        }
+
+        /* --- LOADER PROCESANDO --- */
+        #final-loader {
+            position: fixed; inset: 0; background: var(--bg-void); z-index: 10000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.8s ease;
+        }
+        .magic-spark { font-size: 3rem; color: var(--love-red); animation: pulse 1.5s infinite; }
+
+        /* --- CONTENEDOR TICKET --- */
+        .container { max-width: 500px; margin: 0 auto; padding: 40px 20px; }
+        
+        .ticket {
+            background: var(--glass); border: 1px solid var(--border); border-radius: 35px;
+            padding: 40px 25px; position: relative; backdrop-filter: blur(15px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        .ticket-header { text-align: center; border-bottom: 1px dashed var(--border); padding-bottom: 25px; margin-bottom: 25px; }
+        .ticket-header h1 { font-family: var(--font-serif); font-style: italic; font-size: 2.2rem; margin-bottom: 5px; }
+        .ticket-header p { text-transform: uppercase; font-size: 0.65rem; letter-spacing: 3px; color: var(--love-red); font-weight: 700; }
+
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 18px; align-items: baseline; }
+        .item-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,0.5); flex: 1; }
+        .item-value { font-size: 0.95rem; font-weight: 500; text-align: right; flex: 2; padding-left: 15px; }
+        
+        .dedication-box {
+            background: rgba(0, 168, 255, 0.05); border-radius: 20px; padding: 20px;
+            margin-top: 25px; border: 1px solid rgba(0, 168, 255, 0.1);
+        }
+        .dedication-box h4 { font-family: var(--font-serif); font-size: 1rem; margin-bottom: 10px; color: var(--love-red); font-style: italic; }
+        .dedication-box p { font-size: 0.9rem; font-style: italic; line-height: 1.5; opacity: 0.8; }
+
+        .total-section { border-top: 1px dashed var(--border); margin-top: 25px; padding-top: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .total-section span { font-family: var(--font-serif); font-size: 1.2rem; }
+        .total-amount { font-size: 2rem; font-weight: 700; color: var(--love-red); }
+
+        /* --- BOTÓN WHATSAPP --- */
+        .btn-whatsapp {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px; background: #25D366; color: #fff;
+            border: none; border-radius: 50px; padding: 18px; font-size: 1.1rem;
+            font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 12px;
+            cursor: pointer; box-shadow: 0 10px 30px rgba(37, 211, 102, 0.3); z-index: 900;
+            text-transform: uppercase; transition: 0.3s;
+        }
+        .btn-whatsapp:active { transform: translateX(-50%) scale(0.95); }
+
+        /* --- MENU FLOTANTE ASESORAS --- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 2000; display: none; align-items: flex-end; justify-content: center;
+        }
+        .modal-content {
+            background: #150a0c; width: 100%; max-width: 500px;
+            border-radius: 35px 35px 0 0; padding: 40px 25px;
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-overlay.active .modal-content { transform: translateY(0); }
+
+        .modal-header { text-align: center; margin-bottom: 30px; }
+        .modal-header h2 { font-family: var(--font-serif); font-size: 1.8rem; }
+        
+        .advisor-btn {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            width: 100%; border-radius: 20px; padding: 20px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 20px; cursor: pointer; transition: 0.3s;
+            color: white; text-decoration: none;
+        }
+        .advisor-btn:hover { background: rgba(0, 168, 255, 0.1); border-color: var(--love-red); }
+        .advisor-avatar { width: 50px; height: 50px; background: var(--love-red); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+
+        .close-modal {
+            display: block; width: 100%; background: transparent; border: none;
+            color: rgba(255,255,255,0.4); margin-top: 15px; font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 2px; cursor: pointer;
+        }
+
+        @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 0.8; } 50% { transform: scale(1.2); opacity: 1; } }
+    </style>
+<script src="metrics.js"></script>
+</head>
+<body>
+
+    <canvas id="heartCanvas"></canvas>
+    <div class="ambient-light"></div>
+
+    <div id="final-loader">
+        <div class="magic-spark"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <p style="margin-top: 20px; font-weight: 700; letter-spacing: 3px; font-size: 0.7rem;">CREANDO TU MENSAJE PERSONALIZADO...</p>
+    </div>
+
+    <div class="container">
+        <div class="ticket">
+            <div class="ticket-header">
+                <p>Resumen de Compra</p>
+                <h1>ALEXA</h1>
+                <div style="font-size: 0.7rem; opacity: 0.5;" id="current-date"></div>
+            </div>
+
+            <div id="summary-content">
+                </div>
+
+            <div class="dedication-box">
+                <h4>Dedicatoria:</h4>
+                <p id="final-message">"Cargando tu mensaje..."</p>
+            </div>
+
+            <div class="total-section">
+                <span>Inversión Total</span>
+                <div class="total-amount" id="final-total">L. 0.00</div>
+            </div>
+        </div>
+    </div>
+
+    <button class="btn-whatsapp" onclick="openAdvisors()">
+        <i class="fa-brands fa-whatsapp"></i> Pedir mi Creación
+    </button>
+
+    <div class="modal-overlay" id="modal-advisor" onclick="closeAdvisors(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>¿Con quién quieres hablar?</h2>
+                <p style="font-size: 0.8rem; opacity: 0.6;">Selecciona una asesora para procesar tu pedido</p>
+            </div>
+            
+            <a href="#" id="link-asesora1" class="advisor-btn">
+                <div class="advisor-avatar"><i class="fa-solid fa-user-tie"></i></div>
+                <div style="text-align: left;">
+                    <div style="font-weight: 700;">Asesora 1</div>
+                    <div style="font-size: 0.75rem; opacity: 0.6;">Disponible ahora</div>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="margin-left: auto; opacity: 0.3;"></i>
+            </a>
+
+            <a href="#" id="link-asesora2" class="advisor-btn">
+                <div class="advisor-avatar" style="background: var(--deep-crimson);"><i class="fa-solid fa-user-tie"></i></div>
+                <div style="text-align: left;">
+                    <div style="font-weight: 700;">Asesora 2</div>
+                    <div style="font-size: 0.75rem; opacity: 0.6;">Disponible ahora</div>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="margin-left: auto; opacity: 0.3;"></i>
+            </a>
+
+            <button class="close-modal" onclick="closeAdvisors(null)">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        // MOTOR DE CORAZONES
+        const canvas = document.getElementById('heartCanvas');
+        const ctx = canvas.getContext('2d');
+        let hearts = [];
+
+        class Heart {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 20;
+                this.size = Math.random() * 10 + 5;
+                this.speed = Math.random() * 0.8 + 0.3;
+                this.opacity = Math.random() * 0.4 + 0.1;
+                this.fadeSpeed = Math.random() * 0.002 + 0.001;
+            }
+            update() {
+                this.y -= this.speed;
+                this.opacity -= this.fadeSpeed;
+                if(this.y < -20 || this.opacity <= 0) this.reset();
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                ctx.strokeStyle = '#00a8ff';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                const x = this.x, y = this.y, s = this.size;
+                ctx.moveTo(x, y);
+                ctx.bezierCurveTo(x - s, y - s, x - s * 1.5, y + s / 2, x, y + s);
+                ctx.bezierCurveTo(x + s * 1.5, y + s / 2, x + s, y - s, x, y);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        function initHearts() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            hearts = Array.from({ length: 15 }, () => new Heart());
+        }
+
+        function drawHearts() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hearts.forEach(h => { h.update(); h.draw(); });
+            requestAnimationFrame(drawHearts);
+        }
+
+        function loadSummary() {
+            // Obtener datos de localStorage
+            const data = {
+                modelo: localStorage.getItem('alexa_final_model') || 'No seleccionado',
+                empaque: localStorage.getItem('alexa_final_box') || 'No seleccionado',
+                contenido: localStorage.getItem('alexa_final_content') || 'Ninguno',
+                peluches: localStorage.getItem('alexa_final_plush') || 'Ninguno',
+                globos: localStorage.getItem('alexa_final_balloons') || 'Ninguno',
+                delivery: localStorage.getItem('alexa_delivery_name') || 'Retiro en tienda',
+                mensaje: localStorage.getItem('alexa_message') || 'Sin dedicatoria',
+                total: localStorage.getItem('alexa_total') || '0'
+            };
+
+            const container = document.getElementById('summary-content');
+            const items = [
+                { label: 'Modelo Base', value: data.modelo },
+                { label: 'Empaque', value: data.empaque },
+                { label: 'Contenido', value: data.contenido },
+                { label: 'Peluches', value: data.peluches },
+                { label: 'Globos', value: data.globos },
+                { label: 'Método Entrega', value: data.delivery }
+            ];
+
+            container.innerHTML = items.map(item => `
+                <div class="summary-item">
+                    <div class="item-label">${item.label}</div>
+                    <div class="item-value">${item.value}</div>
+                </div>
+            `).join('');
+
+            document.getElementById('final-message').innerText = `"${data.mensaje}"`;
+            document.getElementById('final-total').innerText = `L. ${parseFloat(data.total).toLocaleString()}`;
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString();
+
+            // Preparar el Mensaje de WhatsApp
+            const wpMessage = `¡Hola! 👋 He personalizado mi detalle *ALEXA* y me gustaría pedirlo:
+            
+✨ *RESUMEN DE MI CREACIÓN HOMBRE* ✨
+-------------------------------------
+🌹 *Modelo:* ${data.modelo}
+🎁 *Empaque:* ${data.empaque}
+🍬 *Contenido:* ${data.contenido}
+🧸 *Peluches:* ${data.peluches}
+🎈 *Globos:* ${data.globos}
+-------------------------------------
+🚚 *Entrega:* ${data.delivery}
+✍️ *Nota:* "${data.mensaje}"
+-------------------------------------
+💰 *TOTAL:* L. ${parseFloat(data.total).toLocaleString()}
+
+¿Me podrían ayudar con el pago?`;
+
+            const encodedMsg = encodeURIComponent(wpMessage);
+            document.getElementById('link-asesora1').href = `https://wa.me/50499226664?text=${encodedMsg}`;
+            document.getElementById('link-asesora2').href = `https://wa.me/50497320939?text=${encodedMsg}`;
+
+            // Ocultar Loader
+            setTimeout(() => {
+                const loader = document.getElementById('final-loader');
+                loader.style.opacity = '0';
+                setTimeout(() => loader.style.display = 'none', 800);
+            }, 1800);
+        }
+
+        function openAdvisors() {
+            document.getElementById('modal-advisor').classList.add('active');
+        }
+
+        function closeAdvisors(e) {
+            if(!e || e.target.id === 'modal-advisor') {
+                document.getElementById('modal-advisor').classList.remove('active');
+            }
+        }
+
+        window.addEventListener('resize', initHearts);
+        document.addEventListener('DOMContentLoaded', () => { 
+            initHearts(); 
+            drawHearts(); 
+            loadSummary(); 
+        });
+    </script>
+</body>
+</html>
