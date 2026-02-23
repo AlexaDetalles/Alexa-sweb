@@ -10,7 +10,7 @@
     
     <style>
         :root {
-            --p-oro: #c5a059;         /* Oro Premium */
+            --p-oro: #c5a059;          /* Oro Premium */
             --p-negro: #050505;       /* Negro Profundo */
             --p-glass: rgba(255, 255, 255, 0.03);
             --f-serif: 'Cormorant Garamond', serif;
@@ -80,7 +80,6 @@
         /* --- GRID PRINCIPAL --- */
         .category-container { 
             display: grid; 
-            /* Use auto-fit so 3 cards distribute evenly on wide screens */
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
             gap: 20px; 
             padding: 0 15px 80px; 
@@ -90,7 +89,6 @@
         }
 
         @media (min-width: 768px) {
-            /* keep slightly larger gap on tablet/desktop */
             .category-container { gap: 24px; }
         }
 
@@ -102,14 +100,19 @@
             transition: border-color 0.4s, transform 0.4s;
         }
 
-        /* Capa de imagen */
+        /* ESTILO PARA CATEGORÍAS SIN STOCK */
+        .category-card.unavailable {
+            pointer-events: none;
+            filter: grayscale(1);
+            opacity: 0.5;
+        }
+
         .category-card img {
             position: absolute; width: 100%; height: 100%;
             object-fit: cover; transition: transform 1.2s var(--ease);
             filter: brightness(0.6) grayscale(20%);
         }
 
-        /* Gradiente para legibilidad */
         .category-card::after {
             content: ''; position: absolute; inset: 0;
             background: linear-gradient(to top, rgba(0,0,0,0.9), transparent 60%);
@@ -143,13 +146,16 @@
         }
 
         /* HOVER EFFECTS */
-        .category-card:hover { border-color: var(--p-oro); }
-        .category-card:hover img { transform: scale(1.08); filter: brightness(0.8) grayscale(0%); }
-        .category-card:hover h2 { transform: translateY(-10px); }
-        .category-card:hover .btn-line { width: 40px; }
-        .category-card:hover .cta-text { opacity: 1; transform: translateY(0); }
+        .category-card:not(.unavailable):hover { border-color: var(--p-oro); }
+        .category-card:not(.unavailable):hover img { transform: scale(1.08); filter: brightness(0.8) grayscale(0%); }
+        .category-card:not(.unavailable):hover h2 { transform: translateY(-10px); }
+        .category-card:not(.unavailable):hover .btn-line { width: 40px; }
+        .category-card:not(.unavailable):hover .cta-text { opacity: 1; transform: translateY(0); }
 
-        /* --- TREINTA BANNER (Minimalista) --- */
+        /* Mostrar "Próximamente" siempre en las bloqueadas */
+        .category-card.unavailable .cta-text { opacity: 1; transform: translateY(0); }
+
+        /* --- TREINTA BANNER --- */
         .treinta-box {
             grid-column: 1 / -1; margin-top: 40px; 
             padding: 80px 20px; text-align: center; position: relative;
@@ -166,7 +172,6 @@
         }
         .treinta-btn:hover { background: var(--p-oro); color: white; transform: translateY(-3px); }
 
-        /* ANIMACIONES DE SCROLL */
         .reveal { opacity: 0; transform: translateY(40px); transition: 1s var(--ease); }
         .reveal.visible { opacity: 1; transform: translateY(0); }
 
@@ -185,7 +190,6 @@
     </nav>
 
     <header>
-        
         <span class="subtitle reveal">The Collections</span>
         <h1 class="reveal">Official Catalog</h1>
     </header>
@@ -202,14 +206,13 @@
             </div>
         </a>
 
-
-        <a href="Catalogo/calzado/index.html" class="category-card reveal" style="transition-delay: 0.2s;">
-            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" loading="lazy" alt="Prendas">
+        <a href="#" class="category-card reveal unavailable" style="transition-delay: 0.2s;">
+            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=870&auto=format&fit=crop" loading="lazy" alt="Calzado">
             <div class="category-content">
                 <h2>Calzado</h2>
                 <p>The art of Footwear</p>
                 <div class="btn-line"></div>
-                <span class="cta-text">Lo mejor de Calzado</span>
+                <span class="cta-text">Muy pronto</span>
             </div>
         </a>
 
@@ -238,12 +241,10 @@
     </footer>
 
     <script>
-        // Animación de Scroll simple y efectiva
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add('visible');
-                    // Una vez visible, dejamos de observar para ahorrar recursos
                     observer.unobserve(entry.target); 
                 }
             });
@@ -252,5 +253,4 @@
         document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     </script>
 </body>
-
 </html>
