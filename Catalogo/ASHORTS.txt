@@ -1,0 +1,21 @@
+PRENDAS
+
+HOMBRE:
+CALZADO         CHM
+
+MUJER:
+
+CALZADO         CMM
+
+Perfumes
+
+MUJER MP
+HOMBRE HP
+PREMIUM MUJER PMP
+PREMIUM HOMBRE PHP
+
+Accesorios
+
+Joyeria JYA
+Relojes RLA
+Carteras CTA
