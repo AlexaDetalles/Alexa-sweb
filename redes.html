@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3CVCB9D8V4"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-3CVCB9D8V4');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alexa Concierge | Redes</title>
@@ -13,8 +21,7 @@
             --p-morado: rgb(157, 78, 221);
             --p-morado-light: #c77dff;
             --p-negro: #050505;
-            /* Nuevos colores para la transición */
-            --c-rojo-1: #29002a; /* Rojo muy oscuro */
+            --c-rojo-1: #29002a;
             --c-rojo-2: #6c006e;
             --c-rojo-3: #d400d8; 
             
@@ -92,7 +99,7 @@
         .header h1 {
             font-family: var(--f-serif); font-size: 3.8rem; letter-spacing: 12px;
             background: linear-gradient(180deg, #ffffff 0%, var(--p-morado-light) 100%);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; -webkit-text-fill-color: transparent;
             margin-bottom: 5px; font-weight: 600; text-shadow: 0 10px 30px rgba(157, 78, 221, 0.2);
         }
 
@@ -199,7 +206,6 @@
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
     </style>
-    <script src="metrics.js"></script>
 </head>
 <body>
 
@@ -308,23 +314,28 @@
                 document.getElementById('tc-3')
             ];
 
+            // FIX: Remover círculos si el usuario regresa a la página (back button)
+            window.addEventListener('pageshow', (event) => {
+                setTimeout(() => {
+                    circles.forEach(circle => {
+                        circle.classList.remove('transition-active');
+                    });
+                }, 2000); // Delay de 2 segundos para desaparecer
+            });
+
             triggers.forEach(trigger => {
                 trigger.addEventListener('click', (e) => {
-                    e.preventDefault(); // Detenemos la navegación inmediata
+                    e.preventDefault(); 
                     const targetUrl = trigger.href;
-
-                    // Obtenemos las coordenadas del clic
                     const clickX = e.clientX;
                     const clickY = e.clientY;
 
-                    // Posicionamos los círculos donde se hizo el clic y los activamos
                     circles.forEach(circle => {
                         circle.style.left = `${clickX}px`;
                         circle.style.top = `${clickY}px`;
                         circle.classList.add('transition-active');
                     });
 
-                    // Esperamos a que termine la animación (0.8s + 0.3s delay) y redirigimos
                     setTimeout(() => {
                         window.location.href = targetUrl;
                     }, 1000);
