@@ -16,20 +16,22 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - name: Checkout verified final release
-        uses: actions/checkout@v4
+      - name: Checkout QA-approved release
+        uses: actions/checkout@v5
         with:
-          ref: 988714b86fd4a8163edc6486106f78c680b7f162
-      - name: Verify and extract final website
+          ref: 04b4b19155b7fa02064e05effad8474e59c855ec
+      - name: Verify and prepare public website
         run: |
-          echo "e52ea4d14d33171a2d358ceb7c11777d43c4a5d63f0b825749f7698843669abe  alexashop-release.zip" | sha256sum --check
-          unzip -q alexashop-release.zip -d _site
-          test -f _site/index.html
+          echo '763ffc46e4c3c75f8e8c4db21b121283a6a8feb673ee78d022b017c49e2197c4  alexashop-release.zip' | sha256sum --check
+          unzip -q alexashop-release.zip -d _source
+          node --test _source/tests/core.test.mjs
+          python3 -c "import zipfile; z=zipfile.ZipFile('alexashop-release.zip'); z.extractall('_site', [n for n in z.namelist() if not n.startswith(('tests/', '.github/')) and n != 'README.md'])"
+          test -f _site/condiciones.html
+          test -f _site/favicon.ico
           test -f _site/assets/shop.mjs
-          test "$(cat _site/CNAME)" = "alexashop.cc"
-          node --test _site/tests/core.test.mjs
+          test "$(cat _site/CNAME)" = 'alexashop.cc'
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload website
