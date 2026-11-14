@@ -24,5 +24,5 @@
 4. **Marcas**: usar el nombre de la marca para identificar el producto es habitual; **no uses logotipos oficiales** ni frases como «distribuidor autorizado» sin autorización.
 5. **Impuesto (ISV 15 %) y precios**: decide si los precios publicados lo incluyen y dilo en *Compra y atención*.
 6. **Registro de la marca «Alexa Detalles & Obsequios»** ante el Instituto de la Propiedad (puedes hacerlo cuando tengas el manual de marca).
-7. **Cookies**: no hay banner porque no hay cookies de seguimiento. Si más adelante agregas analítica, Meta Pixel o Google Analytics, hay que actualizar la política y pedir consentimiento.
+7. **Píldora de consentimiento y medición**: hay una píldora de «Aceptar / Solo lo necesario» antes de medir nada; la medición es propia y anónima (sin IP, con un código que cambia a diario) y se apaga si el navegador envía «Global Privacy Control». Si más adelante agregas Google Analytics, Meta Pixel u otro tercero, hay que actualizar la política y el aviso antes de activarlos.
 8. **Instagram/WhatsApp**: respeta las políticas comerciales de Meta para los mensajes promocionales.

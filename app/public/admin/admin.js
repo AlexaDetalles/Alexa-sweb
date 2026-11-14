@@ -7,7 +7,7 @@ const dinero = (n) => (n === null || n === undefined || n === '' ? '—' : new I
 const ico = (id) => `<svg class="ico" aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const fold = (v) => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: [] };
+const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios', 'estadisticas'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: ['estadisticas'] };
 const E = { yo: null, usuarios: [], invitaciones: [], roles: {}, cats: [], prods: [], papelera: [], ops: [], ajustes: {}, vista: 'productos', texto: '', cat: '', filtro: 'todos', publico: 'mujer', foto: null, editando: null, opcion: null, categoria: null };
 
 // --- avisos, confirmación y llamadas a la API ------------------------------------------
@@ -90,7 +90,7 @@ document.addEventListener('click', (ev) => { const b = ev.target.closest('[data-
 function aplicarSesion(yo) {
   E.yo = yo;
   const permisos = PERMISOS[yo.rol] || [];
-  for (const p of ['catalogo', 'ajustes', 'usuarios']) document.body.toggleAttribute(`data-p-${p}`, permisos.includes(p));
+  for (const p of ['catalogo', 'ajustes', 'usuarios', 'estadisticas']) document.body.toggleAttribute(`data-p-${p}`, permisos.includes(p));
   document.body.dataset.rol = yo.rol;
   $('#quien').textContent = `${yo.nombre || yo.correo} · ${yo.rolNombre || ''}`;
   $$('#form-ajustes input, #form-ajustes button').forEach((x) => { x.disabled = !permisos.includes('ajustes'); });
@@ -158,10 +158,10 @@ async function cargar() {
   Object.assign(E, { cats: d.categorias, prods: d.productos, papelera: d.papelera, ops: d.opciones, ajustes: d.ajustes });
   pintar();
 }
-const VISTAS = ['productos', 'categorias', 'regalos', 'ajustes'];
+const VISTAS = ['productos', 'categorias', 'regalos', 'estadisticas', 'ajustes'];
 function ir(vista) {
   if (vista === 'usuarios') vista = 'ajustes'; // los usuarios viven dentro de Ajustes
-  if (!VISTAS.includes(vista)) vista = 'productos';
+  if (!VISTAS.includes(vista) || (vista === 'estadisticas' && !PERMISOS[E.yo?.rol]?.includes('estadisticas'))) vista = 'productos';
   E.vista = vista;
   history.replaceState(null, '', `#${vista}`);
   for (const s of VISTAS) $(`#sec-${s}`).hidden = s !== vista;
@@ -173,6 +173,7 @@ function pintar() {
   if (E.vista === 'productos') pintarProductos();
   else if (E.vista === 'categorias') pintarCategorias();
   else if (E.vista === 'regalos') pintarRegalos();
+  else if (E.vista === 'estadisticas') pintarEstadisticas();
   else pintarAjustes();
 }
 
@@ -521,6 +522,35 @@ $('#form-clave').addEventListener('submit', async (ev) => {
 document.addEventListener('click', (ev) => { if (ev.target.closest('[data-cerrar]')) ev.target.closest('dialog').close(); });
 $$('dialog').forEach((d) => d.addEventListener('click', (ev) => { if (ev.target === d && d.id !== 'dlg-producto') d.close(); }));
 window.addEventListener('hashchange', () => { if (!$('#vista-panel').hidden && !/^#(restablecer|invitacion)=/.test(location.hash)) ir(location.hash.slice(1)); });
+
+// --- estadísticas -----------------------------------------------------------------------------
+const NOMBRES_RUTA = { '/': 'Inicio', '/catalogo': 'Catálogo', '/redes': 'Contacto', '/condiciones': 'Compra y atención', '/privacidad': 'Privacidad', '/terminos': 'Términos' };
+const nombreRuta = (r) => NOMBRES_RUTA[r] || (r.startsWith('/producto/') ? `Ficha: ${decodeURIComponent(r.slice(10))}` : r.replace(/^\//, '').replace(/\//g, ' › '));
+const num = (n) => Number(n || 0).toLocaleString('es-HN');
+function grafica(serie) {
+  const W = 640, H = 180, p = { l: 30, r: 8, t: 12, b: 24 }, max = Math.max(4, ...serie.map((d) => d.visitantes)), ancho = (W - p.l - p.r) / serie.length;
+  const y = (v) => p.t + (H - p.t - p.b) * (1 - v / max);
+  const ticks = [0, Math.round(max / 2), max];
+  return `<svg viewBox="0 0 ${W} ${H}" class="svg-grafica" aria-hidden="true">${ticks.map((t) => `<line x1="${p.l}" x2="${W - p.r}" y1="${y(t)}" y2="${y(t)}" class="eje"/><text x="${p.l - 6}" y="${y(t) + 4}" text-anchor="end" class="eje-t">${t}</text>`).join('')}
+    ${serie.map((d, i) => { const x = p.l + i * ancho + ancho * 0.18, h = Math.max(d.visitantes ? 2 : 0, (H - p.t - p.b) * (d.visitantes / max)); return `<rect x="${x.toFixed(1)}" y="${(H - p.b - h).toFixed(1)}" width="${(ancho * 0.64).toFixed(1)}" height="${h.toFixed(1)}" rx="3" class="barra"><title>${esc(d.dia)}: ${d.visitantes} visitantes, ${d.vistas} páginas vistas</title></rect>${i % 2 === 0 || serie.length < 8 ? `<text x="${(x + ancho * 0.32).toFixed(1)}" y="${H - 6}" text-anchor="middle" class="eje-t">${esc(d.dia.slice(8))}</text>` : ''}`; }).join('')}</svg>`;
+}
+async function pintarEstadisticas() {
+  let a;
+  try { a = await api('GET', 'admin/actividad'); } catch (e) { return avisar(e.message, true); }
+  const c = a.consentimiento;
+  $('#kpis').innerHTML = [
+    [num(a.visitantes.hoy), 'visitantes hoy', `${num(a.vistas.hoy)} páginas vistas`],
+    [num(a.visitantes.semana), 'visitantes en 7 días', `${num(a.vistas.semana)} páginas vistas`],
+    [num(a.visitantes.mes), 'visitantes en 30 días', `${num(a.vistas.mes)} páginas vistas`],
+    [num(a.whatsapp), 'clics a WhatsApp', `${num(a.agregados)} veces se agregó algo a la bolsa`],
+    [c.porcentaje === null ? '—' : `${c.porcentaje}%`, 'acepta la medición', `${num(c.acepta)} aceptan · ${num(c.rechaza)} solo lo necesario`],
+  ].map(([n, t, d]) => `<div class="kpi"><b>${esc(n)}</b><span>${esc(t)}</span><small>${esc(d)}</small></div>`).join('');
+  $('#grafica').innerHTML = grafica(a.serie);
+  $('#top-productos').innerHTML = a.productos.map((p) => `<li><span>${esc(p.nombre)}</span><b>${num(p.vistas)}</b></li>`).join('') || '<li class="vacio">Aún no hay datos.</li>';
+  $('#top-paginas').innerHTML = a.paginas.map((p) => `<li><span>${esc(nombreRuta(p.ruta))}</span><b>${num(p.vistas)}</b></li>`).join('') || '<li class="vacio">Aún no hay datos.</li>';
+  $('#nota-stats').textContent = 'Los «visitantes» son personas distintas por día (quien vuelve otro día cuenta otra vez, porque el código que los identifica cambia a diario). Quien elige «Solo lo necesario» o tiene activada la señal «no rastrear» no aparece aquí.';
+}
+$('#recargar-stats').addEventListener('click', pintarEstadisticas);
 
 // --- huella o Face ID ------------------------------------------------------------------------------
 // Solo se activa estando dentro con contraseña. Usa la API nativa del navegador (WebAuthn); si no existe, no se ofrece.

@@ -4,6 +4,7 @@ import { ErrorApi, falla, json } from './util.js';
 import { rutasAuth } from './auth.js';
 import { rutasAdmin, catalogo, regalos, servirFoto, mantenimiento, conCache, purgarCache } from './datos.js';
 import { sitemap, paginaProducto } from './seo.js';
+import { registrarVista } from './estadisticas.js';
 
 const CABECERAS = {
   'X-Content-Type-Options': 'nosniff',
@@ -41,6 +42,11 @@ async function api(req, env, ruta, ctx) {
   // Lecturas públicas: caché de 60 s en el borde (protege la base de abuso y de picos); el panel la borra al guardar.
   if (lectura && ruta === 'catalogo') return conCache('catalogo', () => catalogo(env));
   if (lectura && ruta.startsWith('regalos/')) return conCache(ruta, () => regalos(env, ruta.slice(8)));
+  // Medición de visitas (solo de quien aceptó en la píldora): anónima, sin IP ni cookies; las de más se descartan en silencio.
+  if (req.method === 'POST' && ruta === 'vista') {
+    if (!(await dentroDelLimite(req, env.LIMITE_VISTA, env))) return new Response(null, { status: 204 });
+    return registrarVista(req, env, await leerJson(req).catch(() => ({})));
+  }
   if (req.method === 'POST' && /^auth\/(entrar|configurar|confirmar|recuperar|restablecer|invitacion-aceptar|huella\/opciones-entrar|huella\/entrar)$/.test(ruta) && !(await dentroDelLimite(req, env.LIMITE_AUTH, env))) falla(429, 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.');
   if (ruta.startsWith('auth/')) return rutasAuth(req, env, ruta.slice(5), await leerJson(req), ctx);
   if (ruta.startsWith('admin/')) {

@@ -3,6 +3,7 @@ import { falla, json, fechaSql, diaHonduras } from './util.js';
 import { exigirSesion, exigirPermiso, rutasUsuarios } from './auth.js';
 import * as V from './validacion.js';
 import { completeOptions } from '../public/assets/core.mjs';
+import { actividad, limpiarEstadisticas } from './estadisticas.js';
 
 const CATEGORIA_PASO = { base: 'Base', tamano: 'Tamaño', contenido: 'Contenido', peluches: 'Peluches', globos: 'Globos', entrega: 'Delivery' };
 const PREFIJO_PASO = { base: 'B', tamano: 'T', contenido: 'C', peluches: 'P', globos: 'G', entrega: 'D' };
@@ -271,6 +272,7 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
   const [recurso, id, accion] = ruta.split('/').map(decodeURIComponent);
   if (recurso === 'usuarios' || recurso === 'invitaciones') return rutasUsuarios(req, env, [recurso, id], d, s, ctx);
   // Rangos: leer lo puede toda cuenta; cambiar el catálogo, solo administradora y encargada de catálogo; los ajustes, administradora y encargada de atención.
+  if (m === 'GET' && recurso === 'actividad') { exigirPermiso(s, 'estadisticas'); return actividad(env); }
   if (m !== 'GET') exigirPermiso(s, recurso === 'ajustes' ? 'ajustes' : 'catalogo');
 
   if (m === 'GET' && recurso === 'datos') {
@@ -347,5 +349,6 @@ export async function mantenimiento(env) {
     env.BD.prepare('DELETE FROM retos WHERE expira < ?').bind(ahora),
     env.BD.prepare('DELETE FROM intentos WHERE bloqueado_hasta IS NOT NULL AND bloqueado_hasta < ?').bind(ahora),
   ]);
+  await limpiarEstadisticas(env);
   return { respaldo: `respaldos/${diaHonduras()}.json`, papelera: papelera.length, huerfanas: huerfanas.length };
 }

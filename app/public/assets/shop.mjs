@@ -1,4 +1,5 @@
 import {PREPARED_GIFTS} from './gifts.mjs';
+import {iniciarConsentimiento,medir} from './consent.mjs';
 import {GROUPS,completeOptions,money,escapeHTML as e,fold,parseProducts,parseOptions,sanitizeCart,cartLines,cartTotal,cartSummary,cartMessage,STEPS,giftOptions,sanitizeDraft,giftLines,giftTotal,giftReady,giftMessage} from './core.mjs';
 
 const $ = (s,root=document) => root.querySelector(s);
@@ -27,6 +28,7 @@ document.addEventListener('click',event=>{
  const add=event.target.closest('[data-add]');if(add){changeQty(add.dataset.add,1);}
  const qty=event.target.closest('[data-qty]');if(qty)changeQty(qty.dataset.id,Number(qty.dataset.qty));
  const remove=event.target.closest('[data-remove]');if(remove){delete cart[remove.dataset.remove];persistCart();$('#bag-dialog [data-remove]')?.focus({preventScroll:true});if(!Object.keys(cart).length)$('#bag-dialog [data-close]')?.focus();}
+ const wa=event.target.closest('a[href^="https://wa.me/"]');if(wa)medir({evento:'whatsapp'});
  const detail=event.target.closest('[data-product]');if(detail){event.preventDefault();openProduct(detail.dataset.product);}
  const pick=event.target.closest('[data-pick]');if(pick)selectGift(pick.dataset.pick);
  const retry=event.target.closest('[data-retry]');if(retry)refreshData();
@@ -57,7 +59,7 @@ function changeQty(id,delta){
  if(next<=0)delete cart[id];else cart[id]=next;
  persistCart();
  if(restoreQty)$$('#bag-dialog [data-qty]').find(b=>b.dataset.id===id&&b.dataset.qty===restoreQty)?.focus({preventScroll:true});
- if(!before&&delta>0)toast(`${p.name} · añadido a tu bolsa`);
+ if(!before&&delta>0){toast(`${p.name} · añadido a tu bolsa`);medir({evento:'agregar'});}
 }
 const ICON={trash:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V4.5h4V7m-7 0 1 12h8l1-12"/></svg>',minus:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>',plus:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg>'};
 const minusLabel=n=>n===1?'Quitar de la bolsa':'Quitar una unidad';
@@ -103,6 +105,7 @@ function renderBag(){
 
 function openProduct(id){
  const p=products.find(p=>p.id===id);if(!p)return;
+ medir({producto:id});
  $('#product-content').innerHTML=`<div class="product-detail"><img src="${e(p.img)}" alt="${e(p.name)}"><div class="product-detail-copy"><p class="product-group">${e(groupNames[p.group]||'')}</p><h2 id="product-title">${e(p.name)}</h2><p>${e(p.description||'Te ayudamos a confirmar presentación, medidas y detalles de este artículo por WhatsApp.')}</p><p class="price">${p.quote?'Cotizar por WhatsApp':money(p.cents)}</p><p class="fine-print">Referencia ${e(p.id)} · ${p.quote?'Propuesta por encargo · imagen ilustrativa':p.available?'Disponible para consultar':'Actualmente no disponible'}</p><div class="add-slot" data-slot="${e(p.id)}"></div><p class="fine-print" style="margin-top:20px">Precio sujeto a confirmación. Consulta tallas, colores y presentación antes de confirmar tu pedido. <a href="/producto/${encodeURIComponent(p.id)}">Ver ficha completa</a></p></div></div>`;
  prepareImages($('#product-content'));openDialog($('#product-dialog'));renderProductButtons();
 }
@@ -247,3 +250,5 @@ async function init(){
 }
 window.addEventListener('storage',ev=>{if(ev.key===null||ev.key==='alexa_bag_v2'){cart=sanitizeCart(read('alexa_bag_v2',{}));updateBagCount();renderProductButtons();if($('#bag-dialog').open)renderBag();}if(audience&&(ev.key===null||ev.key===draftKey)&&options.length){draft=sanitizeDraft(read(draftKey,{}),options);renderGift();}});
 init();
+// Medición (solo si la persona aceptó en la píldora) y píldora de consentimiento.
+{const slot=document.querySelector('.add-slot[data-slot]');const enFicha=location.pathname.startsWith('/producto/')&&slot;medir(enFicha?{ruta:location.pathname,producto:slot.dataset.slot}:{ruta:location.pathname});iniciarConsentimiento();}

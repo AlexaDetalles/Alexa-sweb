@@ -28,7 +28,7 @@
   <!-- Entrar: una sola pantalla con varias "cajas"; el panel muestra la que toca -->
   <main class="entrar" id="vista-entrar" hidden>
     <form class="entrar-caja" id="form-entrar" novalidate>
-      <p class="marca">ALEXA</p>
+      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
       <p class="marca-sub">Detalles &amp; Obsequios</p>
       <h1>Panel de la tienda</h1>
       <label class="campo">Correo
@@ -44,7 +44,7 @@
     </form>
 
     <form class="entrar-caja" id="form-configurar" novalidate hidden>
-      <p class="marca">ALEXA</p>
+      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
       <h1>Crea la cuenta de administradora</h1>
       <p class="pista">Todavía no hay ninguna cuenta. La primera persona que la crea es la administradora y después podrá invitar a más gente. Te enviaremos un código por correo para confirmar.</p>
       <label class="campo">Tu nombre
@@ -64,7 +64,7 @@
     </form>
 
     <form class="entrar-caja" id="form-codigo" novalidate hidden>
-      <p class="marca">ALEXA</p>
+      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
       <h1>Escribe tu código</h1>
       <p class="pista" id="codigo-texto">Te enviamos un código de 6 dígitos por correo. Vence en 10 minutos.</p>
       <label class="campo">Código
@@ -76,7 +76,7 @@
     </form>
 
     <form class="entrar-caja" id="form-olvide" novalidate hidden>
-      <p class="marca">ALEXA</p>
+      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
       <h1>Recuperar acceso</h1>
       <p class="pista">Escribe tu correo y te enviamos un enlace para elegir una contraseña nueva. Vence en 30 minutos.</p>
       <label class="campo">Correo
@@ -89,7 +89,7 @@
     </form>
 
     <form class="entrar-caja" id="form-restablecer" novalidate hidden>
-      <p class="marca">ALEXA</p>
+      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
       <h1>Elige tu contraseña nueva</h1>
       <input type="text" name="usuario" autocomplete="username" hidden>
       <label class="campo">Contraseña nueva (mínimo 12 caracteres)
@@ -104,7 +104,7 @@
     </form>
 
     <form class="entrar-caja" id="form-invitacion" novalidate hidden>
-      <p class="marca">ALEXA</p>
+      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
       <h1>Te invitaron al panel</h1>
       <p class="pista" id="invitacion-texto"></p>
       <input type="text" name="usuario" autocomplete="username" hidden>
@@ -130,6 +130,7 @@
         <button type="button" data-ir="productos" aria-current="page">Productos</button>
         <button type="button" data-ir="categorias">Categorías</button>
         <button type="button" data-ir="regalos">Regalos</button>
+        <button type="button" data-ir="estadisticas" data-requiere="estadisticas">Estadísticas</button>
         <button type="button" data-ir="ajustes">Ajustes</button>
       </nav>
       <div class="barra-acciones">
@@ -181,6 +182,19 @@
         </div>
         <p class="nota">Orden de la tienda: <b>Base</b> → <b>Tamaño</b> de esa base → <b>Contenido</b> de ese tamaño → peluches → globos → entrega. Una base sin tamaños, o un tamaño sin contenido, no se muestra.</p>
         <div id="pasos"></div>
+      </section>
+
+      <!-- Estadísticas -->
+      <section id="sec-estadisticas" aria-labelledby="t-estadisticas" hidden>
+        <div class="cabecera"><div><h1 id="t-estadisticas">Estadísticas</h1><p class="suave">Últimos 30 días. Solo cuentan las personas que aceptaron la medición en la tienda; no se guarda IP ni datos personales.</p></div>
+          <button type="button" class="boton suave" id="recargar-stats">Actualizar</button></div>
+        <div class="kpis" id="kpis"></div>
+        <div class="tarjeta grafica"><h2>Visitantes por día <span class="suave">(últimos 14 días)</span></h2><div id="grafica" role="img" aria-label="Gráfica de visitantes por día"></div></div>
+        <div class="dos-col">
+          <div class="tarjeta"><h2>Productos más vistos</h2><ol class="top" id="top-productos"></ol></div>
+          <div class="tarjeta"><h2>Páginas más visitadas</h2><ol class="top" id="top-paginas"></ol></div>
+        </div>
+        <p class="nota" id="nota-stats"></p>
       </section>
 
       <!-- Ajustes -->

@@ -194,3 +194,27 @@ body:not([data-p-catalogo]) :is(#nuevo-producto, #nueva-categoria, #sec-producto
 #sec-usuarios { margin-top: 28px; }
 #sec-usuarios .cabecera { margin-bottom: 12px; }
 #sec-usuarios .cabecera h2 { font-size: 21px; }
+
+.marca-logo{display:block;margin:0 auto -4px}
+.barra-marca::before{content:"";width:26px;height:26px;background:url("/assets/images/logo-mark-vino.svg") center/contain no-repeat;align-self:center;margin-right:2px}
+
+/* Estadísticas */
+body:not([data-p-estadisticas]) [data-requiere="estadisticas"] { display: none; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--tarjeta); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 2px; box-shadow: var(--sombra); }
+.kpi b { font: 500 34px/1.05 var(--serif); color: var(--wine); }
+.kpi span { font-weight: 600; font-size: 13px; }
+.kpi small { color: var(--muted); font-size: 12px; }
+.grafica { align-items: stretch; }
+.grafica h2 .suave { font: 400 13px var(--sans); }
+.svg-grafica { width: 100%; height: auto; display: block; }
+.svg-grafica .eje { stroke: var(--line); stroke-width: 1; }
+.svg-grafica .eje-t { fill: var(--muted); font: 11px var(--sans); }
+.svg-grafica .barra { fill: var(--wine); }
+.svg-grafica .barra:hover { fill: #a3434f; }
+.dos-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.dos-col .tarjeta { margin-bottom: 0; align-items: stretch; }
+.top { list-style: none; margin: 0; padding: 0; width: 100%; display: flex; flex-direction: column; }
+.top li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
+.top li:last-child { border-bottom: 0; }
+.top li span { overflow-wrap: anywhere; } .top li b { color: var(--wine); font-variant-numeric: tabular-nums; }

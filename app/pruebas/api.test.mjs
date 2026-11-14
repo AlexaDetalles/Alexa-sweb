@@ -289,6 +289,35 @@ test('SEO: ficha por producto, sitemap, escape de HTML y caché con purga', asyn
   assert.ok(!(await (await fetch(`${URL_BASE}/sitemap.xml`)).text()).includes(`/producto/${id}<`));
 });
 
+test('medición propia: solo con identificador, anónima y con rutas válidas', async () => {
+  const vista = (cuerpo, ua = 'Mozilla/5.0 (Macintosh) Safari') => fetch(`${URL_BASE}/api/vista`, { method: 'POST', headers: { Origin: URL_BASE, 'Content-Type': 'application/json', 'User-Agent': ua }, body: JSON.stringify(cuerpo) });
+  const vid1 = 'a1b2c3d4-e5f6-4789-a0b1-c2d3e4f5a6b7', vid2 = 'ffeeddcc-bbaa-4988-8776-655443322110';
+  assert.equal((await vista({ vid: vid1, ruta: '/catalogo.html' })).status, 204);
+  assert.equal((await vista({ vid: vid1, ruta: '/catalogo.html' })).status, 204);     // mismo visitante: 2 páginas vistas, 1 visitante
+  assert.equal((await vista({ vid: vid2, ruta: '/producto/PHP-01', producto: 'PHP-01' })).status, 204);
+  await vista({ vid: vid2, evento: 'whatsapp' });
+  await vista({ vid: vid2, evento: 'agregar' });
+  await vista({ evento: 'acepta' }); await vista({ evento: 'acepta' }); await vista({ evento: 'rechaza' });
+  // basura que se descarta sin error
+  await vista({ vid: 'corto', ruta: '/catalogo.html' });                             // identificador inválido
+  await vista({ vid: vid1, ruta: '/ruta/inventada/que/no/existe' });                  // ruta fuera de la lista
+  await vista({ vid: vid1, ruta: '/producto/NO-EXISTE' });                            // producto inexistente
+  await vista({ vid: 'bbbbbbbb-cccc-4ddd-8eee-ffffffffffff', ruta: '/' }, 'Googlebot/2.1'); // robots no cuentan
+  await vista({ evento: 'whatsapp' });                                                // sin identificador: no cuenta
+  assert.equal((await fetch(`${URL_BASE}/api/vista`, { method: 'POST', headers: { Origin: 'https://malo.example', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
+
+  const a = (await llamar('GET', '/api/admin/actividad')).datos;
+  assert.equal(a.visitantes.hoy, 2, 'dos personas distintas (los robots y los inválidos no cuentan)');
+  assert.equal(a.vistas.hoy, 3, 'catálogo x2 + una ficha');
+  assert.deepEqual(a.paginas.map((p) => p.ruta).sort(), ['/catalogo', '/producto/PHP-01']);
+  assert.equal(a.productos[0].id, 'PHP-01');
+  assert.deepEqual([a.whatsapp, a.agregados], [1, 1]);
+  assert.deepEqual(a.consentimiento, { acepta: 2, rechaza: 1, porcentaje: 67 });
+  assert.equal(a.serie.length, 14);
+  // la base no guarda la IP ni el identificador original: solo un código de 32 caracteres que cambia cada día
+  assert.equal((await llamar('GET', '/api/auth/sesion')).datos.sesion.rol, 'admin');
+});
+
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
   const miCookie = cookie;
   const nueva = 'otra-clave-nueva-456';

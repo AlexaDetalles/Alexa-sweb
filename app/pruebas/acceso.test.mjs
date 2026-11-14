@@ -116,6 +116,9 @@ test('invitaciones y rangos: cada una hace solo lo suyo', async () => {
   assert.equal((await ate.llamar('POST', '/api/admin/usuarios', { nombre: 'x', correo: 'x@ejemplo.com', rol: 'admin' })).estado, 403, 'nadie se da rango de administradora');
 
   assert.equal((await lec.llamar('GET', '/api/admin/datos')).estado, 200, 'ver sí');
+  assert.equal((await lec.llamar('GET', '/api/admin/actividad')).estado, 200, 'la supervisora ve estadísticas');
+  assert.equal((await cat.llamar('GET', '/api/admin/actividad')).estado, 403, 'catálogo no ve estadísticas');
+  assert.equal((await ate.llamar('GET', '/api/admin/actividad')).estado, 403);
   for (const [m, r, c] of [['POST', '/api/admin/productos', prod], ['PUT', '/api/admin/ajustes', ajuste], ['POST', '/api/admin/orden', { tabla: 'productos', ids: [] }], ['DELETE', '/api/admin/productos/HP-01']]) {
     assert.equal((await lec.llamar(m, r, c)).estado, 403, `${m} ${r}`);
   }

@@ -22,6 +22,8 @@ app/
 - **SEO**: cada producto tiene su ficha con dirección propia (`/producto/<referencia>`) con título, descripción, Open Graph, datos estructurados (Product y BreadcrumbList) y productos relacionados; `/sitemap.xml` se genera solo con todos los productos visibles; imagen social 1200×630; descripciones únicas por página.
 - **Seguridad**: informe y pendientes en [`SEGURIDAD.md`](SEGURIDAD.md). Cabeceras en `public/_headers`; el catálogo público se cachea 60 s en el borde y se purga al guardar.
 - **Legal**: privacidad, términos y condiciones en la web; guía y pendientes de la titular en [`LEGAL.md`](LEGAL.md).
+- **Píldora de cookies y términos**: pregunta una vez («Aceptar» o «Solo lo necesario»), se puede cambiar desde «Cookies» en el pie y no se mide nada hasta que la persona acepte. La medición es propia (visitantes por día, páginas, productos vistos, clics a WhatsApp) y se ve en el panel → **Estadísticas** (administradora y supervisora).
+- **Logo**: frasco de perfume con destello dorado (`public/assets/images/logo-mark*.svg`, favicon e íconos con `node herramientas/iconos.cjs`).
 - **Loader** de la portada (una vez por visita, solo CSS) y tipografía propia en `public/assets/fonts`.
 
 ## Huella o Face ID
