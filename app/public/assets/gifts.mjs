@@ -1,0 +1,7 @@
+// Propuestas por encargo: las fotografías ilustran la combinación, no el inventario.
+export const PREPARED_GIFTS = [
+  {id:'REG-ELLA-ROSAS',name:'Rosas & Chocolate',group:'PAG',img:'/assets/images/regalo-rosas.webp',description:'Propuesta de caja con rosas y chocolates, terminada con lazo vino. Puedes pedir una dedicatoria y consultar los colores disponibles. Imagen ilustrativa; confirmamos presentación, contenido y precio antes de prepararla.'},
+  {id:'REG-ELLA-ABRAZO',name:'Abrazo Dulce',group:'PAG',img:'/assets/images/regalo-abrazo.webp',description:'Propuesta de caja con un pequeño peluche, chocolates y tarjeta para tu dedicatoria. Ideal para adaptar a un cumpleaños o un detalle espontáneo. Imagen ilustrativa; el modelo de peluche, contenido y precio se confirman por WhatsApp.'},
+  {id:'REG-EL-CAFE',name:'Pausa para Él',group:'PAGH',img:'/assets/images/regalo-cafe.webp',description:'Propuesta de caja con taza, café y chocolates, en tonos oscuros y vino. Añade tu dedicatoria en las notas de la bolsa. Imagen ilustrativa; confirmamos marcas, presentación, disponibilidad y precio por WhatsApp.'},
+  {id:'REG-EL-ESENCIAL',name:'Detalle Esencial',group:'PAGH',img:'/assets/images/regalo-esencial.webp',description:'Propuesta de caja con un detalle de cuidado personal, toalla pequeña y chocolates. Se puede adaptar a sus gustos al conversar con la tienda. Imagen ilustrativa; producto, presentación y precio por confirmar.'}
+].map(p=>({...p,cents:null,quote:true,available:true}));

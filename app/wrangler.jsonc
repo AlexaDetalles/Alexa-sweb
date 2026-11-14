@@ -1,0 +1,38 @@
+// AlexaShop: tienda + panel de administrador en un solo Worker de Cloudflare.
+// Recursos (una sola vez): npx wrangler d1 create alexashop  ·  npx wrangler r2 bucket create alexashop-fotos
+// y pegar el database_id que devuelve el primer comando. Guía completa en LEEME.md.
+{
+  "name": "alexashop",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+    // Solo estas rutas pasan por el Worker; el resto son archivos estáticos.
+    "run_worker_first": ["/api/*", "/fotos/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "BD",
+      "database_name": "alexashop",
+      // REEMPLAZAR por el id real que devuelve `wrangler d1 create alexashop`. En local no hace falta.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migraciones"
+    }
+  ],
+  "r2_buckets": [{ "binding": "FOTOS", "bucket_name": "alexashop-fotos" }],
+  "ratelimits": [
+    { "name": "LIMITE_AUTH", "namespace_id": "3101", "simple": { "limit": 10, "period": 60 } }
+  ],
+  // Cada lunes 6:00 (Honduras): respaldo en R2 y limpieza de papelera y sesiones viejas.
+  "triggers": { "crons": ["0 12 * * 1"] },
+  "vars": {
+    "NOMBRE": "Alexa Detalles",
+    "REMITENTE": "no-responder@alexashop.cc"
+  }
+  // Secretos (npx wrangler secret put <NOMBRE>): FIRMA (32+ caracteres al azar) y, opcional, RESEND_API_KEY.
+}

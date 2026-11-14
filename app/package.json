@@ -1,0 +1,15 @@
+{
+  "name": "alexashop-admin",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "node herramientas/dev.mjs",
+    "migrar:local": "wrangler d1 migrations apply BD --local",
+    "migrar": "wrangler d1 migrations apply BD --remote",
+    "test": "node --test pruebas/*.test.mjs"
+  },
+  "devDependencies": {
+    "wrangler": "4.149.0"
+  }
+}

@@ -1,0 +1,29 @@
+ID (A),IDPaso (B),Categoría (C),Nombre (D),Precio (E),Código (F),Imagen (G)
+BASES,,,,,,
+B1,0,Base,Caja de Madera,0,1,https://i.pinimg.com/736x/9d/41/76/9d4176fd9e0145dcd55a6aaae9c3b71f.jpg
+B2,0,Base,Caja de Cartón,0,2,https://via.placeholder.com/400?text=Caja+Carton
+TAMAÑOS,,,,,,
+T1,1,Tamaño,Madera Pequeña,100,11,https://i.pinimg.com/1200x/de/88/09/de8809aa0888469593af27c07d4b2167.jpg
+T1.5,1,Tamaño,Madera Mediana,200,12,
+T2,1,Tamaño,Madera Grande,300,13,https://via.placeholder.com/400?text=Madera+G
+T3,2,Tamaño,Cartón Pequeño,50,21,https://i.pinimg.com/1200x/de/88/09/de8809aa0888469593af27c07d4b2167.jpg
+,,,,,,
+T4,2,Tamaño,Cartón Grande,150,22,https://via.placeholder.com/400?text=Carton+G
+CONTENIDO,,,,,,
+C1,11,Contenido,Rosas y Chocolates,450,111,https://i.pinimg.com/1200x/de/88/09/de8809aa0888469593af27c07d4b2167.jpg
+C2,11,Contenido,Solo Chocolates,300,112,https://i.pinimg.com/1200x/de/88/09/de8809aa0888469593af27c07d4b2167.jpg
+C3,12,Contenido,Arreglo Floral XL,800,121,https://i.pinimg.com/736x/7b/bb/72/7bbb722f44a4e54b0f150d273ddc4495.jpg
+C4,12,Contenido,Desayuno Sorpresa,600,122,https://i.pinimg.com/736x/7b/bb/72/7bbb722f44a4e54b0f150d273ddc4495.jpg
+C5,21,Contenido,Mini Flores,200,211,https://i.pinimg.com/736x/7b/bb/72/7bbb722f44a4e54b0f150d273ddc4495.jpg
+C6,21,Contenido,Snack Pack,150,212,https://i.pinimg.com/736x/7b/bb/72/7bbb722f44a4e54b0f150d273ddc4495.jpg
+C7,22,Contenido,Ramo de Girasoles,500,221,https://i.pinimg.com/736x/7b/bb/72/7bbb722f44a4e54b0f150d273ddc4495.jpg
+C8,22,Contenido,Mix Dulce,350,222,https://i.pinimg.com/736x/7b/bb/72/7bbb722f44a4e54b0f150d273ddc4495.jpg
+PELUCHES,,,,,,
+P1,ALL,Peluches,Oso Teddy Clásico,250,P01,https://via.placeholder.com/400?text=Oso+Teddy
+P2,ALL,Peluches,Pandita de Felpa,280,P02,https://via.placeholder.com/400?text=Panda
+GLOBOS,,,,,,
+G1,ALL,Globos,"Globo ""Te Amo""",80,G01,https://via.placeholder.com/400?text=Globo+Amor
+G2,ALL,Globos,Globo Cumpleaños,80,G02,https://via.placeholder.com/400?text=Globo+HB
+Delivery,,,,,,
+D1,ALL,Delivery,Retirar en Tienda,0,DO1,https://i.pinimg.com/736x/c2/73/22/c27322f25fc8d4e38433295ce61fe53f.jpg
+D2,ALL,Delivery,Delivery Premium,150,DO2,https://i.pinimg.com/1200x/ef/66/cb/ef66cb89a755025b43a5adfe0d3d779d.jpg
