@@ -37,18 +37,51 @@ $('#menu-toggle')?.addEventListener('click',()=>{
 document.addEventListener('keydown',ev=>{if(ev.key==='Escape'){$('#site-nav')?.classList.remove('open');$('#menu-toggle')?.setAttribute('aria-expanded','false');}});
 
 function persistCart(){save('alexa_bag_v2',cart);updateBagCount();if($('#bag-dialog').open)renderBag();renderProductButtons();}
-function updateBagCount(){const count=Object.values(cart).reduce((a,b)=>a+b,0);$$('[data-bag-count]').forEach(el=>el.textContent=count);}
+function updateBagCount(){
+ const count=Object.values(cart).reduce((a,b)=>a+b,0);
+ $$('[data-bag-count]').forEach(el=>{const changed=el.textContent!==String(count);el.textContent=count;if(changed&&!matchMedia('(prefers-reduced-motion: reduce)').matches){el.classList.add('bump');setTimeout(()=>el.classList.remove('bump'),220);}});
+ updateBagBar(count);
+}
+// Barra flotante con el total (sobre todo para el celular): solo cuando hay algo en la bolsa y no estás armando un regalo.
+let bagBar;
+function updateBagBar(count){
+ if(body.dataset.audience||!$('#bag-dialog'))return;
+ if(!bagBar){bagBar=document.createElement('button');bagBar.type='button';bagBar.className='bag-bar';bagBar.setAttribute('data-open-bag','');bagBar.setAttribute('aria-label','Ver tu bolsa');bagBar.innerHTML='<span><b></b><small></small></span><span class="go">Ver bolsa '+ARROW+'</span>';document.body.append(bagBar);}
+ bagBar.classList.toggle('visible',count>0);
+ if(count>0){$('b',bagBar).textContent=`${count} ${count===1?'artículo':'artículos'} en tu bolsa`;$('small',bagBar).textContent=products.length?cartSummary(cart,products):'Ver tu selección';}
+}
 function changeQty(id,delta){
- const active=document.activeElement,restoreQty=active?.dataset.qty;
+ const active=document.activeElement,restoreQty=active?.closest('#bag-dialog')?active.dataset.qty:null;
  const p=products.find(p=>p.id===id);if(!p || (!p.available&&delta>0))return;
- const next=(cart[id]||0)+delta;if(next>99){toast('Máximo 99 unidades por artículo.');return;}
+ const before=cart[id]||0,next=before+delta;if(next>99){toast('Máximo 99 unidades por artículo.');return;}
  if(next<=0)delete cart[id];else cart[id]=next;
  persistCart();
  if(restoreQty)$$('#bag-dialog [data-qty]').find(b=>b.dataset.id===id&&b.dataset.qty===restoreQty)?.focus({preventScroll:true});
- if(delta>0)toast(`${p.name} · añadido a tu bolsa`);
+ if(!before&&delta>0)toast(`${p.name} · añadido a tu bolsa`);
+}
+const ICON={trash:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M10 7V4.5h4V7m-7 0 1 12h8l1-12"/></svg>',minus:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h12"/></svg>',plus:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg>'};
+const minusLabel=n=>n===1?'Quitar de la bolsa':'Quitar una unidad';
+function slotHTML(p){
+ const n=cart[p.id]||0;
+ if(!p.available)return '<button type="button" class="btn" disabled>No disponible</button>';
+ if(!n)return `<button type="button" class="btn" data-add="${e(p.id)}">${p.quote?'Elegir propuesta':'<span>Añadir<span class="solo-grande"> a la bolsa</span></span>'} ${ARROW}</button>`;
+ return `<div class="stepper" role="group" aria-label="Cantidad de ${e(p.name)} en tu bolsa"><button type="button" data-qty="-1" data-id="${e(p.id)}" aria-label="${minusLabel(n)}">${n===1?ICON.trash:ICON.minus}</button><output aria-live="polite">${n}<small>en bolsa</small></output><button type="button" data-qty="1" data-id="${e(p.id)}" aria-label="Añadir una unidad" ${n>=99?'disabled':''}>${ICON.plus}</button></div>`;
 }
 function renderProductButtons(){
- $$('[data-add]').forEach(b=>{const p=products.find(x=>x.id===b.dataset.add);if(!p)return;b.innerHTML=p.available?`${cart[p.id]?`Añadir otro · ${cart[p.id]} en bolsa`:(p.quote?'Elegir propuesta':'Añadir a la bolsa')} ${ARROW}`:'No disponible';b.disabled=!p.available;});
+ const active=document.activeElement;
+ $$('.add-slot').forEach(slot=>{
+  const p=products.find(x=>x.id===slot.dataset.slot);if(!p)return;
+  const n=cart[p.id]||0,stepper=slot.querySelector('.stepper');
+  // Mientras siga habiendo unidades, se actualiza el selector sin recrearlo (así no pierde el foco ni parpadea).
+  if(stepper&&n>0&&p.available){
+   const out=stepper.querySelector('output'),minus=stepper.querySelector('[data-qty="-1"]'),plus=stepper.querySelector('[data-qty="1"]');
+   out.firstChild.textContent=n;minus.innerHTML=n===1?ICON.trash:ICON.minus;minus.setAttribute('aria-label',minusLabel(n));plus.disabled=n>=99;return;
+  }
+  const state=`${n}|${p.available}|${p.quote}`;if(slot.dataset.state===state)return;
+  const hadFocus=slot.contains(active);
+  slot.dataset.state=state;slot.innerHTML=slotHTML(p);
+  if(hadFocus)(slot.querySelector('[data-qty="1"]')||slot.querySelector('[data-add]'))?.focus({preventScroll:true});
+ });
 }
 function renderBag(){
  const list=$('#bag-content');
@@ -70,7 +103,7 @@ function renderBag(){
 
 function openProduct(id){
  const p=products.find(p=>p.id===id);if(!p)return;
- $('#product-content').innerHTML=`<div class="product-detail"><img src="${e(p.img)}" alt="${e(p.name)}"><div class="product-detail-copy"><p class="product-group">${e(groupNames[p.group]||'')}</p><h2 id="product-title">${e(p.name)}</h2><p>${e(p.description||'Te ayudamos a confirmar presentación, medidas y detalles de este artículo por WhatsApp.')}</p><p class="price">${p.quote?'Cotizar por WhatsApp':money(p.cents)}</p><p class="fine-print">Referencia ${e(p.id)} · ${p.quote?'Propuesta por encargo · imagen ilustrativa':p.available?'Disponible para consultar':'Actualmente no disponible'}</p><button type="button" class="btn" data-add="${e(p.id)}" ${!p.available?'disabled':''}>Añadir a la bolsa ${ARROW}</button><p class="fine-print" style="margin-top:20px">Precio sujeto a confirmación. Consulta tallas, colores y presentación antes de confirmar tu pedido.</p></div></div>`;
+ $('#product-content').innerHTML=`<div class="product-detail"><img src="${e(p.img)}" alt="${e(p.name)}"><div class="product-detail-copy"><p class="product-group">${e(groupNames[p.group]||'')}</p><h2 id="product-title">${e(p.name)}</h2><p>${e(p.description||'Te ayudamos a confirmar presentación, medidas y detalles de este artículo por WhatsApp.')}</p><p class="price">${p.quote?'Cotizar por WhatsApp':money(p.cents)}</p><p class="fine-print">Referencia ${e(p.id)} · ${p.quote?'Propuesta por encargo · imagen ilustrativa':p.available?'Disponible para consultar':'Actualmente no disponible'}</p><div class="add-slot" data-slot="${e(p.id)}"></div><p class="fine-print" style="margin-top:20px">Precio sujeto a confirmación. Consulta tallas, colores y presentación antes de confirmar tu pedido.</p></div></div>`;
  prepareImages($('#product-content'));openDialog($('#product-dialog'));renderProductButtons();
 }
 
@@ -85,7 +118,7 @@ function renderCatalog(){
   const filteredByText=Boolean(q);
   grid.innerHTML=`<div class="empty-state"><h2>${filteredByText?'No encontramos ese favorito.':'Esta colección se está preparando.'}</h2><p>${filteredByText?'Prueba otro nombre o cambia los filtros para seguir explorando.':'Podemos ayudarte a elegir por WhatsApp. Mientras tanto, descubre nuestros perfumes y accesorios o crea tu propio regalo.'}</p>${filteredByText?'<button type="button" class="btn secondary" id="clear-search">Limpiar búsqueda</button>':'<a class="btn" href="/redes.html">Consultar disponibilidad '+ARROW+'</a> <a class="text-link" href="/Detalles/indexforhm.html">Crear un regalo '+ARROW+'</a>'}</div>`;
   $('#clear-search')?.addEventListener('click',()=>{$('#product-search').value='';$('#category-filter').value=body.dataset.groups||'';renderCatalog();$('#product-search').focus();});
- }else grid.innerHTML=filtered.slice(0,visibleCount).map(p=>`<article class="product-card"><button class="product-image" type="button" data-product="${e(p.id)}" aria-label="Ver detalles de ${e(p.name)}"><img src="${e(p.thumb||p.img)}" alt="${e(p.name)}" width="400" height="480" loading="lazy" decoding="async">${p.quote?'<span class="availability">Por encargo · imagen ilustrativa</span>':!p.available?'<span class="availability">No disponible</span>':''}</button><p class="product-group">${e(groupNames[p.group]||'')}</p><h2><button class="product-name-button" type="button" data-product="${e(p.id)}">${e(p.name)}</button></h2><p class="price">${p.quote?'Cotizar por WhatsApp':money(p.cents)}</p><button type="button" class="btn" data-add="${e(p.id)}" ${!p.available?'disabled':''}>Añadir a la bolsa ${ARROW}</button></article>`).join('');
+ }else grid.innerHTML=filtered.slice(0,visibleCount).map(p=>`<article class="product-card"><button class="product-image" type="button" data-product="${e(p.id)}" aria-label="Ver detalles de ${e(p.name)}"><img src="${e(p.thumb||p.img)}" alt="${e(p.name)}" width="400" height="480" loading="lazy" decoding="async">${p.quote?'<span class="availability">Por encargo · imagen ilustrativa</span>':!p.available?'<span class="availability">No disponible</span>':''}</button><p class="product-group">${e(groupNames[p.group]||'')}</p><h2><button class="product-name-button" type="button" data-product="${e(p.id)}">${e(p.name)}</button></h2><p class="price">${p.quote?'Cotizar por WhatsApp':money(p.cents)}</p><div class="add-slot" data-slot="${e(p.id)}"></div></article>`).join('');
  $('#load-more').hidden=filtered.length<=visibleCount;prepareImages(grid);renderProductButtons();
 }
 if($('#product-grid')){
@@ -209,6 +242,7 @@ async function refreshData(){
  }
 }
 async function init(){
+ $$('.bag-button').forEach(b=>{const s=b.querySelector(':scope > span');if(s)s.innerHTML='<span class="bag-label">Bolsa</span> <span data-bag-count>0</span>';});
  prepareImages();updateBagCount();
  if(await loadFromApi())return;
  try{
