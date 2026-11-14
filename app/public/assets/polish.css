@@ -226,3 +226,34 @@ dialog::backdrop{background:#150b0ecc;backdrop-filter:blur(5px)}
   .toast{bottom:84px}
 }
 @media(prefers-reduced-motion:reduce){.stepper{animation:none}.bag-bar{transition:none}.skeleton{animation:none}.product-card:hover,.option:hover{transform:none}}
+
+/* ---- Ficha de producto (/producto/…) ---- */
+.product-intro{padding-bottom:6px;background:none}.product-intro:after{display:none}
+.product-page{padding:6px var(--gutter) 60px}
+.ficha{max-width:1100px;margin:0 auto;padding:0;gap:44px;align-items:start}
+.ficha>img{aspect-ratio:4/4.8;object-fit:contain;padding:18px;border-radius:var(--r);background:linear-gradient(180deg,#faf5ec,#f1e8da);mix-blend-mode:normal;width:100%;height:auto}
+.ficha h1{font:500 clamp(34px,4.2vw,56px)/1.05 var(--serif);margin:8px 0 14px}
+.ficha .product-group a{color:var(--wine)}
+.ficha-desc{line-height:1.7;color:var(--ink);margin:20px 0 14px;max-width:56ch}
+.ficha .add-slot{max-width:360px}
+.related{max-width:1100px;margin:64px auto 0}.related h2{font:500 clamp(28px,3vw,40px) var(--serif);margin-bottom:20px}
+.related-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px}
+.related-card{display:flex;flex-direction:column;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px;box-shadow:var(--shadow);transition:transform .3s var(--ease)}
+.related-card:hover{transform:translateY(-3px)}.related-card img{aspect-ratio:4/4.8;object-fit:contain;width:100%;border-radius:10px;background:linear-gradient(180deg,#faf5ec,#f1e8da);mix-blend-mode:multiply}
+.related-card span{font:500 17px/1.2 var(--serif)}.related-card b{color:var(--wine);font-size:14px}
+@media(max-width:800px){.ficha{grid-template-columns:1fr;gap:22px}.related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---- Loader de la portada (solo CSS; una vez por visita) ---- */
+.loader{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:radial-gradient(700px 420px at 50% 45%,#782f3a66,transparent 70%),var(--night);animation:loader-out .55s ease 1.2s forwards}
+.splash-visto .loader{display:none}
+.loader-mark{display:flex;flex-direction:column;align-items:center;gap:14px;color:#f7ead7}
+.loader-name{font:500 clamp(46px,9vw,84px)/1 var(--serif);letter-spacing:.24em;padding-left:.24em;opacity:0;animation:loader-in .7s var(--ease) .05s forwards}
+.loader-line{display:block;height:2px;width:clamp(110px,22vw,200px);background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:scaleX(0);animation:loader-line .8s var(--ease) .35s forwards}
+.loader-mark small{font-size:10px;letter-spacing:.38em;opacity:0;animation:loader-in .6s ease .65s forwards}
+@keyframes loader-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes loader-line{to{transform:scaleX(1)}}
+@keyframes loader-out{to{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){.loader{display:none}}
+
+/* ---- Rendimiento: las tarjetas fuera de pantalla no se pintan hasta que se acercan ---- */
+.product-card{content-visibility:auto;contain-intrinsic-size:auto 470px}

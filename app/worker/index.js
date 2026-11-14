@@ -2,12 +2,15 @@
 // Todo lo demás son los archivos estáticos de public/ (la tienda y /admin).
 import { ErrorApi, falla, json } from './util.js';
 import { rutasAuth } from './auth.js';
-import { rutasAdmin, catalogo, regalos, servirFoto, mantenimiento } from './datos.js';
+import { rutasAdmin, catalogo, regalos, servirFoto, mantenimiento, conCache, purgarCache } from './datos.js';
+import { sitemap, paginaProducto } from './seo.js';
 
 const CABECERAS = {
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'no-referrer',
   'X-Frame-Options': 'DENY',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
+  'Permissions-Policy': 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
 };
 function conCabeceras(resp) {
   const r = new Response(resp.body, resp);
@@ -33,12 +36,18 @@ async function dentroDelLimite(req, limite, env) {
 
 async function api(req, env, ruta, ctx) {
   // Contra ataques desde otros sitios (CSRF): toda escritura debe venir de esta misma web.
-  if (req.method !== 'GET' && req.headers.get('Origin') !== new URL(req.url).origin) falla(403, 'Origen no permitido.');
-  if (req.method === 'GET' && ruta === 'catalogo') return catalogo(env);
-  if (req.method === 'GET' && ruta.startsWith('regalos/')) return regalos(env, ruta.slice(8));
+  const lectura = ['GET', 'HEAD'].includes(req.method);
+  if (!lectura && req.headers.get('Origin') !== new URL(req.url).origin) falla(403, 'Origen no permitido.');
+  // Lecturas públicas: caché de 60 s en el borde (protege la base de abuso y de picos); el panel la borra al guardar.
+  if (lectura && ruta === 'catalogo') return conCache('catalogo', () => catalogo(env));
+  if (lectura && ruta.startsWith('regalos/')) return conCache(ruta, () => regalos(env, ruta.slice(8)));
   if (req.method === 'POST' && /^auth\/(entrar|configurar|confirmar|recuperar|restablecer|invitacion-aceptar|huella\/opciones-entrar|huella\/entrar)$/.test(ruta) && !(await dentroDelLimite(req, env.LIMITE_AUTH, env))) falla(429, 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.');
   if (ruta.startsWith('auth/')) return rutasAuth(req, env, ruta.slice(5), await leerJson(req), ctx);
-  if (ruta.startsWith('admin/')) return rutasAdmin(req, env, ruta.slice(6), ruta === 'admin/fotos' ? {} : await leerJson(req), ctx);
+  if (ruta.startsWith('admin/')) {
+    const resp = await rutasAdmin(req, env, ruta.slice(6), ruta === 'admin/fotos' ? {} : await leerJson(req), ctx);
+    if (!lectura) await purgarCache();
+    return resp;
+  }
   return falla(404, 'Ruta no encontrada.');
 }
 
@@ -47,7 +56,14 @@ export default {
     const { pathname } = new URL(req.url);
     try {
       if (pathname.startsWith('/api/')) return conCabeceras(await api(req, env, pathname.slice(5), ctx));
+      if (pathname === '/sitemap.xml' && ['GET', 'HEAD'].includes(req.method)) return conCabeceras(await sitemap(env));
+      if (pathname.startsWith('/producto/') && ['GET', 'HEAD'].includes(req.method)) return conCabeceras(await paginaProducto(req, env, decodeURIComponent(pathname.slice(10)).replace(/\/$/, '')));
       if (pathname.startsWith('/fotos/') && req.method === 'GET') return conCabeceras(await servirFoto(env, decodeURIComponent(pathname.slice(7))));
+      // Las direcciones con «.html» se sirven tal cual (sin redirección 307), para que coincidan con el canonical y el sitemap.
+      if (pathname.endsWith('.html') && ['GET', 'HEAD'].includes(req.method)) {
+        const limpia = pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
+        return conCabeceras(await env.ASSETS.fetch(new Request(new URL(limpia + new URL(req.url).search, req.url), req)));
+      }
       return env.ASSETS.fetch(req);
     } catch (e) {
       if (e instanceof ErrorApi) return conCabeceras(json({ error: e.message }, e.estado));

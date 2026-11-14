@@ -4,7 +4,7 @@ import {GROUPS,completeOptions,money,escapeHTML as e,fold,parseProducts,parseOpt
 const $ = (s,root=document) => root.querySelector(s);
 const $$ = (s,root=document) => [...root.querySelectorAll(s)];
 const ARROW = '<svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg>';
-let storageWorks=true,products=[],options=[],draft={},sources,visibleCount=24;
+let storageWorks=true,products=[],options=[],draft={},visibleCount=24;
 // Datos que llegan del panel de administración (/api). Si la API no responde, se usan las copias CSV de siempre.
 let advisors=[{nombre:'asesora 1',whatsapp:'50497320939'},{nombre:'asesora 2',whatsapp:'50499226664'}],groupNames={...GROUPS},categoryTree=null,fromApi=false;
 const body=document.body, audience=body.dataset.audience,step=body.dataset.step;
@@ -27,7 +27,7 @@ document.addEventListener('click',event=>{
  const add=event.target.closest('[data-add]');if(add){changeQty(add.dataset.add,1);}
  const qty=event.target.closest('[data-qty]');if(qty)changeQty(qty.dataset.id,Number(qty.dataset.qty));
  const remove=event.target.closest('[data-remove]');if(remove){delete cart[remove.dataset.remove];persistCart();$('#bag-dialog [data-remove]')?.focus({preventScroll:true});if(!Object.keys(cart).length)$('#bag-dialog [data-close]')?.focus();}
- const detail=event.target.closest('[data-product]');if(detail)openProduct(detail.dataset.product);
+ const detail=event.target.closest('[data-product]');if(detail){event.preventDefault();openProduct(detail.dataset.product);}
  const pick=event.target.closest('[data-pick]');if(pick)selectGift(pick.dataset.pick);
  const retry=event.target.closest('[data-retry]');if(retry)refreshData();
 });
@@ -103,7 +103,7 @@ function renderBag(){
 
 function openProduct(id){
  const p=products.find(p=>p.id===id);if(!p)return;
- $('#product-content').innerHTML=`<div class="product-detail"><img src="${e(p.img)}" alt="${e(p.name)}"><div class="product-detail-copy"><p class="product-group">${e(groupNames[p.group]||'')}</p><h2 id="product-title">${e(p.name)}</h2><p>${e(p.description||'Te ayudamos a confirmar presentación, medidas y detalles de este artículo por WhatsApp.')}</p><p class="price">${p.quote?'Cotizar por WhatsApp':money(p.cents)}</p><p class="fine-print">Referencia ${e(p.id)} · ${p.quote?'Propuesta por encargo · imagen ilustrativa':p.available?'Disponible para consultar':'Actualmente no disponible'}</p><div class="add-slot" data-slot="${e(p.id)}"></div><p class="fine-print" style="margin-top:20px">Precio sujeto a confirmación. Consulta tallas, colores y presentación antes de confirmar tu pedido.</p></div></div>`;
+ $('#product-content').innerHTML=`<div class="product-detail"><img src="${e(p.img)}" alt="${e(p.name)}"><div class="product-detail-copy"><p class="product-group">${e(groupNames[p.group]||'')}</p><h2 id="product-title">${e(p.name)}</h2><p>${e(p.description||'Te ayudamos a confirmar presentación, medidas y detalles de este artículo por WhatsApp.')}</p><p class="price">${p.quote?'Cotizar por WhatsApp':money(p.cents)}</p><p class="fine-print">Referencia ${e(p.id)} · ${p.quote?'Propuesta por encargo · imagen ilustrativa':p.available?'Disponible para consultar':'Actualmente no disponible'}</p><div class="add-slot" data-slot="${e(p.id)}"></div><p class="fine-print" style="margin-top:20px">Precio sujeto a confirmación. Consulta tallas, colores y presentación antes de confirmar tu pedido. <a href="/producto/${encodeURIComponent(p.id)}">Ver ficha completa</a></p></div></div>`;
  prepareImages($('#product-content'));openDialog($('#product-dialog'));renderProductButtons();
 }
 
@@ -118,7 +118,7 @@ function renderCatalog(){
   const filteredByText=Boolean(q);
   grid.innerHTML=`<div class="empty-state"><h2>${filteredByText?'No encontramos ese favorito.':'Esta colección se está preparando.'}</h2><p>${filteredByText?'Prueba otro nombre o cambia los filtros para seguir explorando.':'Podemos ayudarte a elegir por WhatsApp. Mientras tanto, descubre nuestros perfumes y accesorios o crea tu propio regalo.'}</p>${filteredByText?'<button type="button" class="btn secondary" id="clear-search">Limpiar búsqueda</button>':'<a class="btn" href="/redes.html">Consultar disponibilidad '+ARROW+'</a> <a class="text-link" href="/Detalles/indexforhm.html">Crear un regalo '+ARROW+'</a>'}</div>`;
   $('#clear-search')?.addEventListener('click',()=>{$('#product-search').value='';$('#category-filter').value=body.dataset.groups||'';renderCatalog();$('#product-search').focus();});
- }else grid.innerHTML=filtered.slice(0,visibleCount).map(p=>`<article class="product-card"><button class="product-image" type="button" data-product="${e(p.id)}" aria-label="Ver detalles de ${e(p.name)}"><img src="${e(p.thumb||p.img)}" alt="${e(p.name)}" width="400" height="480" loading="lazy" decoding="async">${p.quote?'<span class="availability">Por encargo · imagen ilustrativa</span>':!p.available?'<span class="availability">No disponible</span>':''}</button><p class="product-group">${e(groupNames[p.group]||'')}</p><h2><button class="product-name-button" type="button" data-product="${e(p.id)}">${e(p.name)}</button></h2><p class="price">${p.quote?'Cotizar por WhatsApp':money(p.cents)}</p><div class="add-slot" data-slot="${e(p.id)}"></div></article>`).join('');
+ }else grid.innerHTML=filtered.slice(0,visibleCount).map(p=>`<article class="product-card"><button class="product-image" type="button" data-product="${e(p.id)}" aria-label="Ver detalles de ${e(p.name)}"><img src="${e(p.thumb||p.img)}" alt="${e(p.name)}" width="400" height="480" loading="lazy" decoding="async">${p.quote?'<span class="availability">Por encargo · imagen ilustrativa</span>':!p.available?'<span class="availability">No disponible</span>':''}</button><p class="product-group">${e(groupNames[p.group]||'')}</p><h2><a class="product-name-button" href="/producto/${encodeURIComponent(p.id)}" data-product="${e(p.id)}">${e(p.name)}</a></h2><p class="price">${p.quote?'Cotizar por WhatsApp':money(p.cents)}</p><div class="add-slot" data-slot="${e(p.id)}"></div></article>`).join('');
  $('#load-more').hidden=filtered.length<=visibleCount;prepareImages(grid);renderProductButtons();
 }
 if($('#product-grid')){
@@ -226,28 +226,16 @@ async function loadFromApi(){
  }catch{fromApi=false;return false;}
 }
 async function refreshData(){
- if(fromApi){await loadFromApi();return;}
- if(!sources)return;
  updateDataStatus('Comprobando inventario…');
- const results=await Promise.allSettled([fetchText(sources.urls.catalog),...(audience?[fetchText(sources.urls[audience])]:[])]);
- const catalog=results[0];
- if(catalog.status==='fulfilled'){
-  const p=parseProducts(catalog.value);
-  if(p.length){acceptCatalog(p);updateDataStatus('Inventario actualizado · precio y disponibilidad se confirman por WhatsApp.');}
-  else updateDataStatus('No pudimos validar la actualización. Mostramos la última copia del catálogo; confirma disponibilidad.');
- }else updateDataStatus('Mostramos la última copia del catálogo. Confirma precios y disponibilidad por WhatsApp.');
- if(audience&&(results[1]?.status!=='fulfilled'||!parseOptions(results[1].value).length))updateDataStatus('Personalización con copia guardada · confirma opciones, precios y disponibilidad por WhatsApp.');
- if(audience&&results[1]?.status==='fulfilled'){
-  const o=parseOptions(results[1].value);if(o.length&&JSON.stringify(o)!==JSON.stringify(options)){options=o;draft=sanitizeDraft(draft,options);saveDraft();renderGift();}
- }
+ if(!(await loadFromApi()))updateDataStatus('Mostramos la última copia del catálogo. Confirma precios y disponibilidad por WhatsApp.');
 }
 async function init(){
  $$('.bag-button').forEach(b=>{const s=b.querySelector(':scope > span');if(s)s.innerHTML='<span class="bag-label">Bolsa</span> <span data-bag-count>0</span>';});
  prepareImages();updateBagCount();
  if(await loadFromApi())return;
  try{
-  const [catalog,config,...gift]=await Promise.all([fetchText('/assets/data/catalog.csv'),fetch('/assets/data/sources.json').then(r=>{if(!r.ok)throw new Error('config');return r.json();}),...(audience?[fetchText(`/assets/data/${audience}.csv`)]:[])]);
-  sources=config;acceptCatalog(parseProducts(catalog));
+  const [catalog,...gift]=await Promise.all([fetchText('/assets/data/catalog.csv'),...(audience?[fetchText(`/assets/data/${audience}.csv`)]:[])]);
+  acceptCatalog(parseProducts(catalog));
   if(audience){options=parseOptions(gift[0]);draft=sanitizeDraft(read(draftKey,{}),options);renderGift();}
   updateDataStatus('Catálogo de referencia · confirmamos precio y disponibilidad por WhatsApp.');
   refreshData();

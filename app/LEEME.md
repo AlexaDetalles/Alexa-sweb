@@ -18,6 +18,12 @@ app/
 - **Ajustes**: WhatsApp de las asesoras y cambio de contraseña.
 - **Usuarios y rangos** (solo administradora): invitar por correo, cambiar rango, desactivar. Rangos: Administradora (todo), Encargada de Catálogo (productos, categorías y regalos), Encargada de Atención (WhatsApp de asesoras) y Supervisora (solo lectura). El servidor valida el rango en cada llamada.
 
+## SEO, seguridad y legal
+- **SEO**: cada producto tiene su ficha con dirección propia (`/producto/<referencia>`) con título, descripción, Open Graph, datos estructurados (Product y BreadcrumbList) y productos relacionados; `/sitemap.xml` se genera solo con todos los productos visibles; imagen social 1200×630; descripciones únicas por página.
+- **Seguridad**: informe y pendientes en [`SEGURIDAD.md`](SEGURIDAD.md). Cabeceras en `public/_headers`; el catálogo público se cachea 60 s en el borde y se purga al guardar.
+- **Legal**: privacidad, términos y condiciones en la web; guía y pendientes de la titular en [`LEGAL.md`](LEGAL.md).
+- **Loader** de la portada (una vez por visita, solo CSS) y tipografía propia en `public/assets/fonts`.
+
 ## Huella o Face ID
 Se activa **después de entrar con contraseña** (aviso al entrar o Ajustes → Huella o Face ID) y desde entonces aparece «Entrar con huella o Face ID» en la pantalla de acceso. Usa passkeys (WebAuthn), atadas al dominio donde se activaron (`alexashop.cc`). Cada persona puede tener hasta 10 dispositivos y quitarlos desde Ajustes. Requiere Chrome 129+, Safari 18.4+ o Firefox 119+.
 

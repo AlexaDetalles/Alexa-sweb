@@ -251,6 +251,44 @@ test('ajustes de contacto', async () => {
   assert.equal((await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.asesoras.length, 1, 'sin número no hay botón');
 });
 
+test('SEO: ficha por producto, sitemap, escape de HTML y caché con purga', async () => {
+  // HEAD se trata como lectura
+  const cab = await fetch(`${URL_BASE}/api/catalogo`, { method: 'HEAD' });
+  assert.equal(cab.status, 200);
+
+  // ficha pública con título, canonical, Open Graph y datos estructurados
+  const ficha = await (await fetch(`${URL_BASE}/producto/PHP-01`)).text();
+  assert.match(ficha, /<title>Valentino Born in Roma Eau de Toilette · Premium para él \| ALEXA<\/title>/);
+  assert.match(ficha, /<link rel="canonical" href="https:\/\/alexashop\.cc\/producto\/PHP-01">/);
+  assert.match(ficha, /"@type":"Product"/);
+  assert.match(ficha, /"priceCurrency":"HNL","price":"4600\.00"/);
+  assert.match(ficha, /"@type":"BreadcrumbList"/);
+  assert.match(ficha, /data-slot="PHP-01"/);
+  assert.match(ficha, /También te puede gustar/);
+  assert.ok(!ficha.includes('%%'), 'no quedan marcas de la plantilla');
+
+  // un nombre malicioso no puede inyectar HTML ni cerrar el bloque de datos estructurados
+  const peligro = '<script>alert(1)</script></script><img src=x onerror=alert(2)>';
+  const id = (await llamar('POST', '/api/admin/productos', { nombre: peligro, categoria_id: 'HP', precio: 10, descripcion: peligro })).datos.id;
+  const html = await (await fetch(`${URL_BASE}/producto/${id}`)).text();
+  assert.ok(!html.includes('<script>alert(1)'), 'sin script inyectado');
+  assert.ok(!/<img src=x onerror/.test(html), 'sin etiqueta inyectada');
+  assert.ok(html.includes('&lt;script&gt;alert(1)&lt;/script&gt;'), 'el texto se muestra escapado');
+
+  // caché: el cambio hecho en el panel se ve al instante en el catálogo público
+  await llamar('PUT', `/api/admin/productos/${id}`, { nombre: 'Nombre nuevo' });
+  assert.equal((await (await fetch(`${URL_BASE}/api/catalogo`)).json()).productos.find((p) => p.id === id).name, 'Nombre nuevo');
+
+  // oculto o inexistente: 404 y fuera del sitemap
+  const sm = await (await fetch(`${URL_BASE}/sitemap.xml`)).text();
+  assert.match(sm, new RegExp(`<loc>https://alexashop\\.cc/producto/${id}</loc>`));
+  assert.match(sm, /<loc>https:\/\/alexashop\.cc\/catalogo\.html<\/loc>/);
+  await llamar('PUT', `/api/admin/productos/${id}`, { visible: false });
+  assert.equal((await fetch(`${URL_BASE}/producto/${id}`)).status, 404);
+  assert.equal((await fetch(`${URL_BASE}/producto/NO-EXISTE`)).status, 404);
+  assert.ok(!(await (await fetch(`${URL_BASE}/sitemap.xml`)).text()).includes(`/producto/${id}<`));
+});
+
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
   const miCookie = cookie;
   const nueva = 'otra-clave-nueva-456';
