@@ -167,6 +167,14 @@ function buildCategorySelect(){
  sel.innerHTML=opt('','Todas las colecciones')+roots.map(r=>{const k=kids(r.id);return (k.length?opt([r.id,...k.map(x=>x.id)].join(','),r.nombre):opt(r.id,r.nombre))+k.map(x=>opt(x.id,x.nombre,true)).join('');}).join('');
  const cat=new URLSearchParams(location.search).get('categoria');if(cat&&$$('#category-filter option').some(o=>o.value===cat))sel.value=cat;
 }
+// Datos estructurados para buscadores: los productos con precio fijo aparecen como lista de productos.
+function injectProductsLD(list){
+ if(!$('#product-grid'))return;
+ const items=list.filter(p=>p.available&&!p.quote&&Number.isInteger(p.cents)).slice(0,60).map((p,i)=>({'@type':'ListItem',position:i+1,item:{'@type':'Product',name:p.name,sku:p.id,description:p.description||undefined,image:new URL(p.img,location.origin).href,offers:{'@type':'Offer',priceCurrency:'HNL',price:(p.cents/100).toFixed(2),availability:'https://schema.org/InStock',url:location.origin+'/catalogo.html'}}}));
+ if(!items.length)return;
+ let el=$('#ld-productos');if(!el){el=document.createElement('script');el.type='application/ld+json';el.id='ld-productos';document.head.append(el);}
+ el.textContent=JSON.stringify({'@context':'https://schema.org','@type':'ItemList',itemListElement:items}).replace(/</g,'\\u003c');
+}
 async function fetchJSON(url){const c=new AbortController(),timer=setTimeout(()=>c.abort(),7000);try{const r=await fetch(url,{signal:c.signal,cache:'no-cache'});if(!r.ok)throw new Error('API');return await r.json();}finally{clearTimeout(timer);}}
 // Catálogo y regalos desde el panel. Devuelve false si la API no está disponible (entonces se usan los CSV).
 async function loadFromApi(){
@@ -177,6 +185,7 @@ async function loadFromApi(){
   const adv=(cat.asesoras||[]).filter(a=>/^\d{10,15}$/.test(a.whatsapp)).map(a=>({nombre:String(a.nombre).slice(0,40),whatsapp:a.whatsapp}));
   if(adv.length)advisors=adv;
   buildCategorySelect();
+  injectProductsLD(cat.productos);
   acceptCatalog(cat.productos.filter(p=>p.id&&p.name&&(p.quote||Number.isInteger(p.cents))));
   if(audience){options=completeOptions(gift.opciones);draft=sanitizeDraft(read(draftKey,{}),options);renderGift();}
   updateDataStatus('Catálogo al día · precio y disponibilidad se confirman por WhatsApp.');

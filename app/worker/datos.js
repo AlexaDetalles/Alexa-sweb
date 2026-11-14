@@ -1,6 +1,6 @@
 // Datos de la tienda: lectura pública, escritura del panel, fotos en R2 y mantenimiento semanal.
 import { falla, json, fechaSql, diaHonduras } from './util.js';
-import { exigirSesion } from './auth.js';
+import { exigirSesion, exigirPermiso, rutasUsuarios } from './auth.js';
 import * as V from './validacion.js';
 import { completeOptions } from '../public/assets/core.mjs';
 
@@ -249,10 +249,13 @@ async function ordenar(env, d) {
 }
 
 // --- rutas /api/admin/* (todas exigen sesión) -----------------------------------------
-export async function rutasAdmin(req, env, ruta, d) {
-  await exigirSesion(req, env);
+export async function rutasAdmin(req, env, ruta, d, ctx) {
+  const s = await exigirSesion(req, env);
   const m = req.method;
   const [recurso, id, accion] = ruta.split('/').map(decodeURIComponent);
+  if (recurso === 'usuarios' || recurso === 'invitaciones') return rutasUsuarios(req, env, [recurso, id], d, s, ctx);
+  // Rangos: leer lo puede toda cuenta; cambiar el catálogo, solo administradora y encargada de catálogo; los ajustes, administradora y encargada de atención.
+  if (m !== 'GET') exigirPermiso(s, recurso === 'ajustes' ? 'ajustes' : 'catalogo');
 
   if (m === 'GET' && recurso === 'datos') {
     const [cats, prods, ops, aj] = await env.BD.batch([
@@ -324,6 +327,7 @@ export async function mantenimiento(env) {
   const ahora = fechaSql();
   await env.BD.batch([
     env.BD.prepare('DELETE FROM sesiones WHERE expira < ?').bind(ahora),
+    env.BD.prepare('DELETE FROM codigos WHERE expira < ?').bind(ahora),
     env.BD.prepare('DELETE FROM intentos WHERE bloqueado_hasta IS NOT NULL AND bloqueado_hasta < ?').bind(ahora),
   ]);
   return { respaldo: `respaldos/${diaHonduras()}.json`, papelera: papelera.length, huerfanas: huerfanas.length };

@@ -15,7 +15,7 @@ const DEBILES = new Set(['123456', '1234567', '12345678', '123456789', '12345678
 if (!/^[^\s@']+@[^\s@']+\.[^\s@']+$/.test(correo || '')) throw new Error('Escribe un correo válido.');
 if (demo && remoto) throw new Error('--demo es solo para la base local: en la base real la contraseña debe ser larga y no común.');
 if (!demo) {
-  if (clave.length < 10) throw new Error('La contraseña (variable CLAVE) debe tener al menos 10 caracteres.');
+  if (clave.length < 12) throw new Error('La contraseña (variable CLAVE) debe tener al menos 12 caracteres.');
   if (DEBILES.has(clave.toLowerCase())) throw new Error('Esa contraseña es demasiado común. Usa otra, larga.');
 } else if (!clave) throw new Error('Falta la variable CLAVE.');
 

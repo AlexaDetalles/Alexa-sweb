@@ -32,7 +32,9 @@
   "triggers": { "crons": ["0 12 * * 1"] },
   "vars": {
     "NOMBRE": "Alexa Detalles",
-    "REMITENTE": "no-responder@alexashop.cc"
+    "REMITENTE": "no-responder@alexashop.cc",
+    // Dirección pública del panel: los enlaces de los correos se arman con ella. Cámbiala a https://alexashop.cc cuando el dominio ya apunte al Worker.
+    "SITIO": "https://alexashop.gvayoy.workers.dev"
   }
-  // Secretos (npx wrangler secret put <NOMBRE>): FIRMA (32+ caracteres al azar) y, opcional, RESEND_API_KEY.
+  // Secretos (npx wrangler secret put <NOMBRE>): FIRMA (32+ caracteres al azar), RESEND_API_KEY (correos) y ADMIN_EMAIL (el único correo que puede crear la cuenta principal si la base no tiene usuarios).
 }

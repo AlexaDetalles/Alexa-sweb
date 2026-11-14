@@ -25,7 +25,7 @@
     <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
   </svg>
 
-  <!-- Entrar -->
+  <!-- Entrar: una sola pantalla con varias "cajas"; el panel muestra la que toca -->
   <main class="entrar" id="vista-entrar" hidden>
     <form class="entrar-caja" id="form-entrar" novalidate>
       <p class="marca">ALEXA</p>
@@ -39,7 +39,85 @@
       </label>
       <p class="error" id="error-entrar" role="alert" hidden></p>
       <button class="boton" type="submit">Entrar</button>
-      <p class="pista">¿No puedes entrar? Pídele a KROMBYTE que te restablezca la contraseña.</p>
+      <button type="button" class="enlace" data-modo="olvide">¿Olvidaste tu contraseña?</button>
+    </form>
+
+    <form class="entrar-caja" id="form-configurar" novalidate hidden>
+      <p class="marca">ALEXA</p>
+      <h1>Crea la cuenta de administradora</h1>
+      <p class="pista">Todavía no hay ninguna cuenta. La primera persona que la crea es la administradora y después podrá invitar a más gente. Te enviaremos un código por correo para confirmar.</p>
+      <label class="campo">Tu nombre
+        <input name="nombre" autocomplete="name" maxlength="60">
+      </label>
+      <label class="campo">Correo
+        <input type="email" name="correo" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      </label>
+      <label class="campo">Contraseña (mínimo 12 caracteres)
+        <input type="password" name="clave" autocomplete="new-password" minlength="12" required>
+      </label>
+      <label class="campo">Repite la contraseña
+        <input type="password" name="repite" autocomplete="new-password" minlength="12" required>
+      </label>
+      <p class="error" id="error-configurar" role="alert" hidden></p>
+      <button class="boton" type="submit">Enviarme el código</button>
+    </form>
+
+    <form class="entrar-caja" id="form-codigo" novalidate hidden>
+      <p class="marca">ALEXA</p>
+      <h1>Escribe tu código</h1>
+      <p class="pista" id="codigo-texto">Te enviamos un código de 6 dígitos por correo. Vence en 10 minutos.</p>
+      <label class="campo">Código
+        <input name="codigo" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="one-time-code" class="codigo" required>
+      </label>
+      <p class="error" id="error-codigo" role="alert" hidden></p>
+      <button class="boton" type="submit">Confirmar y entrar</button>
+      <button type="button" class="enlace" data-modo="configurar">Volver y pedir otro código</button>
+    </form>
+
+    <form class="entrar-caja" id="form-olvide" novalidate hidden>
+      <p class="marca">ALEXA</p>
+      <h1>Recuperar acceso</h1>
+      <p class="pista">Escribe tu correo y te enviamos un enlace para elegir una contraseña nueva. Vence en 30 minutos.</p>
+      <label class="campo">Correo
+        <input type="email" name="correo" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+      </label>
+      <p class="ok" id="ok-olvide" role="status" hidden>Si ese correo tiene cuenta, ya te llegó el enlace. Revisa también la carpeta de spam.</p>
+      <p class="error" id="error-olvide" role="alert" hidden></p>
+      <button class="boton" type="submit">Enviar enlace</button>
+      <button type="button" class="enlace" data-modo="entrar">Volver</button>
+    </form>
+
+    <form class="entrar-caja" id="form-restablecer" novalidate hidden>
+      <p class="marca">ALEXA</p>
+      <h1>Elige tu contraseña nueva</h1>
+      <input type="text" name="usuario" autocomplete="username" hidden>
+      <label class="campo">Contraseña nueva (mínimo 12 caracteres)
+        <input type="password" name="nueva" autocomplete="new-password" minlength="12" required>
+      </label>
+      <label class="campo">Repite la contraseña
+        <input type="password" name="repite" autocomplete="new-password" minlength="12" required>
+      </label>
+      <p class="error" id="error-restablecer" role="alert" hidden></p>
+      <button class="boton" type="submit">Guardar contraseña</button>
+      <button type="button" class="enlace" data-modo="entrar">Volver</button>
+    </form>
+
+    <form class="entrar-caja" id="form-invitacion" novalidate hidden>
+      <p class="marca">ALEXA</p>
+      <h1>Te invitaron al panel</h1>
+      <p class="pista" id="invitacion-texto"></p>
+      <input type="text" name="usuario" autocomplete="username" hidden>
+      <label class="campo">Tu nombre
+        <input name="nombre" autocomplete="name" maxlength="60" required>
+      </label>
+      <label class="campo">Elige tu contraseña (mínimo 12 caracteres)
+        <input type="password" name="clave" autocomplete="new-password" minlength="12" required>
+      </label>
+      <label class="campo">Repite la contraseña
+        <input type="password" name="repite" autocomplete="new-password" minlength="12" required>
+      </label>
+      <p class="error" id="error-invitacion" role="alert" hidden></p>
+      <button class="boton" type="submit">Crear mi cuenta y entrar</button>
     </form>
   </main>
 
@@ -51,9 +129,11 @@
         <button type="button" data-ir="productos" aria-current="page">Productos</button>
         <button type="button" data-ir="categorias">Categorías</button>
         <button type="button" data-ir="regalos">Regalos</button>
+        <button type="button" data-ir="usuarios" data-requiere="usuarios">Usuarios</button>
         <button type="button" data-ir="ajustes">Ajustes</button>
       </nav>
       <div class="barra-acciones">
+        <span class="quien" id="quien"></span>
         <a class="enlace-barra" href="/" target="_blank" rel="noopener">Ver tienda</a>
         <button type="button" class="enlace-barra" id="salir">Salir</button>
       </div>
@@ -98,6 +178,18 @@
         <div id="pasos"></div>
       </section>
 
+      <!-- Usuarios (solo administradoras) -->
+      <section id="sec-usuarios" aria-labelledby="t-usuarios" hidden>
+        <div class="cabecera">
+          <div><h1 id="t-usuarios">Usuarios</h1><p class="suave">Quién entra al panel y qué puede hacer. Cada persona elige su propia contraseña desde el enlace que le llega por correo.</p></div>
+          <button type="button" class="boton" id="invitar"><svg class="ico"><use href="#i-mas"/></svg>Invitar a alguien</button>
+        </div>
+        <div class="tarjeta rangos" id="rangos"></div>
+        <ul class="lista" id="lista-usuarios"></ul>
+        <h2 class="subtitulo" id="t-invitaciones" hidden>Invitaciones pendientes</h2>
+        <ul class="lista" id="lista-invitaciones"></ul>
+      </section>
+
       <!-- Ajustes -->
       <section id="sec-ajustes" aria-labelledby="t-ajustes" hidden>
         <div class="cabecera"><div><h1 id="t-ajustes">Ajustes</h1></div></div>
@@ -118,10 +210,10 @@
           <input type="text" name="usuario" autocomplete="username" hidden>
           <div class="rejilla">
             <label class="campo">Contraseña actual<input type="password" name="actual" autocomplete="current-password" required></label>
-            <label class="campo">Contraseña nueva<input type="password" name="nueva" autocomplete="new-password" minlength="10" required></label>
-            <label class="campo">Repite la nueva<input type="password" name="repite" autocomplete="new-password" minlength="10" required></label>
+            <label class="campo">Contraseña nueva<input type="password" name="nueva" autocomplete="new-password" minlength="12" required></label>
+            <label class="campo">Repite la nueva<input type="password" name="repite" autocomplete="new-password" minlength="12" required></label>
           </div>
-          <p class="suave">Mínimo 10 caracteres. Al cambiarla, se cierra la sesión en los demás dispositivos.</p>
+          <p class="suave">Mínimo 12 caracteres. Al cambiarla, se cierra la sesión en los demás dispositivos.</p>
           <p class="error" id="error-clave" role="alert" hidden></p>
           <button class="boton" type="submit">Cambiar contraseña</button>
         </form>
@@ -199,6 +291,22 @@
         <p class="error" id="error-opcion" role="alert" hidden></p>
       </div>
       <div class="dlg-pie"><button type="button" class="boton suave peligro" id="opcion-borrar" hidden>Borrar</button><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cancelar</button><button type="submit" class="boton">Guardar</button></div>
+    </form>
+  </dialog>
+
+  <!-- Invitar -->
+  <dialog id="dlg-invitar" aria-labelledby="dlg-invitar-t">
+    <form id="form-invitar" novalidate>
+      <div class="dlg-top"><h2 id="dlg-invitar-t">Invitar a alguien</h2><button type="button" class="icono" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
+      <div class="dlg-cuerpo">
+        <label class="campo">Nombre<input name="nombre" maxlength="60" required></label>
+        <label class="campo">Correo<input type="email" name="correo" autocapitalize="none" spellcheck="false" required></label>
+        <label class="campo">Rango<select name="rol"></select></label>
+        <p class="suave" id="ayuda-rol"></p>
+        <p class="suave">Le llegará un enlace de un solo uso (vence en 48 horas) para que elija su propia contraseña.</p>
+        <p class="error" id="error-invitar" role="alert" hidden></p>
+      </div>
+      <div class="dlg-pie"><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cancelar</button><button type="submit" class="boton">Enviar invitación</button></div>
     </form>
   </dialog>
 

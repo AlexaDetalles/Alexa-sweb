@@ -31,22 +31,22 @@ async function dentroDelLimite(req, limite, env) {
   return (await limite.limit({ key: req.headers.get('CF-Connecting-IP') || 'sin-ip' })).success;
 }
 
-async function api(req, env, ruta) {
+async function api(req, env, ruta, ctx) {
   // Contra ataques desde otros sitios (CSRF): toda escritura debe venir de esta misma web.
   if (req.method !== 'GET' && req.headers.get('Origin') !== new URL(req.url).origin) falla(403, 'Origen no permitido.');
   if (req.method === 'GET' && ruta === 'catalogo') return catalogo(env);
   if (req.method === 'GET' && ruta.startsWith('regalos/')) return regalos(env, ruta.slice(8));
-  if (req.method === 'POST' && ruta === 'auth/entrar' && !(await dentroDelLimite(req, env.LIMITE_AUTH, env))) falla(429, 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.');
-  if (ruta.startsWith('auth/')) return rutasAuth(req, env, ruta.slice(5), await leerJson(req));
-  if (ruta.startsWith('admin/')) return rutasAdmin(req, env, ruta.slice(6), ruta === 'admin/fotos' ? {} : await leerJson(req));
+  if (req.method === 'POST' && /^auth\/(entrar|configurar|confirmar|recuperar|restablecer|invitacion-aceptar)$/.test(ruta) && !(await dentroDelLimite(req, env.LIMITE_AUTH, env))) falla(429, 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.');
+  if (ruta.startsWith('auth/')) return rutasAuth(req, env, ruta.slice(5), await leerJson(req), ctx);
+  if (ruta.startsWith('admin/')) return rutasAdmin(req, env, ruta.slice(6), ruta === 'admin/fotos' ? {} : await leerJson(req), ctx);
   return falla(404, 'Ruta no encontrada.');
 }
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     const { pathname } = new URL(req.url);
     try {
-      if (pathname.startsWith('/api/')) return conCabeceras(await api(req, env, pathname.slice(5)));
+      if (pathname.startsWith('/api/')) return conCabeceras(await api(req, env, pathname.slice(5), ctx));
       if (pathname.startsWith('/fotos/') && req.method === 'GET') return conCabeceras(await servirFoto(env, decodeURIComponent(pathname.slice(7))));
       return env.ASSETS.fetch(req);
     } catch (e) {

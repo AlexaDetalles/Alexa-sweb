@@ -168,3 +168,20 @@ dialog form { display: flex; flex-direction: column; max-height: calc(100dvh - 2
   .dlg-pie .boton { flex: 1 1 auto; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* Rangos, usuarios y pantallas de acceso */
+.enlace { border: 0; background: transparent; color: var(--wine); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; padding: 6px; align-self: center; }
+.ok { color: var(--ok); background: #e1f0e7; border: 1px solid #b9d8c6; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+.codigo { text-align: center; font-size: 28px !important; letter-spacing: .5em; font-variant-numeric: tabular-nums; }
+.quien { font-size: 12px; color: var(--muted); padding-right: 8px; max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.subtitulo { font-size: 18px; margin: 22px 0 10px; }
+.rangos h2 { font-size: 18px; }
+.rangos-lista { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; width: 100%; }
+.rangos-lista li { display: flex; flex-direction: column; gap: 2px; font-size: 13px; }
+.fila.usuario { grid-template-columns: 44px 1fr auto; }
+.avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--wine); color: #fff; display: grid; place-items: center; font-weight: 600; }
+.fila.usuario .fila-acciones select { min-height: 36px; padding: 4px 8px; border: 1px solid #bdb1a5; border-radius: 8px; background: #fff; font-size: 13px; max-width: 190px; }
+/* Según el rango, el panel esconde lo que esa persona no puede usar (el servidor lo vuelve a comprobar en cada llamada). */
+body:not([data-p-usuarios]) [data-requiere="usuarios"] { display: none; }
+body:not([data-p-catalogo]) :is(#nuevo-producto, #nueva-categoria, #sec-productos .fila-acciones, #sec-categorias .fila-acciones, #sec-regalos .opcion .icono, #sec-regalos [data-accion="nueva"]) { display: none; }
+@media (max-width: 760px) { .fila.usuario { grid-template-columns: 40px 1fr; } .fila.usuario .fila-acciones { grid-column: 1 / -1; justify-content: flex-start; border-top: 1px solid var(--line); padding-top: 6px; } .quien { display: none; } }

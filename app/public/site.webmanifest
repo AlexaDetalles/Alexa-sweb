@@ -1,11 +1,11 @@
 {
-  "name": "Tiendas Alexa",
+  "name": "Alexa Detalles & Obsequios",
   "short_name": "Alexa",
   "lang": "es-HN",
   "start_url": "/",
   "display": "browser",
-  "background_color": "#11121c",
-  "theme_color": "#11121c",
+  "background_color": "#f7f4ee",
+  "theme_color": "#782f3a",
   "icons": [
     {
       "src": "/assets/images/icon-192.png",
@@ -17,5 +17,6 @@
       "sizes": "512x512",
       "type": "image/png"
     }
-  ]
+  ],
+  "description": "Alexa Detalles & Obsequios en Choluteca, Honduras: perfumes, joyería, relojes, carteras y regalos personalizados. Arma tu regalo y pide por WhatsApp."
 }

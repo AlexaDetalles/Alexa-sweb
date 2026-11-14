@@ -7,7 +7,8 @@ const dinero = (n) => (n === null || n === undefined || n === '' ? '—' : new I
 const ico = (id) => `<svg class="ico" aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const fold = (v) => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-const E = { cats: [], prods: [], papelera: [], ops: [], ajustes: {}, vista: 'productos', texto: '', cat: '', filtro: 'todos', publico: 'mujer', foto: null, editando: null, opcion: null, categoria: null };
+const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: [] };
+const E = { yo: null, usuarios: [], invitaciones: [], roles: {}, cats: [], prods: [], papelera: [], ops: [], ajustes: {}, vista: 'productos', texto: '', cat: '', filtro: 'todos', publico: 'mujer', foto: null, editando: null, opcion: null, categoria: null };
 
 // --- avisos, confirmación y llamadas a la API ------------------------------------------
 function avisar(texto, mal = false) {
@@ -35,7 +36,7 @@ async function api(metodo, ruta, cuerpo) {
   let r;
   try { r = await fetch(`/api/${ruta}`, init); } catch { throw new Error('No hay conexión. Revisa tu internet e intenta de nuevo.'); }
   const datos = await r.json().catch(() => ({}));
-  if (r.status === 401 && ruta !== 'auth/entrar') { mostrarEntrar('Tu sesión terminó. Vuelve a entrar.'); throw new Error(datos.error || 'Tu sesión terminó.'); }
+  if (r.status === 401 && ruta.startsWith('admin/')) { mostrarEntrar('Tu sesión terminó. Vuelve a entrar.'); throw new Error(datos.error || 'Tu sesión terminó.'); }
   if (!r.ok) throw new Error(datos.error || 'Algo salió mal. Intenta de nuevo.');
   return datos;
 }
@@ -70,28 +71,82 @@ function intercambiar(ids, id, dir) {
   return nuevo;
 }
 
-// --- entrar y salir -------------------------------------------------------------------
-function mostrarEntrar(mensaje) {
+// --- entrar, crear la cuenta principal, recuperar y aceptar invitaciones -----------------
+const MODOS = ['entrar', 'configurar', 'codigo', 'olvide', 'restablecer', 'invitacion'];
+let enlaceToken = null; // token del enlace de correo; vive solo en memoria (se quita de la dirección al leerlo)
+function mostrarEntrar(mensaje, modo = 'entrar') {
   $('#vista-panel').hidden = true; $('#vista-entrar').hidden = false;
+  mostrarModo(modo);
   mostrarError('#error-entrar', mensaje);
-  $('#form-entrar').clave.value = '';
-  (mensaje ? $('#form-entrar').clave : $('#form-entrar').correo).focus();
 }
-async function mostrarPanel() {
+function mostrarModo(modo) {
+  MODOS.forEach((m) => { $(`#form-${m}`).hidden = m !== modo; });
+  $$('#vista-entrar .error').forEach((e) => { if (modo !== 'entrar') e.hidden = true; });
+  const f = $(`#form-${modo}`);
+  (f.querySelector('input:not([hidden])') || f).focus();
+}
+document.addEventListener('click', (ev) => { const b = ev.target.closest('[data-modo]'); if (b) mostrarModo(b.dataset.modo); });
+
+function aplicarSesion(yo) {
+  E.yo = yo;
+  const permisos = PERMISOS[yo.rol] || [];
+  for (const p of ['catalogo', 'ajustes', 'usuarios']) document.body.toggleAttribute(`data-p-${p}`, permisos.includes(p));
+  document.body.dataset.rol = yo.rol;
+  $('#quien').textContent = `${yo.nombre || yo.correo} · ${yo.rolNombre || ''}`;
+  $$('#form-ajustes input, #form-ajustes button').forEach((x) => { x.disabled = !permisos.includes('ajustes'); });
+}
+async function mostrarPanel(yo) {
   $('#vista-entrar').hidden = true; $('#vista-panel').hidden = false;
+  aplicarSesion(yo);
   await cargar();
   ir(location.hash.slice(1) || 'productos');
 }
-$('#form-entrar').addEventListener('submit', async (ev) => {
+const iniciarSesion = (datos) => mostrarPanel({ correo: datos.correo, nombre: datos.nombre, rol: datos.rol, rolNombre: datos.rolNombre });
+const enviar = (formId, errorId, fn) => $(formId).addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const f = ev.target, b = $('button[type=submit]', f);
-  b.disabled = true; mostrarError('#error-entrar');
-  try { await api('POST', 'auth/entrar', { correo: f.correo.value, clave: f.clave.value }); f.clave.value = ''; await mostrarPanel(); } catch (e) { mostrarError('#error-entrar', e.message); }
+  b.disabled = true; mostrarError(errorId);
+  try { await fn(f); } catch (e) { mostrarError(errorId, e.message); }
   b.disabled = false;
 });
+const igual = (f, a = 'clave', b = 'repite') => { if (f[a].value !== f[b].value) throw new Error('Las contraseñas no coinciden.'); };
+
+enviar('#form-entrar', '#error-entrar', async (f) => {
+  iniciarSesion(await api('POST', 'auth/entrar', { correo: f.correo.value, clave: f.clave.value }));
+  f.clave.value = '';
+});
+enviar('#form-configurar', '#error-configurar', async (f) => {
+  igual(f);
+  const r = await api('POST', 'auth/configurar', { correo: f.correo.value, nombre: f.nombre.value, clave: f.clave.value });
+  $('#codigo-texto').textContent = `Te enviamos un código de 6 dígitos a ${f.correo.value.trim()}. Vence en 10 minutos.`;
+  $('#form-codigo').dataset.correo = f.correo.value.trim().toLowerCase();
+  mostrarModo('codigo');
+  if (r.codigo_dev) $('#form-codigo').codigo.value = r.codigo_dev; // solo en pruebas locales
+});
+enviar('#form-codigo', '#error-codigo', async (f) => {
+  iniciarSesion(await api('POST', 'auth/confirmar', { correo: f.dataset.correo, codigo: f.codigo.value }));
+  f.codigo.value = '';
+  $('#form-configurar').reset();
+});
+enviar('#form-olvide', '#error-olvide', async (f) => {
+  await api('POST', 'auth/recuperar', { correo: f.correo.value });
+  $('#ok-olvide').hidden = false;
+});
+enviar('#form-restablecer', '#error-restablecer', async (f) => {
+  igual(f, 'nueva', 'repite');
+  await api('POST', 'auth/restablecer', { token: enlaceToken, nueva: f.nueva.value });
+  enlaceToken = null; f.reset();
+  mostrarEntrar('', 'entrar'); avisar('Contraseña cambiada. Ya puedes entrar.');
+});
+enviar('#form-invitacion', '#error-invitacion', async (f) => {
+  igual(f);
+  iniciarSesion(await api('POST', 'auth/invitacion-aceptar', { token: enlaceToken, nombre: f.nombre.value, clave: f.clave.value }));
+  enlaceToken = null; f.reset();
+});
+
 async function salir(todo) {
   try { await api('POST', todo ? 'auth/salir-todo' : 'auth/salir'); } catch { /* si ya no había sesión, da igual */ }
-  mostrarEntrar();
+  E.yo = null; mostrarEntrar();
 }
 $('#salir').addEventListener('click', () => salir(false));
 $('#salir-todo').addEventListener('click', async () => { if (await confirmar('Cerrar todas las sesiones', 'Tendrás que volver a entrar en este y en cualquier otro dispositivo.')) salir(true); });
@@ -102,11 +157,12 @@ async function cargar() {
   Object.assign(E, { cats: d.categorias, prods: d.productos, papelera: d.papelera, ops: d.opciones, ajustes: d.ajustes });
   pintar();
 }
+const VISTAS = ['productos', 'categorias', 'regalos', 'usuarios', 'ajustes'];
 function ir(vista) {
-  if (!['productos', 'categorias', 'regalos', 'ajustes'].includes(vista)) vista = 'productos';
+  if (!VISTAS.includes(vista) || (vista === 'usuarios' && !PERMISOS[E.yo?.rol]?.includes('usuarios'))) vista = 'productos';
   E.vista = vista;
   history.replaceState(null, '', `#${vista}`);
-  for (const s of ['productos', 'categorias', 'regalos', 'ajustes']) $(`#sec-${s}`).hidden = s !== vista;
+  for (const s of VISTAS) $(`#sec-${s}`).hidden = s !== vista;
   $$('#pestanas button').forEach((b) => (b.dataset.ir === vista ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')));
   pintar();
 }
@@ -115,6 +171,7 @@ function pintar() {
   if (E.vista === 'productos') pintarProductos();
   else if (E.vista === 'categorias') pintarCategorias();
   else if (E.vista === 'regalos') pintarRegalos();
+  else if (E.vista === 'usuarios') pintarUsuarios();
   else pintarAjustes();
 }
 
@@ -460,8 +517,93 @@ $('#form-clave').addEventListener('submit', async (ev) => {
 // --- diálogos y arranque ----------------------------------------------------------------
 document.addEventListener('click', (ev) => { if (ev.target.closest('[data-cerrar]')) ev.target.closest('dialog').close(); });
 $$('dialog').forEach((d) => d.addEventListener('click', (ev) => { if (ev.target === d && d.id !== 'dlg-producto') d.close(); }));
-window.addEventListener('hashchange', () => { if (!$('#vista-panel').hidden) ir(location.hash.slice(1)); });
+window.addEventListener('hashchange', () => { if (!$('#vista-panel').hidden && !/^#(restablecer|invitacion)=/.test(location.hash)) ir(location.hash.slice(1)); });
+
+// --- usuarios y rangos (solo administradoras) ----------------------------------------------
+const AYUDA_ROL = {
+  admin: 'Todo: productos, categorías, regalos, ajustes y usuarios.',
+  catalogo: 'Agregar y editar productos, categorías y regalos personalizados. No ve ajustes ni usuarios.',
+  atencion: 'Cambiar el WhatsApp de las asesoras. No toca el catálogo ni los usuarios.',
+  lectura: 'Solo ver el catálogo y los regalos. No puede cambiar nada.',
+};
+async function pintarUsuarios() {
+  try {
+    const d = await api('GET', 'admin/usuarios');
+    Object.assign(E, { usuarios: d.usuarios, invitaciones: d.invitaciones, roles: d.roles });
+  } catch (e) { return avisar(e.message, true); }
+  $('#rangos').innerHTML = `<h2>Rangos</h2><ul class="rangos-lista">${Object.entries(E.roles).map(([k, n]) => `<li><b>${esc(n)}</b><span class="suave">${esc(AYUDA_ROL[k] || '')}</span></li>`).join('')}</ul>`;
+  const opcionesRol = (sel) => Object.entries(E.roles).map(([k, n]) => `<option value="${k}" ${k === sel ? 'selected' : ''}>${esc(n)}</option>`).join('');
+  $('#lista-usuarios').innerHTML = E.usuarios.map((u) => {
+    const yoMismo = u.correo === E.yo.correo, ini = (u.nombre || u.correo).trim()[0]?.toUpperCase() || '?';
+    return `<li class="fila usuario ${u.activo ? '' : 'apagada'}"><span class="avatar" aria-hidden="true">${esc(ini)}</span>
+      <div class="fila-texto"><div class="fila-nombre">${esc(u.nombre || u.correo)} ${yoMismo ? '<span class="etiqueta ok">Tú</span>' : ''}${u.activo ? '' : '<span class="etiqueta aviso">Desactivada</span>'}</div><div class="fila-meta"><span>${esc(u.correo)}</span></div></div>
+      <div class="fila-acciones">
+        <select data-rol-de="${esc(u.id)}" aria-label="Rango de ${esc(u.nombre || u.correo)}" ${yoMismo ? 'disabled' : ''}>${opcionesRol(u.rol)}</select>
+        ${yoMismo ? '' : `<button type="button" class="boton suave chico" data-accion="activar" data-id="${esc(u.id)}">${u.activo ? 'Desactivar' : 'Activar'}</button><button type="button" class="icono peligro" data-accion="borrar" data-id="${esc(u.id)}" aria-label="Borrar a ${esc(u.nombre || u.correo)}">${ico('borrar')}</button>`}
+      </div></li>`;
+  }).join('');
+  $('#t-invitaciones').hidden = !E.invitaciones.length;
+  $('#lista-invitaciones').innerHTML = E.invitaciones.map((i) => `<li class="fila usuario apagada"><span class="avatar" aria-hidden="true">${esc((i.nombre || i.correo)[0]?.toUpperCase() || '?')}</span>
+    <div class="fila-texto"><div class="fila-nombre">${esc(i.nombre || i.correo)}</div><div class="fila-meta"><span>${esc(i.correo)}</span><span class="etiqueta">${esc(E.roles[i.rol] || i.rol)}</span><span>Pendiente</span></div></div>
+    <div class="fila-acciones"><button type="button" class="boton suave peligro chico" data-accion="cancelar" data-id="${esc(i.id)}">Cancelar</button></div></li>`).join('');
+}
+$('#lista-usuarios').addEventListener('change', async (ev) => {
+  const sel = ev.target.closest('[data-rol-de]');
+  if (!sel) return;
+  try { await api('PUT', `admin/usuarios/${sel.dataset.rolDe}`, { rol: sel.value }); avisar('Rango cambiado.'); } catch (e) { avisar(e.message, true); }
+  pintarUsuarios();
+});
+$('#sec-usuarios').addEventListener('click', async (ev) => {
+  const b = ev.target.closest('[data-accion]');
+  if (!b) return;
+  const u = E.usuarios.find((x) => x.id === b.dataset.id);
+  try {
+    if (b.dataset.accion === 'activar') { await api('PUT', `admin/usuarios/${u.id}`, { activo: !u.activo }); avisar(u.activo ? 'Desactivada: ya no puede entrar.' : 'Activada.'); }
+    else if (b.dataset.accion === 'borrar') { if (!(await confirmar('Borrar usuaria', `«${u.nombre || u.correo}» ya no podrá entrar al panel.`, 'Borrar'))) return; await api('DELETE', `admin/usuarios/${u.id}`); avisar('Borrada.'); }
+    else if (b.dataset.accion === 'cancelar') { await api('DELETE', `admin/invitaciones/${b.dataset.id}`); avisar('Invitación cancelada.'); }
+  } catch (e) { avisar(e.message, true); }
+  pintarUsuarios();
+});
+$('#invitar').addEventListener('click', () => {
+  const f = $('#form-invitar'); f.reset();
+  f.rol.innerHTML = Object.entries(E.roles).map(([k, n]) => `<option value="${k}" ${k === 'catalogo' ? 'selected' : ''}>${esc(n)}</option>`).join('');
+  $('#ayuda-rol').textContent = AYUDA_ROL[f.rol.value];
+  mostrarError('#error-invitar');
+  $('#dlg-invitar').showModal();
+});
+$('#form-invitar').rol.addEventListener('change', (ev) => { $('#ayuda-rol').textContent = AYUDA_ROL[ev.target.value] || ''; });
+$('#form-invitar').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const f = ev.target, b = $('button[type=submit]', f);
+  if (!f.nombre.value.trim() || !f.correo.value.trim()) return mostrarError('#error-invitar', 'Escribe el nombre y el correo.');
+  b.disabled = true; mostrarError('#error-invitar');
+  try { await api('POST', 'admin/usuarios', { nombre: f.nombre.value, correo: f.correo.value, rol: f.rol.value }); $('#dlg-invitar').close(); avisar('Invitación enviada por correo.'); pintarUsuarios(); } catch (e) { mostrarError('#error-invitar', e.message); }
+  b.disabled = false;
+});
+
+// Enlaces de correo: #restablecer=… y #invitacion=… (el token se guarda en memoria y se quita de la dirección).
+async function procesarEnlace() {
+  const m = location.hash.match(/^#(restablecer|invitacion)=([\w-]+)$/);
+  if (!m) return false;
+  enlaceToken = m[2];
+  history.replaceState(null, '', location.pathname);
+  $('#vista-panel').hidden = true; $('#vista-entrar').hidden = false;
+  if (m[1] === 'restablecer') { mostrarModo('restablecer'); return true; }
+  try {
+    const i = await api('POST', 'auth/invitacion-ver', { token: enlaceToken });
+    $('#invitacion-texto').textContent = `Entrarás como ${i.rolNombre}. Tu correo es ${i.correo}.`;
+    $('#form-invitacion').usuario.value = i.correo; $('#form-invitacion').nombre.value = i.nombre || '';
+    mostrarModo('invitacion');
+  } catch (e) { mostrarEntrar(e.message); }
+  return true;
+}
+window.addEventListener('hashchange', procesarEnlace);
 
 (async () => {
-  try { (await api('GET', 'auth/sesion')).sesion ? await mostrarPanel() : mostrarEntrar(); } catch { mostrarEntrar(); }
+  if (await procesarEnlace()) return;
+  try {
+    const r = await api('GET', 'auth/sesion');
+    if (r.sesion) await mostrarPanel(r.sesion);
+    else mostrarEntrar('', r.configurar ? 'configurar' : 'entrar');
+  } catch { mostrarEntrar(); }
 })();

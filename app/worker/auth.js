@@ -1,7 +1,22 @@
-// Inicio de sesión del panel: correo y contraseña. Sesiones en D1 con solo el hash del token,
-// cookie __Host- (HTTPS, sin JavaScript, SameSite=Strict) y bloqueo de 15 minutos tras 5 fallos.
-import { falla, json, sha256, azar, b64url, hashClave, revisarClave, CLAVE_FALSA, leerCookie, cookie, borrarCookie, fechaSql } from './util.js';
+// Cuentas del panel: entrar con correo y contraseña, alta de la primera administradora con código por correo,
+// recuperación de contraseña, invitaciones con rango y administración de usuarios.
+// Sesiones en D1 con solo el hash del token; cookie __Host- (HTTPS, sin JavaScript, SameSite=Strict); bloqueo de 15 min tras 5 fallos.
+import { falla, json, sha256, azar, b64url, iguales, hashClave, revisarClave, CLAVE_FALSA, leerCookie, cookie, fechaSql } from './util.js';
+import { enviarCorreo, sitio } from './correo.js';
 import * as V from './validacion.js';
+
+export const ROLES = {
+  admin: 'Administradora',
+  catalogo: 'Encargada de Catálogo',
+  atencion: 'Encargada de Atención',
+  lectura: 'Supervisora (solo lectura)',
+};
+// Qué puede hacer cada rango. Lo aplica el servidor en cada llamada; el panel solo esconde lo que no corresponde.
+const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: [] };
+export const puede = (s, permiso) => PERMISOS[s.rol]?.includes(permiso);
+export function exigirPermiso(s, permiso) {
+  if (!puede(s, permiso)) falla(403, 'Tu rango no permite hacer este cambio.');
+}
 
 const SESION = '__Host-sesion';
 const DURACION = 12 * 3600;          // la sesión dura 12 horas como máximo
@@ -11,7 +26,7 @@ const MIN = 60 * 1000;
 // En http://localhost el prefijo __Host- y Secure no funcionan: solo en pruebas locales (DEV=1) se usa una cookie simple.
 const nombreCookie = (env) => (env.DEV === '1' ? 'sesion' : SESION);
 const crearCookie = (env, token, seg) => (env.DEV === '1' ? `sesion=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${seg}` : cookie(SESION, token, seg));
-const quitarCookie = (env) => crearCookie(env, '', 0);
+const conCookie = (resp, c) => { resp.headers.append('Set-Cookie', c); return resp; };
 
 async function crearSesion(env, usuarioId) {
   const token = b64url(azar(32));
@@ -25,7 +40,7 @@ export async function sesionDe(req, env) {
   const token = leerCookie(req, nombreCookie(env));
   if (!token) return null;
   const hash = await sha256(token);
-  const s = await env.BD.prepare('SELECT s.usuario_id, s.expira, s.ultimo, u.correo FROM sesiones s JOIN usuarios u ON u.id = s.usuario_id WHERE s.token_hash = ?').bind(hash).first();
+  const s = await env.BD.prepare('SELECT s.usuario_id, s.expira, s.ultimo, u.correo, u.nombre, u.rol FROM sesiones s JOIN usuarios u ON u.id = s.usuario_id WHERE s.token_hash = ? AND u.activo = 1').bind(hash).first();
   if (!s) return null;
   const ahora = Date.now();
   const ultimo = Date.parse(`${s.ultimo}Z`);
@@ -35,11 +50,12 @@ export async function sesionDe(req, env) {
   }
   // La actividad se anota como mucho una vez por minuto, para no escribir en cada clic.
   if (ahora - ultimo > MIN) await env.BD.prepare('UPDATE sesiones SET ultimo = ? WHERE token_hash = ?').bind(fechaSql(ahora), hash).run();
-  return { id: s.usuario_id, correo: s.correo, tokenHash: hash };
+  return { id: s.usuario_id, correo: s.correo, nombre: s.nombre, rol: s.rol, tokenHash: hash };
 }
 export async function exigirSesion(req, env) {
   return (await sesionDe(req, env)) || falla(401, 'Tu sesión terminó. Vuelve a entrar.');
 }
+const publico = (s) => ({ correo: s.correo, nombre: s.nombre, rol: s.rol, rolNombre: ROLES[s.rol] });
 
 // --- intentos fallidos: bloquean 15 minutos ------------------------------------
 // 5 fallos del mismo correo desde la misma IP lo bloquean para esa IP; 50 fallos desde cualquier IP bloquean la cuenta.
@@ -54,22 +70,23 @@ async function anotarFallo(env, clave, maximo = 5) {
       bloqueado_hasta = CASE WHEN fallos + 1 >= ?3 THEN ?2 ELSE bloqueado_hasta END`).bind(clave, fechaSql(Date.now() + 15 * MIN), maximo).run();
 }
 const limpiarIntentos = (env, correo) => env.BD.prepare("DELETE FROM intentos WHERE clave = ?1 OR substr(clave, 1, length(?1) + 1) = ?1 || ':'").bind(`correo:${correo}`).run();
+const ip = (req) => req.headers.get('CF-Connecting-IP') || 'sin-ip';
+const caduco = (c) => Date.parse(`${c.expira}Z`) < Date.now();
+const enSegundoPlano = (ctx, promesa) => { const p = promesa.catch((e) => console.error('correo', e.message)); ctx?.waitUntil ? ctx.waitUntil(p) : p; };
 
 // --- entrar, salir, cambiar contraseña ----------------------------------------
 async function entrar(req, env, d) {
   const correo = V.correo(d.correo);
   const cuenta = `correo:${correo}`;
-  const desdeIp = `${cuenta}:${req.headers.get('CF-Connecting-IP') || 'sin-ip'}`;
+  const desdeIp = `${cuenta}:${ip(req)}`;
   await revisarBloqueo(env, desdeIp);
   await revisarBloqueo(env, cuenta);
-  const u = await env.BD.prepare('SELECT id, correo, clave FROM usuarios WHERE correo = ?').bind(correo).first();
+  const u = await env.BD.prepare('SELECT id, correo, nombre, rol, clave, activo FROM usuarios WHERE correo = ?').bind(correo).first();
   // Se calcula el hash aunque el correo no exista, para no revelar qué correos tienen cuenta por el tiempo de respuesta.
   const ok = await revisarClave(String(d.clave ?? '').slice(0, 200), u?.clave || CLAVE_FALSA);
-  if (!u || !ok) { await anotarFallo(env, desdeIp, 5); await anotarFallo(env, cuenta, 50); falla(401, 'Correo o contraseña incorrectos.'); }
+  if (!u || !u.activo || !ok) { await anotarFallo(env, desdeIp, 5); await anotarFallo(env, cuenta, 50); falla(401, 'Correo o contraseña incorrectos.'); }
   await limpiarIntentos(env, correo);
-  const resp = json({ ok: true, correo: u.correo });
-  resp.headers.append('Set-Cookie', await crearSesion(env, u.id));
-  return resp;
+  return conCookie(json({ ok: true, ...publico(u) }), await crearSesion(env, u.id));
 }
 
 async function salir(req, env, todo) {
@@ -78,9 +95,7 @@ async function salir(req, env, todo) {
     if (todo) await env.BD.prepare('DELETE FROM sesiones WHERE usuario_id = ?').bind(s.id).run();
     else await env.BD.prepare('DELETE FROM sesiones WHERE token_hash = ?').bind(s.tokenHash).run();
   }
-  const resp = json({ ok: true });
-  resp.headers.append('Set-Cookie', quitarCookie(env));
-  return resp;
+  return conCookie(json({ ok: true }), crearCookie(env, '', 0));
 }
 
 async function cambiarClave(req, env, d) {
@@ -97,16 +112,195 @@ async function cambiarClave(req, env, d) {
   return json({ ok: true });
 }
 
-// --- rutas /api/auth/* ----------------------------------------------------------
-export async function rutasAuth(req, env, ruta, d) {
-  const m = req.method;
-  if (m === 'POST' && ruta === 'entrar') return entrar(req, env, d);
-  if (m === 'POST' && ruta === 'salir') return salir(req, env, false);
-  if (m === 'POST' && ruta === 'salir-todo') return salir(req, env, true);
-  if (m === 'POST' && ruta === 'clave') return cambiarClave(req, env, d);
-  if (m === 'GET' && ruta === 'sesion') {
-    const s = await sesionDe(req, env);
-    return json({ sesion: s ? { correo: s.correo } : null });
+async function estado(req, env) {
+  const s = await sesionDe(req, env);
+  if (s) return json({ sesion: publico(s) });
+  // Sin ninguna cuenta todavía: el panel ofrece crear la de la administradora principal.
+  const { n } = await env.BD.prepare('SELECT count(*) AS n FROM usuarios').first();
+  return json({ sesion: null, configurar: n === 0 });
+}
+
+// --- primera administradora: correo + contraseña + código de 6 dígitos por correo ----------
+async function configurar(req, env, d) {
+  if ((await env.BD.prepare('SELECT count(*) AS n FROM usuarios').first()).n > 0) falla(403, 'Este panel ya tiene una administradora. Entra con tu correo y contraseña.');
+  const correo = V.correo(d.correo);
+  // Si se configuró ADMIN_EMAIL, solo ese correo puede crear la cuenta principal: así nadie más puede adelantarse a la dueña.
+  if (env.ADMIN_EMAIL && correo !== env.ADMIN_EMAIL.trim().toLowerCase()) falla(403, 'Ese correo no está autorizado para crear la cuenta principal.');
+  const clave = V.claveNueva(d.clave);
+  const nombre = V.nombrePersona(d.nombre, false);
+  const limite = `configurar:${ip(req)}`;
+  await revisarBloqueo(env, limite);
+  await anotarFallo(env, limite, 8); // cada pedido cuenta: 8 seguidos esperan 15 minutos
+  const codigo = String(crypto.getRandomValues(new Uint32Array(1))[0] % 1000000).padStart(6, '0');
+  await env.BD.prepare(`INSERT INTO codigos (id, tipo, correo, nombre, rol, clave, secreto_hash, expira, intentos) VALUES (?1, 'registro', ?2, ?3, 'admin', ?4, ?5, ?6, 0)
+    ON CONFLICT (id) DO UPDATE SET nombre = ?3, clave = ?4, secreto_hash = ?5, expira = ?6, intentos = 0`)
+    .bind(`registro:${correo}`, correo, nombre, await hashClave(clave), await sha256(`${correo}:${codigo}`), fechaSql(Date.now() + 10 * MIN)).run();
+  await enviarCorreo(env, {
+    para: correo, asunto: `${codigo} es tu código para crear el panel de ${env.NOMBRE}`,
+    texto: `Tu código es ${codigo}. Vence en 10 minutos.\n\nSi no fuiste tú, ignora este correo: sin el código no se crea ninguna cuenta.`,
+  });
+  return json({ ok: true, ...(env.DEV === '1' ? { codigo_dev: codigo } : {}) });
+}
+
+async function confirmar(req, env, d) {
+  const correo = V.correo(d.correo);
+  const r = await env.BD.prepare("SELECT * FROM codigos WHERE id = ? AND tipo = 'registro'").bind(`registro:${correo}`).first();
+  if (!r || caduco(r)) falla(401, 'El código venció. Vuelve a empezar para recibir otro.');
+  if (r.intentos >= 5) falla(429, 'Demasiados intentos con este código. Vuelve a empezar para recibir otro.');
+  if (!iguales(await sha256(`${correo}:${String(d.codigo ?? '').trim()}`), r.secreto_hash)) {
+    await env.BD.prepare('UPDATE codigos SET intentos = intentos + 1 WHERE id = ?').bind(r.id).run();
+    falla(401, 'Código incorrecto. Revisa el último correo que te llegó.');
   }
+  const id = crypto.randomUUID();
+  // «Solo si todavía no hay ninguna cuenta»: si dos personas confirman a la vez, solo una gana.
+  const crear = await env.BD.prepare("INSERT INTO usuarios (id, correo, clave, nombre, rol) SELECT ?1, ?2, ?3, ?4, 'admin' WHERE NOT EXISTS (SELECT 1 FROM usuarios)").bind(id, correo, r.clave, r.nombre).run();
+  if (!crear.meta.changes) falla(403, 'Este panel ya tiene una administradora.');
+  await env.BD.prepare('DELETE FROM codigos WHERE id = ?').bind(r.id).run();
+  return conCookie(json({ ok: true, ...publico({ correo, nombre: r.nombre, rol: 'admin' }) }), await crearSesion(env, id));
+}
+
+// --- olvidé mi contraseña ---------------------------------------------------------
+async function recuperar(req, env, d, ctx) {
+  const correo = V.correo(d.correo);
+  const limite = `recuperar:${correo}`, porIp = `recuperar-ip:${ip(req)}`;
+  await revisarBloqueo(env, limite); await revisarBloqueo(env, porIp);
+  await anotarFallo(env, limite); await anotarFallo(env, porIp, 10); // cada pedido cuenta
+  const u = await env.BD.prepare('SELECT id, correo FROM usuarios WHERE correo = ? AND activo = 1').bind(correo).first();
+  let extra = {};
+  if (u) {
+    const token = b64url(azar(32));
+    await env.BD.batch([
+      env.BD.prepare("DELETE FROM codigos WHERE usuario_id = ? AND tipo = 'recuperar'").bind(u.id),
+      env.BD.prepare("INSERT INTO codigos (id, tipo, correo, usuario_id, expira) VALUES (?, 'recuperar', ?, ?, ?)").bind(await sha256(token), u.correo, u.id, fechaSql(Date.now() + 30 * MIN)),
+    ]);
+    const enlace = `${sitio(env)}/admin/#restablecer=${token}`;
+    // En segundo plano, para que la respuesta tarde igual exista o no la cuenta (no revela qué correos tienen cuenta).
+    enSegundoPlano(ctx, enviarCorreo(env, {
+      para: u.correo, asunto: `Restablecer la contraseña del panel de ${env.NOMBRE}`,
+      texto: `Para elegir una contraseña nueva, abre este enlace (vence en 30 minutos y sirve una sola vez):\n${enlace}\n\nSi no lo pediste, ignora este correo: tu contraseña no cambia.`,
+    }));
+    if (env.DEV === '1') extra = { enlace_dev: enlace };
+  }
+  return json({ ok: true, ...extra }); // misma respuesta exista o no la cuenta
+}
+
+async function restablecer(req, env, d, ctx) {
+  const c = await env.BD.prepare("SELECT id, usuario_id, correo, expira FROM codigos WHERE id = ? AND tipo = 'recuperar'").bind(await sha256(String(d.token ?? ''))).first();
+  if (!c || caduco(c)) falla(400, 'El enlace venció o ya se usó. Pide uno nuevo.');
+  const nueva = V.claveNueva(d.nueva);
+  await env.BD.batch([
+    env.BD.prepare('UPDATE usuarios SET clave = ? WHERE id = ?').bind(await hashClave(nueva), c.usuario_id),
+    env.BD.prepare('DELETE FROM codigos WHERE id = ?').bind(c.id),
+    env.BD.prepare('DELETE FROM sesiones WHERE usuario_id = ?').bind(c.usuario_id),
+    env.BD.prepare("DELETE FROM intentos WHERE clave = ?1 OR substr(clave, 1, length(?1) + 1) = ?1 || ':'").bind(`correo:${c.correo}`),
+  ]);
+  // Aviso al terminar (no solo al pedirlo): si no fue ella, se entera.
+  enSegundoPlano(ctx, enviarCorreo(env, {
+    para: c.correo, asunto: `Tu contraseña del panel de ${env.NOMBRE} cambió`,
+    texto: 'Se acaba de cambiar la contraseña de tu cuenta del panel y se cerraron tus sesiones abiertas.\n\nSi no fuiste tú, pide otro restablecimiento desde la pantalla de entrada y avisa a la administradora.',
+  }));
+  return json({ ok: true });
+}
+
+// --- invitaciones: la administradora invita, la persona elige su propia contraseña ----------
+async function verInvitacion(req, env, d) {
+  const c = await env.BD.prepare("SELECT correo, nombre, rol, expira FROM codigos WHERE id = ? AND tipo = 'invitacion'").bind(await sha256(String(d.token ?? ''))).first();
+  if (!c || caduco(c)) falla(400, 'La invitación venció o ya se usó. Pídele a la administradora que te invite otra vez.');
+  return json({ correo: c.correo, nombre: c.nombre, rolNombre: ROLES[c.rol] });
+}
+async function aceptarInvitacion(req, env, d) {
+  const hash = await sha256(String(d.token ?? ''));
+  const c = await env.BD.prepare("SELECT id, correo, nombre, rol, expira FROM codigos WHERE id = ? AND tipo = 'invitacion'").bind(hash).first();
+  if (!c || caduco(c)) falla(400, 'La invitación venció o ya se usó. Pídele a la administradora que te invite otra vez.');
+  const clave = V.claveNueva(d.clave);
+  const nombre = V.nombrePersona(d.nombre || c.nombre, true);
+  const id = crypto.randomUUID();
+  try {
+    await env.BD.batch([
+      env.BD.prepare('INSERT INTO usuarios (id, correo, clave, nombre, rol) VALUES (?, ?, ?, ?, ?)').bind(id, c.correo, await hashClave(clave), nombre, c.rol),
+      env.BD.prepare('DELETE FROM codigos WHERE id = ?').bind(c.id),
+    ]);
+  } catch (e) { if (/UNIQUE/i.test(String(e?.message))) falla(409, 'Ese correo ya tiene cuenta. Entra con tu contraseña.'); throw e; }
+  return conCookie(json({ ok: true, ...publico({ correo: c.correo, nombre, rol: c.rol }) }), await crearSesion(env, id));
+}
+
+// --- /api/admin/usuarios (solo administradoras) -----------------------------------------------
+export async function rutasUsuarios(req, env, partes, d, s, ctx) {
+  exigirPermiso(s, 'usuarios');
+  const m = req.method;
+  const [recurso, id] = partes;
+  if (recurso === 'usuarios') {
+    if (m === 'GET') {
+      const [us, inv] = await env.BD.batch([
+        env.BD.prepare('SELECT id, correo, nombre, rol, activo, creado FROM usuarios ORDER BY creado'),
+        env.BD.prepare("SELECT id, correo, nombre, rol, expira FROM codigos WHERE tipo = 'invitacion' ORDER BY expira"),
+      ]);
+      return json({ roles: ROLES, usuarios: us.results.map((u) => ({ ...u, activo: !!u.activo })), invitaciones: inv.results.filter((i) => !caduco(i)) });
+    }
+    if (m === 'POST' && !id) {
+      const correo = V.correo(d.correo), nombre = V.nombrePersona(d.nombre, true), rol = V.rol(d.rol);
+      if (await env.BD.prepare('SELECT 1 FROM usuarios WHERE correo = ?').bind(correo).first()) falla(409, 'Ese correo ya tiene cuenta.');
+      const token = b64url(azar(32));
+      await env.BD.batch([
+        env.BD.prepare("DELETE FROM codigos WHERE tipo = 'invitacion' AND correo = ?").bind(correo),
+        env.BD.prepare("INSERT INTO codigos (id, tipo, correo, nombre, rol, expira) VALUES (?, 'invitacion', ?, ?, ?, ?)").bind(await sha256(token), correo, nombre, rol, fechaSql(Date.now() + 48 * 3600 * 1000)),
+      ]);
+      const enlace = `${sitio(env)}/admin/#invitacion=${token}`;
+      await enviarCorreo(env, {
+        para: correo, asunto: `Te invitaron al panel de ${env.NOMBRE}`,
+        texto: `${s.nombre || 'La administradora'} te invitó al panel de ${env.NOMBRE} como ${ROLES[rol]}.\n\nAbre este enlace para elegir tu contraseña (vence en 48 horas y sirve una sola vez):\n${enlace}\n\nSi no esperabas esta invitación, ignora este correo.`,
+      });
+      return json({ ok: true, ...(env.DEV === '1' ? { enlace_dev: enlace } : {}) }, 201);
+    }
+    if (m === 'PUT' && id) {
+      const o = await env.BD.prepare('SELECT id, rol, activo FROM usuarios WHERE id = ?').bind(id).first();
+      if (!o) falla(404, 'La persona ya no existe.');
+      const cambios = {};
+      if ('rol' in d) cambios.rol = V.rol(d.rol);
+      if ('activo' in d) cambios.activo = d.activo ? 1 : 0;
+      if ('nombre' in d) cambios.nombre = V.nombrePersona(d.nombre, true);
+      if (id === s.id && ('rol' in cambios || 'activo' in cambios)) falla(400, 'No puedes cambiar tu propio rango ni desactivarte.');
+      const dejaDeSerAdmin = o.rol === 'admin' && o.activo && (cambios.rol && cambios.rol !== 'admin' || cambios.activo === 0);
+      if (dejaDeSerAdmin && (await env.BD.prepare("SELECT count(*) AS n FROM usuarios WHERE rol = 'admin' AND activo = 1").first()).n <= 1) falla(400, 'Debe quedar al menos una administradora activa.');
+      const ks = Object.keys(cambios);
+      if (ks.length) await env.BD.prepare(`UPDATE usuarios SET ${ks.map((k) => `${k} = ?`).join(', ')} WHERE id = ?`).bind(...ks.map((k) => cambios[k]), id).run();
+      // Si cambió su rango o se desactivó, sus sesiones abiertas se cierran para que el cambio valga ya.
+      if ('rol' in cambios || cambios.activo === 0) await env.BD.prepare('DELETE FROM sesiones WHERE usuario_id = ?').bind(id).run();
+      return json({ ok: true });
+    }
+    if (m === 'DELETE' && id) {
+      if (id === s.id) falla(400, 'No puedes borrar tu propia cuenta.');
+      const o = await env.BD.prepare('SELECT rol, activo FROM usuarios WHERE id = ?').bind(id).first();
+      if (!o) falla(404, 'La persona ya no existe.');
+      if (o.rol === 'admin' && o.activo && (await env.BD.prepare("SELECT count(*) AS n FROM usuarios WHERE rol = 'admin' AND activo = 1").first()).n <= 1) falla(400, 'Debe quedar al menos una administradora activa.');
+      await env.BD.prepare('DELETE FROM usuarios WHERE id = ?').bind(id).run();
+      return json({ ok: true });
+    }
+  }
+  if (recurso === 'invitaciones' && m === 'DELETE' && id) {
+    await env.BD.prepare("DELETE FROM codigos WHERE id = ? AND tipo = 'invitacion'").bind(id).run();
+    return json({ ok: true });
+  }
+  void ctx;
   return falla(404, 'Ruta no encontrada.');
+}
+
+// --- rutas /api/auth/* ----------------------------------------------------------
+export async function rutasAuth(req, env, ruta, d, ctx) {
+  const m = req.method;
+  if (m === 'GET' && ruta === 'sesion') return estado(req, env);
+  if (m !== 'POST') return falla(404, 'Ruta no encontrada.');
+  switch (ruta) {
+    case 'entrar': return entrar(req, env, d);
+    case 'salir': return salir(req, env, false);
+    case 'salir-todo': return salir(req, env, true);
+    case 'clave': return cambiarClave(req, env, d);
+    case 'configurar': return configurar(req, env, d);
+    case 'confirmar': return confirmar(req, env, d);
+    case 'recuperar': return recuperar(req, env, d, ctx);
+    case 'restablecer': return restablecer(req, env, d, ctx);
+    case 'invitacion-ver': return verInvitacion(req, env, d);
+    case 'invitacion-aceptar': return aceptarInvitacion(req, env, d);
+    default: return falla(404, 'Ruta no encontrada.');
+  }
 }

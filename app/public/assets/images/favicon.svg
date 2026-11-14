@@ -1,1 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="12" fill="#11121c"/><path fill="#ff793f" fill-rule="evenodd" d="M8 53 24 10h16l16 43H43l-3-9H24l-3 9Zm20-20h8l-4-14Z"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Alexa Detalles">
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9a3a49"/>
+      <stop offset="1" stop-color="#5a222b"/>
+    </linearGradient>
+    <linearGradient id="oro" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f3d98b"/>
+      <stop offset="1" stop-color="#c99a3b"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#fondo)"/>
+  <!-- A en trazo fino, como el logo de la tienda -->
+  <path d="M17 49 32 15l15 34M23.2 37.5h17.6" fill="none" stroke="#fbf4ea" stroke-width="4.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- lazo de regalo: dos hojas y un nudo dorado arriba de la A -->
+  <path d="M32 15c-3.5-6-10-5.2-10-1.6 0 3.2 6.4 3.2 10 1.6Zm0 0c3.5-6 10-5.2 10-1.6 0 3.2-6.4 3.2-10 1.6Z" fill="url(#oro)"/>
+  <circle cx="32" cy="15.4" r="2.5" fill="#fff3c4"/>
+</svg>

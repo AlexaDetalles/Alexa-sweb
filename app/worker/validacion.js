@@ -100,12 +100,17 @@ export function ajustes(d) {
   return r;
 }
 
+const CLAVES_COMUNES = new Set(['123456789012', 'contrasena123', 'contraseña123', 'password1234', 'qwertyuiop12', 'alexashop1234', 'alexadetalles', 'administrador', 'administradora']);
 export const claveNueva = (v) => {
   const t = String(v ?? '');
-  if (t.length < 10) falla(400, 'La contraseña debe tener al menos 10 caracteres.');
+  if (t.length < 12) falla(400, 'La contraseña debe tener al menos 12 caracteres.');
   if (t.length > 200) falla(400, 'La contraseña es demasiado larga.');
+  if (CLAVES_COMUNES.has(t.toLowerCase()) || /^(.)\1+$/.test(t)) falla(400, 'Esa contraseña es muy común. Elige otra, más difícil de adivinar.');
   return t;
 };
+export const ROLES = ['admin', 'catalogo', 'atencion', 'lectura'];
+export const rol = (v) => (ROLES.includes(v) ? v : falla(400, 'Elige un rango.'));
+export const nombrePersona = (v, obligatorio) => texto(v, 60, 'Nombre', obligatorio ? 1 : 0);
 export const correo = (v) => {
   const t = String(v ?? '').trim().toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(t) || t.length > 120) falla(400, 'Escribe un correo válido.');

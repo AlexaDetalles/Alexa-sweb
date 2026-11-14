@@ -36,6 +36,7 @@ const vistos = new Set(); let omitidos = 0, orden = 0;
 for (const c of parseCSV(datos('catalog.csv')).slice(1)) {
   const id = c[0], cat = c[5], p = precio(c[2] ?? '');
   if (!/^[A-Za-z0-9._-]{1,80}$/.test(id) || !c[1] || !ids.has(cat) || p === null || vistos.has(id)) { omitidos++; continue; }
+  if (!foto(c[3])) { omitidos++; continue; } // sin foto real, no se importa (se agrega desde el panel cuando haya foto)
   vistos.add(id);
   salida.push(`INSERT OR IGNORE INTO productos (id, nombre, categoria_id, descripcion, precio, imagen_url, disponible, visible, orden) VALUES (${sql(id)}, ${sql(c[1])}, ${sql(cat)}, ${sql((c[6] || '').slice(0, 1200))}, ${p}, ${sql(foto(c[3]))}, ${/^true$/i.test(c[4]) ? 1 : 0}, 1, ${++orden * 10});`);
 }
