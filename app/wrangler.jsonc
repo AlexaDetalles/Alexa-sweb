@@ -7,6 +7,11 @@
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
   "observability": { "enabled": true },
+  // Dominio propio: Cloudflare crea el DNS y el certificado solo. Requiere que la zona alexashop.cc esté activa en esta cuenta.
+  "routes": [
+    { "pattern": "alexashop.cc", "custom_domain": true },
+    { "pattern": "www.alexashop.cc", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
