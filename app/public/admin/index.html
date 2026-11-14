@@ -28,7 +28,7 @@
   <!-- Entrar: una sola pantalla con varias "cajas"; el panel muestra la que toca -->
   <main class="entrar" id="vista-entrar" hidden>
     <form class="entrar-caja" id="form-entrar" novalidate>
-      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
+      <div class="marca-fila"><img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="46" height="53"><p class="marca">lexa</p></div>
       <p class="marca-sub">Detalles &amp; Obsequios</p>
       <h1>Panel de la tienda</h1>
       <label class="campo">Correo
@@ -44,7 +44,7 @@
     </form>
 
     <form class="entrar-caja" id="form-configurar" novalidate hidden>
-      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
+      <div class="marca-fila"><img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="46" height="53"><p class="marca">lexa</p></div>
       <h1>Crea la cuenta de administradora</h1>
       <p class="pista">Todavía no hay ninguna cuenta. La primera persona que la crea es la administradora y después podrá invitar a más gente. Te enviaremos un código por correo para confirmar.</p>
       <label class="campo">Tu nombre
@@ -64,7 +64,7 @@
     </form>
 
     <form class="entrar-caja" id="form-codigo" novalidate hidden>
-      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
+      <div class="marca-fila"><img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="46" height="53"><p class="marca">lexa</p></div>
       <h1>Escribe tu código</h1>
       <p class="pista" id="codigo-texto">Te enviamos un código de 6 dígitos por correo. Vence en 10 minutos.</p>
       <label class="campo">Código
@@ -76,7 +76,7 @@
     </form>
 
     <form class="entrar-caja" id="form-olvide" novalidate hidden>
-      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
+      <div class="marca-fila"><img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="46" height="53"><p class="marca">lexa</p></div>
       <h1>Recuperar acceso</h1>
       <p class="pista">Escribe tu correo y te enviamos un enlace para elegir una contraseña nueva. Vence en 30 minutos.</p>
       <label class="campo">Correo
@@ -89,7 +89,7 @@
     </form>
 
     <form class="entrar-caja" id="form-restablecer" novalidate hidden>
-      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
+      <div class="marca-fila"><img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="46" height="53"><p class="marca">lexa</p></div>
       <h1>Elige tu contraseña nueva</h1>
       <input type="text" name="usuario" autocomplete="username" hidden>
       <label class="campo">Contraseña nueva (mínimo 12 caracteres)
@@ -104,7 +104,7 @@
     </form>
 
     <form class="entrar-caja" id="form-invitacion" novalidate hidden>
-      <img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="54" height="54"><p class="marca">ALEXA</p>
+      <div class="marca-fila"><img class="marca-logo" src="/assets/images/logo-mark-vino.svg" alt="" width="46" height="53"><p class="marca">lexa</p></div>
       <h1>Te invitaron al panel</h1>
       <p class="pista" id="invitacion-texto"></p>
       <input type="text" name="usuario" autocomplete="username" hidden>
@@ -125,7 +125,7 @@
   <!-- Panel -->
   <div id="vista-panel" hidden>
     <header class="barra">
-      <div class="barra-marca"><strong>ALEXA</strong><span>Panel</span></div>
+      <div class="barra-marca"><strong>lexa</strong><span>Panel</span></div>
       <nav class="pestanas" id="pestanas" aria-label="Secciones">
         <button type="button" data-ir="productos" aria-current="page">Productos</button>
         <button type="button" data-ir="categorias">Categorías</button>
@@ -158,7 +158,7 @@
         </div>
         <div class="chips" id="chips" role="group" aria-label="Filtrar"></div>
         <p class="nota" id="nota-papelera" hidden>Lo que borras se queda aquí 30 días. Puedes restaurarlo o eliminarlo para siempre.</p>
-        <ul class="lista" id="lista-productos"></ul>
+        <ul class="lista" id="lista-productos"><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li></ul>
         <p class="vacio" id="sin-productos" hidden>No hay productos con ese filtro.</p>
       </section>
 

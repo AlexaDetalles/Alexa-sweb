@@ -15,7 +15,14 @@ let cart=sanitizeCart(read('alexa_bag_v2',{}));
 const draftKey=`alexa_gift_v2_${audience}`;
 let toastTimer;
 function toast(text){const el=$('#toast');el.textContent=text;el.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>el.classList.remove('visible'),3500);}
-function prepareImages(root=document){$$('img',root).forEach(img=>img.addEventListener('error',()=>{if(!img.src.endsWith('/no-photo.svg'))img.src='/assets/images/no-photo.svg';},{once:true}));}
+function prepareImages(root=document){
+ $$('img',root).forEach(img=>{
+  img.addEventListener('error',()=>{if(!img.src.endsWith('/no-photo.svg'))img.src='/assets/images/no-photo.svg';},{once:true});
+  // Mientras llega la foto se ve un destello (skeleton) en su marco.
+  const box=img.closest('.product-image,.bag-item,.related-card');
+  if(box&&!img.complete){const wrap=img.parentElement;wrap.classList.add('cargando');const quitar=()=>wrap.classList.remove('cargando');img.addEventListener('load',quitar,{once:true});img.addEventListener('error',quitar,{once:true});}
+ });
+}
 function openDialog(dialog){if(dialog.open)return;dialog.showModal();body.classList.add('modal-open');}
 function closeDialog(dialog){dialog.close();if(!$$('dialog[open]').length)body.classList.remove('modal-open');}
 $$('dialog').forEach(d=>{
@@ -87,7 +94,7 @@ function renderProductButtons(){
 }
 function renderBag(){
  const list=$('#bag-content');
- if(!products.length){list.innerHTML='<div class="bag-empty"><h3>Preparando tu bolsa…</h3><p>Estamos cargando el catálogo. Puedes cerrar esta ventana y volver en un momento.</p></div>';return;}
+ if(!products.length){list.innerHTML='<p class="sr">Preparando tu bolsa…</p>'+'<div class="sk-bag" aria-hidden="true"><div class="sk sk-thumb"></div><div><div class="sk sk-line w90"></div><div class="sk sk-line w40"></div><div class="sk sk-btn"></div></div></div>'.repeat(2);return;}
  if(!Object.keys(cart).length){list.innerHTML='<div class="bag-empty"><h3>Hay un detalle esperándote.</h3><p>Añade tus favoritos del catálogo y los reuniremos aquí.</p><a class="btn" href="/catalogo.html">Explorar catálogo '+ARROW+'</a></div>';return;}
  const hasInvalid=Object.keys(cart).some(id=>!products.some(p=>p.id===id&&p.available));
  const lines=Object.entries(cart).map(([id,qty])=>{

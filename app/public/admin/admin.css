@@ -218,3 +218,10 @@ body:not([data-p-estadisticas]) [data-requiere="estadisticas"] { display: none; 
 .top li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: 14px; }
 .top li:last-child { border-bottom: 0; }
 .top li span { overflow-wrap: anywhere; } .top li b { color: var(--wine); font-variant-numeric: tabular-nums; }
+
+.marca-fila{display:flex;align-items:flex-end;justify-content:center;gap:4px}.marca-fila .marca-logo{margin:0;height:50px;width:auto}.marca-fila .marca{font-size:44px;line-height:.8;letter-spacing:.04em;padding-bottom:9px;text-align:left}
+.barra-marca strong{text-transform:none;letter-spacing:.04em;font-size:26px}
+.sk { background: linear-gradient(100deg, #eadfce 30%, #f5ecdf 50%, #eadfce 70%); background-size: 220% 100%; animation: brillo 1.4s linear infinite; border-radius: 8px; }
+.sk-fila .fila-texto { display: flex; flex-direction: column; gap: 8px; } .sk-l1 { height: 15px; width: 55%; } .sk-l2 { height: 12px; width: 35%; }
+@keyframes brillo { to { background-position: -120% 0; } }
+@media (prefers-reduced-motion: reduce) { .sk { animation: none; } }

@@ -243,29 +243,9 @@ dialog::backdrop{background:#150b0ecc;backdrop-filter:blur(5px)}
 .related-card span{font:500 17px/1.2 var(--serif)}.related-card b{color:var(--wine);font-size:14px}
 @media(max-width:800px){.ficha{grid-template-columns:1fr;gap:22px}.related-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
-/* ---- Loader de la portada (solo CSS; una vez por visita) ---- */
-.loader{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:radial-gradient(700px 420px at 50% 45%,#782f3a66,transparent 70%),var(--night);animation:loader-out .55s ease 1.2s forwards}
-.splash-visto .loader{display:none}
-.loader-mark{display:flex;flex-direction:column;align-items:center;gap:14px;color:#f7ead7}
-.loader-name{font:500 clamp(46px,9vw,84px)/1 var(--serif);letter-spacing:.24em;padding-left:.24em;opacity:0;animation:loader-in .7s var(--ease) .05s forwards}
-.loader-line{display:block;height:2px;width:clamp(110px,22vw,200px);background:linear-gradient(90deg,transparent,var(--gold),transparent);transform:scaleX(0);animation:loader-line .8s var(--ease) .35s forwards}
-.loader-mark small{font-size:10px;letter-spacing:.38em;opacity:0;animation:loader-in .6s ease .65s forwards}
-@keyframes loader-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@keyframes loader-line{to{transform:scaleX(1)}}
-@keyframes loader-out{to{opacity:0;visibility:hidden}}
-@media(prefers-reduced-motion:reduce){.loader{display:none}}
-
 /* ---- Rendimiento: las tarjetas fuera de pantalla no se pintan hasta que se acercan ---- */
 .product-card{content-visibility:auto;contain-intrinsic-size:auto 470px}
 
-/* ---- Marca: frasco de perfume + nombre ---- */
-.brand{display:inline-grid;grid-template-columns:auto auto;column-gap:12px;align-items:center;justify-items:start}
-.brand-mark{grid-row:1/3;width:36px;height:36px;display:block;transition:transform .5s var(--ease)}
-.brand:hover .brand-mark{transform:rotate(-8deg) translateY(-2px)}
-.brand strong{align-self:end}.brand small{align-self:start}
-.site-footer .brand-mark{width:44px;height:44px}
-.loader-logo{width:74px;height:74px;opacity:0;animation:loader-in .6s var(--ease) 0s forwards}
-@media(max-width:700px){.brand-mark{width:30px;height:30px}.site-footer .brand-mark{width:36px;height:36px}}
 
 /* ---- Píldora de consentimiento ---- */
 .cookie-pill{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translate(-50%,170%);z-index:95;width:min(780px,calc(100% - 24px));display:grid;grid-template-columns:auto 1fr auto;gap:12px 16px;align-items:center;padding:14px 14px 14px 16px;background:#1b1114f7;color:#f4e9da;border:1px solid #ffffff22;border-radius:30px;box-shadow:0 26px 60px -16px #000d;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);transition:transform .55s var(--ease)}
@@ -283,3 +263,53 @@ dialog::backdrop{background:#150b0ecc;backdrop-filter:blur(5px)}
 body.ck-open .bag-bar{display:none}
 @media(max-width:640px){.cookie-pill{grid-template-columns:auto 1fr;border-radius:26px;padding:14px;gap:10px 12px}.ck-botones{grid-column:1/-1}.ck-botones button{flex:1;padding:0 12px}.ck-icon{width:38px;height:38px}}
 @media(prefers-reduced-motion:reduce){.cookie-pill{transition:none}}
+
+/* ---- Marca: el tacón es la «A» y el texto es «lexa» ---- */
+.brand{display:inline-grid;grid-template-columns:auto auto;column-gap:6px;align-items:end;justify-items:start}
+.brand-mark{grid-row:1/3;height:50px;width:auto;display:block;transition:transform .5s var(--ease);transform-origin:50% 100%}
+.brand:hover .brand-mark{transform:rotate(-5deg)}
+.brand strong{font:500 40px/.8 var(--serif);letter-spacing:.04em;text-transform:none;align-self:end;padding-bottom:11px}
+.brand small{align-self:start;margin-top:-4px;font-size:7px;letter-spacing:.3em}
+.site-footer .brand-mark{height:58px}.site-footer .brand strong{font-size:48px}
+@media(max-width:700px){.brand-mark{height:42px}.brand strong{font-size:32px;padding-bottom:8px}.site-footer .brand-mark{height:46px}.site-footer .brand strong{font-size:38px}}
+
+/* ---- Loader de la portada: el tacón cae, golpea, salta y revela «lexa»; unos círculos pintan la web ---- */
+.loader{position:fixed;inset:0;z-index:200;display:grid;place-items:center;overflow:hidden;background:radial-gradient(700px 420px at 50% 55%,#782f3a66,transparent 70%),var(--night);animation:ld-out .4s ease 2.55s forwards}
+.splash-visto .loader{display:none}
+.ld-stage{--h:clamp(112px,24vmin,190px);position:relative;display:flex;flex-direction:column;align-items:flex-start}
+.ld-row{display:flex;align-items:flex-end;gap:calc(var(--h)*.06)}
+.ld-heelwrap{position:relative;display:block;height:var(--h);flex-shrink:0}
+.ld-heel{display:block;height:var(--h);width:auto;transform-origin:5% 100%;animation:ld-heel 1.25s both}
+.ld-word{display:flex;font:500 calc(var(--h)*.9)/.58 var(--serif);color:#f7ead7;letter-spacing:.03em;padding-bottom:calc(var(--h)*.025)}
+.ld-word i{font-style:normal;display:inline-block;opacity:0;animation:ld-pop .55s cubic-bezier(.34,1.56,.64,1) both;animation-delay:calc(.82s + var(--i,0)*.09s)}
+.ld-word i:nth-child(1){--i:0}.ld-word i:nth-child(2){--i:1}.ld-word i:nth-child(3){--i:2}.ld-word i:nth-child(4){--i:3}
+.ld-floor{display:block;height:2px;width:100%;margin-top:0;background:linear-gradient(90deg,transparent,var(--gold) 15%,var(--gold) 85%,transparent);transform:scaleX(0);transform-origin:0 50%;animation:ld-floor .5s var(--ease) .5s forwards}
+.ld-ring{position:absolute;left:6%;bottom:0;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;transform:translate(0,5px) scale(0);pointer-events:none;animation:ld-ring 1.05s cubic-bezier(.45,0,.15,1) both}
+.ld-ring.r1{background:var(--gold);animation-delay:1.45s;z-index:3}
+.ld-ring.r2{background:var(--wine);animation-delay:1.58s;z-index:4}
+.ld-ring.r3{background:#1b1114;animation-delay:1.71s;z-index:5}
+@keyframes ld-heel{
+  0%{transform:translateY(-120vh) rotate(-12deg);animation-timing-function:cubic-bezier(.5,0,.9,.55)}
+  44%{transform:translateY(0) rotate(0);animation-timing-function:ease-out}
+  49%{transform:scale(1.06,.92)}
+  68%{transform:translateY(-24%) rotate(-5deg) scale(1);animation-timing-function:cubic-bezier(.45,0,.85,.55)}
+  84%{transform:translateY(0) rotate(0) scale(1.03,.97)}
+  100%{transform:none}}
+@keyframes ld-pop{0%{opacity:0;transform:translateY(70%) scale(.5)}60%{opacity:1;transform:translateY(-10%) scale(1.07)}100%{opacity:1;transform:none}}
+@keyframes ld-floor{to{transform:scaleX(1)}}
+@keyframes ld-ring{to{transform:translate(0,5px) scale(420)}}
+@keyframes ld-out{to{opacity:0;visibility:hidden}}
+@media(prefers-reduced-motion:reduce){.loader{display:none}}
+
+/* ---- Skeletons ---- */
+.sk{background:linear-gradient(100deg,#eadfce 30%,#f5ecdf 50%,#eadfce 70%);background-size:220% 100%;animation:brillo 1.4s linear infinite;border-radius:8px}
+.sk-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:10px 10px 14px;display:flex;flex-direction:column;gap:11px;box-shadow:var(--shadow)}
+.sk-img{aspect-ratio:4/4.8;border-radius:calc(var(--r) - 4px)}
+.sk-line{height:13px;margin:0 6px}.sk-line.w40{width:40%}.sk-line.w60{width:60%}.sk-line.w90{width:88%;height:18px}.sk-line.big{height:30px;width:55%;margin:0 0 6px}
+.sk-btn{height:46px;border-radius:999px;margin:4px 4px 0}
+.sk-gift{display:flex;flex-direction:column;gap:18px}.sk-opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.sk-opt{height:128px;border-radius:var(--r)}
+.sk-bag{display:grid;grid-template-columns:76px 1fr;gap:14px;padding:22px 0}.sk-bag .sk-thumb{width:76px;height:92px;border-radius:10px}.sk-bag div{display:flex;flex-direction:column;gap:10px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.cargando{position:relative}.cargando::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(100deg,#eadfce 30%,#f5ecdf 50%,#eadfce 70%);background-size:220% 100%;animation:brillo 1.4s linear infinite;pointer-events:none}
+@media(max-width:700px){.sk-opts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(prefers-reduced-motion:reduce){.sk,.cargando::after{animation:none}}
