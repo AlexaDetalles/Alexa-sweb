@@ -36,7 +36,7 @@ async function api(req, env, ruta, ctx) {
   if (req.method !== 'GET' && req.headers.get('Origin') !== new URL(req.url).origin) falla(403, 'Origen no permitido.');
   if (req.method === 'GET' && ruta === 'catalogo') return catalogo(env);
   if (req.method === 'GET' && ruta.startsWith('regalos/')) return regalos(env, ruta.slice(8));
-  if (req.method === 'POST' && /^auth\/(entrar|configurar|confirmar|recuperar|restablecer|invitacion-aceptar)$/.test(ruta) && !(await dentroDelLimite(req, env.LIMITE_AUTH, env))) falla(429, 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.');
+  if (req.method === 'POST' && /^auth\/(entrar|configurar|confirmar|recuperar|restablecer|invitacion-aceptar|huella\/opciones-entrar|huella\/entrar)$/.test(ruta) && !(await dentroDelLimite(req, env.LIMITE_AUTH, env))) falla(429, 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.');
   if (ruta.startsWith('auth/')) return rutasAuth(req, env, ruta.slice(5), await leerJson(req), ctx);
   if (ruta.startsWith('admin/')) return rutasAdmin(req, env, ruta.slice(6), ruta === 'admin/fotos' ? {} : await leerJson(req), ctx);
   return falla(404, 'Ruta no encontrada.');

@@ -1,7 +1,8 @@
 // Cuentas del panel: entrar con correo y contraseña, alta de la primera administradora con código por correo,
 // recuperación de contraseña, invitaciones con rango y administración de usuarios.
 // Sesiones en D1 con solo el hash del token; cookie __Host- (HTTPS, sin JavaScript, SameSite=Strict); bloqueo de 15 min tras 5 fallos.
-import { falla, json, sha256, azar, b64url, iguales, hashClave, revisarClave, CLAVE_FALSA, leerCookie, cookie, fechaSql } from './util.js';
+import { generateRegistrationOptions, verifyRegistrationResponse, generateAuthenticationOptions, verifyAuthenticationResponse } from '@simplewebauthn/server';
+import { falla, json, sha256, azar, b64url, deB64url, iguales, hashClave, revisarClave, CLAVE_FALSA, leerCookie, cookie, fechaSql } from './util.js';
 import { enviarCorreo, sitio } from './correo.js';
 import * as V from './validacion.js';
 
@@ -114,7 +115,10 @@ async function cambiarClave(req, env, d) {
 
 async function estado(req, env) {
   const s = await sesionDe(req, env);
-  if (s) return json({ sesion: publico(s) });
+  if (s) {
+    const { n } = await env.BD.prepare('SELECT count(*) AS n FROM passkeys WHERE usuario_id = ?').bind(s.id).first();
+    return json({ sesion: { ...publico(s), huellas: n } });
+  }
   // Sin ninguna cuenta todavía: el panel ofrece crear la de la administradora principal.
   const { n } = await env.BD.prepare('SELECT count(*) AS n FROM usuarios').first();
   return json({ sesion: null, configurar: n === 0 });
@@ -285,10 +289,88 @@ export async function rutasUsuarios(req, env, partes, d, s, ctx) {
   return falla(404, 'Ruta no encontrada.');
 }
 
+// --- huella o Face ID (passkeys) -----------------------------------------------------------------
+// Solo se activa estando ya dentro (con contraseña). Después, el botón «Entrar con huella o Face ID» evita escribirla.
+// La passkey queda atada al dominio desde el que se creó (alexashop.cc): no sirve en otro dominio.
+const donde = (req) => { const u = new URL(req.url); return { rpID: u.hostname, origen: u.origin }; };
+const MAX_HUELLAS = 10;
+
+async function opcionesRegistro(req, env) {
+  const s = await exigirSesion(req, env);
+  const { results } = await env.BD.prepare('SELECT id, transportes FROM passkeys WHERE usuario_id = ?').bind(s.id).all();
+  if (results.length >= MAX_HUELLAS) falla(400, 'Ya tienes muchos dispositivos activados. Quita alguno primero.');
+  const o = await generateRegistrationOptions({
+    rpName: `Panel ${env.NOMBRE}`, rpID: donde(req).rpID, userName: s.correo, userDisplayName: s.nombre || s.correo,
+    userID: new TextEncoder().encode(s.id), attestationType: 'none',
+    // La passkey vive en el teléfono o la computadora y siempre pide huella, rostro o PIN del dispositivo.
+    authenticatorSelection: { residentKey: 'required', userVerification: 'required' },
+    excludeCredentials: results.map((p) => ({ id: p.id, transports: JSON.parse(p.transportes) })),
+  });
+  await env.BD.prepare("INSERT INTO retos (id, tipo, reto, usuario_id, expira) VALUES (?1, 'registro', ?2, ?3, ?4) ON CONFLICT (id) DO UPDATE SET reto = ?2, expira = ?4")
+    .bind(`registro:${s.id}`, o.challenge, s.id, fechaSql(Date.now() + 5 * MIN)).run();
+  return json(o);
+}
+
+async function registrarHuella(req, env, d) {
+  const s = await exigirSesion(req, env);
+  const reto = await env.BD.prepare("SELECT reto, expira FROM retos WHERE id = ? AND tipo = 'registro'").bind(`registro:${s.id}`).first();
+  await env.BD.prepare('DELETE FROM retos WHERE id = ?').bind(`registro:${s.id}`).run(); // un reto sirve una sola vez
+  if (!reto || caduco(reto)) falla(400, 'Pasó mucho tiempo. Toca «Activar» otra vez.');
+  const { rpID, origen } = donde(req);
+  let v;
+  try {
+    v = await verifyRegistrationResponse({ response: d.respuesta, expectedChallenge: reto.reto, expectedOrigin: origen, expectedRPID: rpID, requireUserVerification: true });
+  } catch (e) { console.error('passkey registro', e.message); falla(400, 'No pudimos activar la huella. Intenta de nuevo.'); }
+  if (!v.verified) falla(400, 'No pudimos activar la huella. Intenta de nuevo.');
+  const c = v.registrationInfo.credential;
+  await env.BD.prepare('INSERT INTO passkeys (id, usuario_id, clave_publica, contador, transportes, nombre) VALUES (?, ?, ?, ?, ?, ?)')
+    .bind(c.id, s.id, b64url(c.publicKey), c.counter, JSON.stringify(c.transports || []), String(d.nombre || 'Mi dispositivo').slice(0, 60)).run();
+  return json({ ok: true });
+}
+
+async function opcionesEntrar(req, env) {
+  const o = await generateAuthenticationOptions({ rpID: donde(req).rpID, userVerification: 'required' });
+  const retoId = b64url(azar(16));
+  await env.BD.prepare("INSERT INTO retos (id, tipo, reto, expira) VALUES (?, 'entrada', ?, ?)").bind(retoId, o.challenge, fechaSql(Date.now() + 5 * MIN)).run();
+  return json({ ...o, retoId });
+}
+
+async function entrarConHuella(req, env, d) {
+  const reto = await env.BD.prepare("SELECT reto, expira FROM retos WHERE id = ? AND tipo = 'entrada'").bind(String(d.retoId ?? '')).first();
+  await env.BD.prepare('DELETE FROM retos WHERE id = ?').bind(String(d.retoId ?? '')).run();
+  if (!reto || caduco(reto)) falla(400, 'Pasó mucho tiempo. Toca el botón otra vez.');
+  const p = await env.BD.prepare('SELECT p.*, u.activo, u.correo, u.nombre AS unombre, u.rol FROM passkeys p JOIN usuarios u ON u.id = p.usuario_id WHERE p.id = ?').bind(String(d.respuesta?.id ?? '')).first();
+  if (!p || !p.activo) falla(401, 'Esta huella no está activada en el panel. Entra con tu correo y contraseña.');
+  const { rpID, origen } = donde(req);
+  let v;
+  try {
+    v = await verifyAuthenticationResponse({
+      response: d.respuesta, expectedChallenge: reto.reto, expectedOrigin: origen, expectedRPID: rpID, requireUserVerification: true,
+      credential: { id: p.id, publicKey: deB64url(p.clave_publica), counter: p.contador, transports: JSON.parse(p.transportes) },
+    });
+  } catch (e) { console.error('passkey entrada', e.message); falla(401, 'No pudimos comprobar la huella. Entra con tu contraseña.'); }
+  if (!v.verified) falla(401, 'No pudimos comprobar la huella. Entra con tu contraseña.');
+  await env.BD.prepare('UPDATE passkeys SET contador = ?, usado = ? WHERE id = ?').bind(v.authenticationInfo.newCounter, fechaSql(), p.id).run();
+  return conCookie(json({ ok: true, ...publico({ correo: p.correo, nombre: p.unombre, rol: p.rol }) }), await crearSesion(env, p.usuario_id));
+}
+
+async function listarHuellas(req, env) {
+  const s = await exigirSesion(req, env);
+  const { results } = await env.BD.prepare('SELECT id, nombre, creado, usado FROM passkeys WHERE usuario_id = ? ORDER BY creado').bind(s.id).all();
+  return json({ huellas: results });
+}
+async function quitarHuella(req, env, id) {
+  const s = await exigirSesion(req, env);
+  await env.BD.prepare('DELETE FROM passkeys WHERE id = ? AND usuario_id = ?').bind(id, s.id).run();
+  return json({ ok: true });
+}
+
 // --- rutas /api/auth/* ----------------------------------------------------------
 export async function rutasAuth(req, env, ruta, d, ctx) {
   const m = req.method;
   if (m === 'GET' && ruta === 'sesion') return estado(req, env);
+  if (m === 'GET' && ruta === 'huellas') return listarHuellas(req, env);
+  if (m === 'DELETE' && ruta.startsWith('huellas/')) return quitarHuella(req, env, decodeURIComponent(ruta.slice(8)));
   if (m !== 'POST') return falla(404, 'Ruta no encontrada.');
   switch (ruta) {
     case 'entrar': return entrar(req, env, d);
@@ -299,6 +381,10 @@ export async function rutasAuth(req, env, ruta, d, ctx) {
     case 'confirmar': return confirmar(req, env, d);
     case 'recuperar': return recuperar(req, env, d, ctx);
     case 'restablecer': return restablecer(req, env, d, ctx);
+    case 'huella/opciones-registro': return opcionesRegistro(req, env);
+    case 'huella/registrar': return registrarHuella(req, env, d);
+    case 'huella/opciones-entrar': return opcionesEntrar(req, env);
+    case 'huella/entrar': return entrarConHuella(req, env, d);
     case 'invitacion-ver': return verInvitacion(req, env, d);
     case 'invitacion-aceptar': return aceptarInvitacion(req, env, d);
     default: return falla(404, 'Ruta no encontrada.');

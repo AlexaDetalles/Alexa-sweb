@@ -18,6 +18,12 @@ app/
 - **Ajustes**: WhatsApp de las asesoras y cambio de contraseña.
 - **Usuarios y rangos** (solo administradora): invitar por correo, cambiar rango, desactivar. Rangos: Administradora (todo), Encargada de Catálogo (productos, categorías y regalos), Encargada de Atención (WhatsApp de asesoras) y Supervisora (solo lectura). El servidor valida el rango en cada llamada.
 
+## Huella o Face ID
+Se activa **después de entrar con contraseña** (aviso al entrar o Ajustes → Huella o Face ID) y desde entonces aparece «Entrar con huella o Face ID» en la pantalla de acceso. Usa passkeys (WebAuthn), atadas al dominio donde se activaron (`alexashop.cc`). Cada persona puede tener hasta 10 dispositivos y quitarlos desde Ajustes. Requiere Chrome 129+, Safari 18.4+ o Firefox 119+.
+
+## Empleadas
+Ajustes → Personas con acceso → **Agregar persona** (nombre, correo y rango). Le llega un correo para confirmar que es ella y elegir su contraseña; después entra con su correo y esa contraseña, o con su huella. «¿Olvidaste tu contraseña?» también usa correo.
+
 ## Cuentas y correos (Resend)
 - **Primera administradora:** si la base no tiene usuarios, `/admin` pide correo y contraseña y manda un código de 6 dígitos por correo. Solo el correo del secreto `ADMIN_EMAIL` puede crearla, para que nadie se adelante.
 - **Olvidé mi contraseña:** enlace por correo de un solo uso (30 min) y aviso al terminar el cambio.

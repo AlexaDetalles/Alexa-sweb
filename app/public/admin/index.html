@@ -39,6 +39,7 @@
       </label>
       <p class="error" id="error-entrar" role="alert" hidden></p>
       <button class="boton" type="submit">Entrar</button>
+      <button type="button" class="boton suave" id="entrar-huella" hidden>Entrar con huella o Face ID</button>
       <button type="button" class="enlace" data-modo="olvide">¿Olvidaste tu contraseña?</button>
     </form>
 
@@ -129,7 +130,6 @@
         <button type="button" data-ir="productos" aria-current="page">Productos</button>
         <button type="button" data-ir="categorias">Categorías</button>
         <button type="button" data-ir="regalos">Regalos</button>
-        <button type="button" data-ir="usuarios" data-requiere="usuarios">Usuarios</button>
         <button type="button" data-ir="ajustes">Ajustes</button>
       </nav>
       <div class="barra-acciones">
@@ -138,6 +138,11 @@
         <button type="button" class="enlace-barra" id="salir">Salir</button>
       </div>
     </header>
+
+    <div class="banner" id="banner-huella" hidden>
+      <span>¿Quieres entrar con tu huella o Face ID la próxima vez?</span>
+      <span class="banner-botones"><button type="button" class="boton chico" id="banner-activar">Activar</button><button type="button" class="boton suave chico" id="banner-luego">Ahora no</button></span>
+    </div>
 
     <main class="contenido">
       <!-- Productos -->
@@ -178,18 +183,6 @@
         <div id="pasos"></div>
       </section>
 
-      <!-- Usuarios (solo administradoras) -->
-      <section id="sec-usuarios" aria-labelledby="t-usuarios" hidden>
-        <div class="cabecera">
-          <div><h1 id="t-usuarios">Usuarios</h1><p class="suave">Quién entra al panel y qué puede hacer. Cada persona elige su propia contraseña desde el enlace que le llega por correo.</p></div>
-          <button type="button" class="boton" id="invitar"><svg class="ico"><use href="#i-mas"/></svg>Invitar a alguien</button>
-        </div>
-        <div class="tarjeta rangos" id="rangos"></div>
-        <ul class="lista" id="lista-usuarios"></ul>
-        <h2 class="subtitulo" id="t-invitaciones" hidden>Invitaciones pendientes</h2>
-        <ul class="lista" id="lista-invitaciones"></ul>
-      </section>
-
       <!-- Ajustes -->
       <section id="sec-ajustes" aria-labelledby="t-ajustes" hidden>
         <div class="cabecera"><div><h1 id="t-ajustes">Ajustes</h1></div></div>
@@ -217,11 +210,29 @@
           <p class="error" id="error-clave" role="alert" hidden></p>
           <button class="boton" type="submit">Cambiar contraseña</button>
         </form>
+        <div class="tarjeta" id="tarjeta-huella" hidden>
+          <h2>Huella o Face ID</h2>
+          <p class="suave">Actívala en este dispositivo y la próxima vez entras sin escribir la contraseña. Solo funciona en dispositivos donde ya la activaste estando dentro del panel.</p>
+          <ul class="lista huellas" id="lista-huellas"></ul>
+          <p class="error" id="error-huella" role="alert" hidden></p>
+          <button type="button" class="boton" id="activar-huella">Activar en este dispositivo</button>
+        </div>
         <div class="tarjeta">
           <h2>Seguridad y copias</h2>
           <p class="suave">Tu sesión se cierra sola tras una hora sin usar el panel. Cada lunes se guarda una copia de seguridad del catálogo y de los regalos (se conservan 12 semanas).</p>
           <button type="button" class="boton suave" id="salir-todo">Cerrar sesión en todos los dispositivos</button>
         </div>
+      <!-- Usuarios (solo administradoras) -->
+      <div id="sec-usuarios" data-requiere="usuarios">
+        <div class="cabecera">
+          <div><h2 id="t-usuarios">Personas con acceso al panel</h2><p class="suave">Escribe el correo de cada empleada y elige su rango. Le llega un correo para confirmar que es ella y elegir su propia contraseña la primera vez; después entra con su correo y esa contraseña (o con su huella).</p></div>
+          <button type="button" class="boton" id="invitar"><svg class="ico"><use href="#i-mas"/></svg>Agregar persona</button>
+        </div>
+        <div class="tarjeta rangos" id="rangos"></div>
+        <ul class="lista" id="lista-usuarios"></ul>
+        <h2 class="subtitulo" id="t-invitaciones" hidden>Invitaciones pendientes</h2>
+        <ul class="lista" id="lista-invitaciones"></ul>
+      </div>
       </section>
     </main>
   </div>
@@ -297,16 +308,16 @@
   <!-- Invitar -->
   <dialog id="dlg-invitar" aria-labelledby="dlg-invitar-t">
     <form id="form-invitar" novalidate>
-      <div class="dlg-top"><h2 id="dlg-invitar-t">Invitar a alguien</h2><button type="button" class="icono" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
+      <div class="dlg-top"><h2 id="dlg-invitar-t">Agregar persona</h2><button type="button" class="icono" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
       <div class="dlg-cuerpo">
         <label class="campo">Nombre<input name="nombre" maxlength="60" required></label>
         <label class="campo">Correo<input type="email" name="correo" autocapitalize="none" spellcheck="false" required></label>
         <label class="campo">Rango<select name="rol"></select></label>
         <p class="suave" id="ayuda-rol"></p>
-        <p class="suave">Le llegará un enlace de un solo uso (vence en 48 horas) para que elija su propia contraseña.</p>
+        <p class="suave">Le llega un correo con un enlace de un solo uso (vence en 48 horas) para confirmar que es ella y elegir su propia contraseña.</p>
         <p class="error" id="error-invitar" role="alert" hidden></p>
       </div>
-      <div class="dlg-pie"><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cancelar</button><button type="submit" class="boton">Enviar invitación</button></div>
+      <div class="dlg-pie"><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cancelar</button><button type="submit" class="boton">Enviar correo</button></div>
     </form>
   </dialog>
 

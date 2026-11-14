@@ -31,7 +31,7 @@ before(async () => {
   wrangler(['d1', 'migrations', 'apply', 'BD', '--local', '--persist-to', estado]);
   execFileSync(process.execPath, [join(RAIZ, 'herramientas/semilla.mjs')], { cwd: RAIZ, env: { ...process.env, ...env }, stdio: 'pipe' });
   execFileSync(process.execPath, [join(RAIZ, 'herramientas/crear-usuario.mjs'), CORREO], { cwd: RAIZ, env: { ...process.env, ...env }, stdio: 'pipe' });
-  servidor = spawn(process.execPath, [join(RAIZ, 'node_modules/wrangler/bin/wrangler.js'), 'dev', '--local', '--port', String(PUERTO), '--persist-to', estado, '--var', 'DEV:1'], { cwd: RAIZ, stdio: 'ignore' });
+  servidor = spawn(process.execPath, [join(RAIZ, 'node_modules/wrangler/bin/wrangler.js'), 'dev', '--local', '--port', String(PUERTO), '--local-upstream', `localhost:${PUERTO}`, '--persist-to', estado, '--var', 'DEV:1'], { cwd: RAIZ, stdio: 'ignore' });
   await esperarServidor();
 });
 after(() => { servidor?.kill(); });

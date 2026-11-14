@@ -2,7 +2,9 @@
   "name": "alexashop-admin",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "node herramientas/dev.mjs",
     "migrar:local": "wrangler d1 migrations apply BD --local",
@@ -11,5 +13,8 @@
   },
   "devDependencies": {
     "wrangler": "4.149.0"
+  },
+  "dependencies": {
+    "@simplewebauthn/server": "14.0.3"
   }
 }

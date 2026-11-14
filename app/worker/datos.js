@@ -328,6 +328,7 @@ export async function mantenimiento(env) {
   await env.BD.batch([
     env.BD.prepare('DELETE FROM sesiones WHERE expira < ?').bind(ahora),
     env.BD.prepare('DELETE FROM codigos WHERE expira < ?').bind(ahora),
+    env.BD.prepare('DELETE FROM retos WHERE expira < ?').bind(ahora),
     env.BD.prepare('DELETE FROM intentos WHERE bloqueado_hasta IS NOT NULL AND bloqueado_hasta < ?').bind(ahora),
   ]);
   return { respaldo: `respaldos/${diaHonduras()}.json`, papelera: papelera.length, huerfanas: huerfanas.length };

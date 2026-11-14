@@ -99,9 +99,10 @@ async function mostrarPanel(yo) {
   $('#vista-entrar').hidden = true; $('#vista-panel').hidden = false;
   aplicarSesion(yo);
   await cargar();
+  mostrarAvisoHuella();
   ir(location.hash.slice(1) || 'productos');
 }
-const iniciarSesion = (datos) => mostrarPanel({ correo: datos.correo, nombre: datos.nombre, rol: datos.rol, rolNombre: datos.rolNombre });
+const iniciarSesion = async (datos) => { let huellas = 0; try { huellas = (await api('GET', 'auth/sesion')).sesion?.huellas ?? 0; } catch { /* sin dato */ } return mostrarPanel({ correo: datos.correo, nombre: datos.nombre, rol: datos.rol, rolNombre: datos.rolNombre, huellas }); };
 const enviar = (formId, errorId, fn) => $(formId).addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const f = ev.target, b = $('button[type=submit]', f);
@@ -112,7 +113,7 @@ const enviar = (formId, errorId, fn) => $(formId).addEventListener('submit', asy
 const igual = (f, a = 'clave', b = 'repite') => { if (f[a].value !== f[b].value) throw new Error('Las contraseñas no coinciden.'); };
 
 enviar('#form-entrar', '#error-entrar', async (f) => {
-  iniciarSesion(await api('POST', 'auth/entrar', { correo: f.correo.value, clave: f.clave.value }));
+  await iniciarSesion(await api('POST', 'auth/entrar', { correo: f.correo.value, clave: f.clave.value }));
   f.clave.value = '';
 });
 enviar('#form-configurar', '#error-configurar', async (f) => {
@@ -124,7 +125,7 @@ enviar('#form-configurar', '#error-configurar', async (f) => {
   if (r.codigo_dev) $('#form-codigo').codigo.value = r.codigo_dev; // solo en pruebas locales
 });
 enviar('#form-codigo', '#error-codigo', async (f) => {
-  iniciarSesion(await api('POST', 'auth/confirmar', { correo: f.dataset.correo, codigo: f.codigo.value }));
+  await iniciarSesion(await api('POST', 'auth/confirmar', { correo: f.dataset.correo, codigo: f.codigo.value }));
   f.codigo.value = '';
   $('#form-configurar').reset();
 });
@@ -140,7 +141,7 @@ enviar('#form-restablecer', '#error-restablecer', async (f) => {
 });
 enviar('#form-invitacion', '#error-invitacion', async (f) => {
   igual(f);
-  iniciarSesion(await api('POST', 'auth/invitacion-aceptar', { token: enlaceToken, nombre: f.nombre.value, clave: f.clave.value }));
+  await iniciarSesion(await api('POST', 'auth/invitacion-aceptar', { token: enlaceToken, nombre: f.nombre.value, clave: f.clave.value }));
   enlaceToken = null; f.reset();
 });
 
@@ -157,9 +158,10 @@ async function cargar() {
   Object.assign(E, { cats: d.categorias, prods: d.productos, papelera: d.papelera, ops: d.opciones, ajustes: d.ajustes });
   pintar();
 }
-const VISTAS = ['productos', 'categorias', 'regalos', 'usuarios', 'ajustes'];
+const VISTAS = ['productos', 'categorias', 'regalos', 'ajustes'];
 function ir(vista) {
-  if (!VISTAS.includes(vista) || (vista === 'usuarios' && !PERMISOS[E.yo?.rol]?.includes('usuarios'))) vista = 'productos';
+  if (vista === 'usuarios') vista = 'ajustes'; // los usuarios viven dentro de Ajustes
+  if (!VISTAS.includes(vista)) vista = 'productos';
   E.vista = vista;
   history.replaceState(null, '', `#${vista}`);
   for (const s of VISTAS) $(`#sec-${s}`).hidden = s !== vista;
@@ -171,7 +173,6 @@ function pintar() {
   if (E.vista === 'productos') pintarProductos();
   else if (E.vista === 'categorias') pintarCategorias();
   else if (E.vista === 'regalos') pintarRegalos();
-  else if (E.vista === 'usuarios') pintarUsuarios();
   else pintarAjustes();
 }
 
@@ -492,6 +493,8 @@ $('#opcion-borrar').addEventListener('click', async () => {
 
 // --- ajustes -------------------------------------------------------------------------------
 function pintarAjustes() {
+  if (PERMISOS[E.yo?.rol]?.includes('usuarios')) pintarUsuarios();
+  pintarHuellas();
   const f = $('#form-ajustes');
   for (const k of ['asesora1_nombre', 'asesora1_whatsapp', 'asesora2_nombre', 'asesora2_whatsapp']) if (document.activeElement !== f[k]) f[k].value = E.ajustes[k] ?? '';
 }
@@ -518,6 +521,63 @@ $('#form-clave').addEventListener('submit', async (ev) => {
 document.addEventListener('click', (ev) => { if (ev.target.closest('[data-cerrar]')) ev.target.closest('dialog').close(); });
 $$('dialog').forEach((d) => d.addEventListener('click', (ev) => { if (ev.target === d && d.id !== 'dlg-producto') d.close(); }));
 window.addEventListener('hashchange', () => { if (!$('#vista-panel').hidden && !/^#(restablecer|invitacion)=/.test(location.hash)) ir(location.hash.slice(1)); });
+
+// --- huella o Face ID ------------------------------------------------------------------------------
+// Solo se activa estando dentro con contraseña. Usa la API nativa del navegador (WebAuthn); si no existe, no se ofrece.
+const soportaHuella = () => !!(window.PublicKeyCredential && PublicKeyCredential.parseCreationOptionsFromJSON && PublicKeyCredential.parseRequestOptionsFromJSON && window.isSecureContext);
+const nombreDispositivo = () => { const u = navigator.userAgent; return /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Android/.test(u) ? 'Teléfono Android' : /Mac/.test(u) ? 'Mac' : /Windows/.test(u) ? 'Computadora Windows' : 'Mi dispositivo'; };
+const mensajeHuella = (e) => (e.name === 'NotAllowedError' ? 'Se canceló. Inténtalo de nuevo.' : e.name === 'InvalidStateError' ? 'Este dispositivo ya está activado.' : e.name === 'NotSupportedError' || e.name === 'SecurityError' ? 'Este dispositivo o navegador no permite usar la huella aquí.' : e.message);
+
+async function activarHuella() {
+  const opciones = await api('POST', 'auth/huella/opciones-registro');
+  let cred;
+  try { cred = await navigator.credentials.create({ publicKey: PublicKeyCredential.parseCreationOptionsFromJSON(opciones) }); } catch (e) { throw new Error(mensajeHuella(e)); }
+  await api('POST', 'auth/huella/registrar', { respuesta: cred.toJSON(), nombre: nombreDispositivo() });
+}
+async function entrarConHuella() {
+  const { retoId, ...opciones } = await api('POST', 'auth/huella/opciones-entrar');
+  let cred;
+  try { cred = await navigator.credentials.get({ publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(opciones) }); } catch (e) { throw new Error(mensajeHuella(e)); }
+  await iniciarSesion(await api('POST', 'auth/huella/entrar', { retoId, respuesta: cred.toJSON() }));
+}
+async function pintarHuellas() {
+  $('#tarjeta-huella').hidden = !soportaHuella();
+  if (!soportaHuella()) return;
+  try {
+    const { huellas } = await api('GET', 'auth/huellas');
+    E.yo.huellas = huellas.length;
+    $('#lista-huellas').innerHTML = huellas.map((h) => `<li class="fila huella"><div class="fila-texto"><div class="fila-nombre">${esc(h.nombre || 'Dispositivo')}</div><div class="fila-meta"><span>Activada el ${esc(String(h.creado).slice(0, 10))}</span>${h.usado ? `<span>Último uso ${esc(String(h.usado).slice(0, 10))}</span>` : ''}</div></div>
+      <div class="fila-acciones"><button type="button" class="boton suave peligro chico" data-quitar-huella="${esc(h.id)}">Quitar</button></div></li>`).join('');
+  } catch { /* si falla, la tarjeta queda vacía */ }
+}
+$('#activar-huella').addEventListener('click', async () => {
+  const b = $('#activar-huella'); b.disabled = true; mostrarError('#error-huella');
+  try { await activarHuella(); avisar('Listo: la próxima vez puedes entrar con tu huella o Face ID.'); await pintarHuellas(); } catch (e) { mostrarError('#error-huella', e.message); }
+  b.disabled = false;
+});
+$('#lista-huellas').addEventListener('click', async (ev) => {
+  const b = ev.target.closest('[data-quitar-huella]');
+  if (!b || !(await confirmar('Quitar huella', 'Ese dispositivo tendrá que entrar con la contraseña.', 'Quitar'))) return;
+  try { await api('DELETE', `auth/huellas/${encodeURIComponent(b.dataset.quitarHuella)}`); avisar('Quitada.'); } catch (e) { avisar(e.message, true); }
+  pintarHuellas();
+});
+$('#entrar-huella').hidden = !soportaHuella();
+$('#entrar-huella').addEventListener('click', async () => {
+  const b = $('#entrar-huella'); b.disabled = true; mostrarError('#error-entrar');
+  try { await entrarConHuella(); } catch (e) { mostrarError('#error-entrar', e.message); }
+  b.disabled = false;
+});
+// Aviso al entrar con contraseña: ofrece activar la huella una vez por persona y dispositivo.
+const claveAviso = () => `huella-luego:${E.yo?.correo}`;
+function mostrarAvisoHuella() {
+  let luego = false; try { luego = localStorage.getItem(claveAviso()) === '1'; } catch { /* sin almacenamiento */ }
+  $('#banner-huella').hidden = !(soportaHuella() && E.yo && E.yo.huellas === 0 && !luego);
+}
+$('#banner-activar').addEventListener('click', async () => {
+  try { await activarHuella(); E.yo.huellas = 1; avisar('Listo: la próxima vez puedes entrar con tu huella o Face ID.'); } catch (e) { avisar(e.message, true); }
+  mostrarAvisoHuella();
+});
+$('#banner-luego').addEventListener('click', () => { try { localStorage.setItem(claveAviso(), '1'); } catch { /* da igual */ } $('#banner-huella').hidden = true; });
 
 // --- usuarios y rangos (solo administradoras) ----------------------------------------------
 const AYUDA_ROL = {
@@ -560,7 +620,7 @@ $('#sec-usuarios').addEventListener('click', async (ev) => {
   try {
     if (b.dataset.accion === 'activar') { await api('PUT', `admin/usuarios/${u.id}`, { activo: !u.activo }); avisar(u.activo ? 'Desactivada: ya no puede entrar.' : 'Activada.'); }
     else if (b.dataset.accion === 'borrar') { if (!(await confirmar('Borrar usuaria', `«${u.nombre || u.correo}» ya no podrá entrar al panel.`, 'Borrar'))) return; await api('DELETE', `admin/usuarios/${u.id}`); avisar('Borrada.'); }
-    else if (b.dataset.accion === 'cancelar') { await api('DELETE', `admin/invitaciones/${b.dataset.id}`); avisar('Invitación cancelada.'); }
+    else if (b.dataset.accion === 'cancelar') { await api('DELETE', `admin/invitaciones/${b.dataset.id}`); avisar('Cancelado.'); }
   } catch (e) { avisar(e.message, true); }
   pintarUsuarios();
 });
@@ -577,7 +637,7 @@ $('#form-invitar').addEventListener('submit', async (ev) => {
   const f = ev.target, b = $('button[type=submit]', f);
   if (!f.nombre.value.trim() || !f.correo.value.trim()) return mostrarError('#error-invitar', 'Escribe el nombre y el correo.');
   b.disabled = true; mostrarError('#error-invitar');
-  try { await api('POST', 'admin/usuarios', { nombre: f.nombre.value, correo: f.correo.value, rol: f.rol.value }); $('#dlg-invitar').close(); avisar('Invitación enviada por correo.'); pintarUsuarios(); } catch (e) { mostrarError('#error-invitar', e.message); }
+  try { await api('POST', 'admin/usuarios', { nombre: f.nombre.value, correo: f.correo.value, rol: f.rol.value }); $('#dlg-invitar').close(); avisar('Listo: le enviamos el correo.'); pintarUsuarios(); } catch (e) { mostrarError('#error-invitar', e.message); }
   b.disabled = false;
 });
 

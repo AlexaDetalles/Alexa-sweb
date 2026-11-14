@@ -17,7 +17,7 @@ before(async () => {
   const estado = mkdtempSync(join(tmpdir(), 'alexa-acceso-'));
   wr(['d1', 'migrations', 'apply', 'BD', '--local', '--persist-to', estado]);
   execFileSync(process.execPath, [join(RAIZ, 'herramientas/semilla.mjs')], { cwd: RAIZ, env: { ...process.env, PERSISTIR: estado }, stdio: 'pipe' });
-  servidor = spawn(process.execPath, [join(RAIZ, 'node_modules/wrangler/bin/wrangler.js'), 'dev', '--local', '--port', String(PUERTO), '--persist-to', estado, '--var', 'DEV:1', '--var', `ADMIN_EMAIL:${DUENA}`], { cwd: RAIZ, stdio: 'ignore' });
+  servidor = spawn(process.execPath, [join(RAIZ, 'node_modules/wrangler/bin/wrangler.js'), 'dev', '--local', '--port', String(PUERTO), '--local-upstream', `localhost:${PUERTO}`, '--persist-to', estado, '--var', 'DEV:1', '--var', `ADMIN_EMAIL:${DUENA}`], { cwd: RAIZ, stdio: 'ignore' });
   for (let i = 0; i < 60; i++) { try { if ((await fetch(`${URL_BASE}/api/catalogo`)).ok) return; } catch { /* aún no */ } await new Promise((r) => setTimeout(r, 500)); }
   throw new Error('El Worker no arrancó.');
 });

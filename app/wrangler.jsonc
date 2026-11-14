@@ -38,8 +38,8 @@
   "vars": {
     "NOMBRE": "Alexa Detalles",
     "REMITENTE": "no-responder@alexashop.cc",
-    // Dirección pública del panel: los enlaces de los correos se arman con ella. Cámbiala a https://alexashop.cc cuando el dominio ya apunte al Worker.
-    "SITIO": "https://alexashop.gvayoy.workers.dev"
+    // Dirección pública del panel: los enlaces de los correos se arman con ella. Es la dirección pública del dominio.
+    "SITIO": "https://alexashop.cc"
   }
   // Secretos (npx wrangler secret put <NOMBRE>): FIRMA (32+ caracteres al azar), RESEND_API_KEY (correos) y ADMIN_EMAIL (el único correo que puede crear la cuenta principal si la base no tiene usuarios).
 }

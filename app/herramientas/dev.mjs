@@ -16,4 +16,4 @@ correrWrangler(['d1', 'migrations', 'apply', 'BD', '--local'], { stdio: 'inherit
 await nodo('semilla.mjs');
 await nodo('crear-usuario.mjs', [correo], { CLAVE: clave });
 console.log(`\n  Panel: http://localhost:8787/admin\n  Correo: ${correo}\n  Contraseña: ${clave}\n`);
-spawn(process.execPath, [join(RAIZ, 'node_modules/wrangler/bin/wrangler.js'), 'dev', '--local', '--var', 'DEV:1'], { cwd: RAIZ, stdio: 'inherit' });
+spawn(process.execPath, [join(RAIZ, 'node_modules/wrangler/bin/wrangler.js'), 'dev', '--local', '--local-upstream', 'localhost:8787', '--var', 'DEV:1'], { cwd: RAIZ, stdio: 'inherit' });

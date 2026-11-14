@@ -185,3 +185,12 @@ dialog form { display: flex; flex-direction: column; max-height: calc(100dvh - 2
 body:not([data-p-usuarios]) [data-requiere="usuarios"] { display: none; }
 body:not([data-p-catalogo]) :is(#nuevo-producto, #nueva-categoria, #sec-productos .fila-acciones, #sec-categorias .fila-acciones, #sec-regalos .opcion .icono, #sec-regalos [data-accion="nueva"]) { display: none; }
 @media (max-width: 760px) { .fila.usuario { grid-template-columns: 40px 1fr; } .fila.usuario .fila-acciones { grid-column: 1 / -1; justify-content: flex-start; border-top: 1px solid var(--line); padding-top: 6px; } .quien { display: none; } }
+
+/* Huella y aviso */
+.banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 10px 16px; background: #f6ebd5; border-bottom: 1px solid #e6d3a8; font-size: 14px; }
+.banner-botones { display: flex; gap: 8px; }
+.huellas { width: 100%; }
+.fila.huella { grid-template-columns: 1fr auto; }
+#sec-usuarios { margin-top: 28px; }
+#sec-usuarios .cabecera { margin-bottom: 12px; }
+#sec-usuarios .cabecera h2 { font-size: 21px; }
