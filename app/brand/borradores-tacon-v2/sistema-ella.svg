@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="oro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d98b"/><stop offset="1" stop-color="#c99a3b"/></linearGradient><clipPath id="b"><rect x="24" y="54" width="72" height="56" rx="17"/></clipPath></defs>
+<g transform="translate(77 11.4) scale(-.40 .40) translate(-3 -30)"><path d="M4 104 C3 99 8 95 16 93 C32 89 44 77 54 61 C58 54 61 50 65 49 C73 48 78 41 83 34 C87 32 90 36 89 43 C88 52 85 59 83 64 L85 104 L82 104 L77 70 C69 86 52 104 34 104 Z" fill="url(#oro)"/></g>
+<rect x="40" y="41" width="40" height="6" rx="3" fill="#782f3a"/>
+<rect x="52" y="47" width="16" height="7" fill="#782f3a"/>
+<rect x="24" y="54" width="72" height="56" rx="17" fill="none" stroke="#782f3a" stroke-width="3.6"/>
+<g clip-path="url(#b)"><path d="M0 86 C16 80 28 92 44 86 S72 80 88 86 S110 84 120 86 V120 H0Z" fill="#782f3a"/></g>
+<path d="M34 66 C34 64 36 62 40 62" fill="none" stroke="#782f3a" stroke-opacity=".35" stroke-width="3" stroke-linecap="round"/>
+<path transform="translate(82 70)" d="M0-7 1.900-1.900 7 0 1.900 1.900 0 7-1.900 1.900-7 0-1.900-1.900z" fill="url(#oro)"/></svg>
