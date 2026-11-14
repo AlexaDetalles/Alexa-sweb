@@ -20,7 +20,7 @@
       "binding": "BD",
       "database_name": "alexashop",
       // REEMPLAZAR por el id real que devuelve `wrangler d1 create alexashop`. En local no hace falta.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "b2bee307-1b6c-4a2e-b1de-8ddb5b0b70ba",
       "migrations_dir": "migraciones"
     }
   ],
