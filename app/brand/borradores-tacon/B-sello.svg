@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><defs><linearGradient id="oro" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d98b"/><stop offset="1" stop-color="#c99a3b"/></linearGradient><clipPath id="z"><path d="M4 104 C3 99 8 95 16 93 C32 89 44 77 54 61 C58 54 61 50 65 49 C73 48 78 41 83 34 C87 32 90 36 89 43 C88 52 85 59 83 64 L85 104 L82 104 L77 70 C69 86 52 104 34 104 Z"/></clipPath></defs>
+<circle cx="60" cy="60" r="58" fill="#782f3a"/><circle cx="60" cy="60" r="53" fill="none" stroke="#d2a851" stroke-width="1.4" opacity=".7"/>
+<g transform="translate(60 62) scale(.74) translate(-47 -66)">
+<path d="M4 104 C3 99 8 95 16 93 C32 89 44 77 54 61 C58 54 61 50 65 49 C73 48 78 41 83 34 C87 32 90 36 89 43 C88 52 85 59 83 64 L85 104 L82 104 L77 70 C69 86 52 104 34 104 Z" fill="#fbf4ea"/>
+<g clip-path="url(#z)"><path d="M0 93 C16 86 28 99 44 93 S66 86 82 92 S104 90 120 93 V120 H0Z" fill="#e6d3bd"/></g>
+<path d="M83 64 L85 104 L82 104 L77 70 Z" fill="url(#oro)"/><rect x="80" y="21" width="14" height="11" rx="3.500" transform="rotate(-6 87 27)" fill="url(#oro)"/><path d="M103 36l2 5.200 5.200 2-5.200 2-2 5.200-2-5.200-5.200-2 5.200-2z" fill="url(#oro)"/></g></svg>
