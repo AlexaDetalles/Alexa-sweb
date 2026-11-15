@@ -2,11 +2,8 @@
 import { falla, json, fechaSql, diaHonduras } from './util.js';
 import { exigirSesion, exigirPermiso, rutasUsuarios } from './auth.js';
 import * as V from './validacion.js';
-import { completeOptions } from '../public/assets/core.mjs';
 import { actividad, limpiarEstadisticas } from './estadisticas.js';
 
-const CATEGORIA_PASO = { base: 'Base', tamano: 'Tamaño', contenido: 'Contenido', peluches: 'Peluches', globos: 'Globos', entrega: 'Delivery' };
-const PREFIJO_PASO = { base: 'B', tamano: 'T', contenido: 'C', peluches: 'P', globos: 'G', entrega: 'D' };
 const ABIERTO = { 'Access-Control-Allow-Origin': '*' }; // lectura pública: cualquier página puede mostrar el catálogo
 
 const miniatura = (url) => (url?.startsWith('/fotos/') ? url.replace('-1200.', '-600.') : url);
@@ -55,18 +52,54 @@ export async function catalogo(env) {
   }, 200, { ...ABIERTO, 'Cache-Control': 'no-cache' });
 }
 
-/** GET /api/regalos/mujer|hombre: opciones del personalizador, con el mismo formato que usaba la hoja. */
+/**
+ * GET /api/regalos/mujer|hombre: el personalizador completo (textos, pasos y opciones con foto).
+ * Solo sale lo que se puede comprar: pasos activos, opciones activas y, en los pasos que dependen de otro,
+ * opciones cuya cadena de "padres" sigue activa. Un paso sin opciones visibles no aparece.
+ */
 export async function regalos(env, publico) {
   if (!V.PUBLICOS.includes(publico)) falla(404, 'Ruta no encontrada.');
-  const { results } = await env.BD.prepare('SELECT * FROM opciones WHERE publico = ? AND activa = 1 ORDER BY orden, nombre').bind(publico).all();
-  const porId = new Map(results.map((o) => [o.id, o]));
-  // Si una base se apaga, sus tamaños y su contenido desaparecen con ella.
-  const visible = (o) => !o.padre_id || (porId.has(o.padre_id) && visible(porId.get(o.padre_id)));
-  const opciones = results.filter(visible).map((o) => ({
-    id: o.id, parent: o.padre_id ? porId.get(o.padre_id).codigo : '', category: CATEGORIA_PASO[o.paso],
-    name: o.nombre, cents: dinero(o.precio), code: o.codigo,
+  const [cfg, ps, os] = await env.BD.batch([
+    env.BD.prepare('SELECT * FROM regalo_config WHERE publico = ?').bind(publico),
+    env.BD.prepare('SELECT * FROM pasos WHERE publico = ? AND activo = 1 ORDER BY orden, nombre').bind(publico),
+    env.BD.prepare('SELECT * FROM opciones WHERE publico = ? AND activa = 1 ORDER BY orden, nombre').bind(publico),
+  ]);
+  const c = cfg.results[0] || {};
+  const pasos = new Map(ps.results.map((p) => [p.id, p]));
+  const porId = new Map(os.results.map((o) => [o.id, o]));
+  const visible = (o, vistos = 0) => {
+    const p = pasos.get(o.paso);
+    if (!p || vistos > 10) return false;
+    if (!p.depende_de) return true;
+    const padre = o.padre_id && porId.get(o.padre_id);
+    return !!padre && padre.paso === p.depende_de && visible(padre, vistos + 1);
+  };
+  // Una opción solo se ofrece si se puede completar: cada paso obligatorio que cuelga de ella necesita al menos una opción visible.
+  let activas = os.results.filter((o) => visible(o));
+  const dependientes = ps.results.filter((p) => p.depende_de && p.minimo >= 1);
+  for (let cambio = true; cambio;) {
+    const ids = new Set(activas.map((o) => o.id));
+    const conHijos = new Set(activas.filter((o) => ids.has(o.padre_id)).map((o) => `${o.padre_id}|${o.paso}`));
+    const quedan = activas.filter((o) => dependientes.every((p) => p.depende_de !== o.paso || conHijos.has(`${o.id}|${p.id}`)));
+    cambio = quedan.length !== activas.length;
+    activas = quedan;
+  }
+  const opciones = activas.map((o) => ({
+    id: o.id, paso: o.paso, parent: o.padre_id || '', name: o.nombre, desc: o.descripcion, badge: o.etiqueta,
+    cents: dinero(o.precio), img: o.imagen_url || '', thumb: miniatura(o.imagen_url) || '',
   }));
-  return json({ opciones: completeOptions(opciones) }, 200, { ...ABIERTO, 'Cache-Control': 'no-cache' });
+  const conOpciones = new Set(opciones.map((o) => o.paso));
+  const lista = c.activo === 0 ? [] : ps.results.filter((p) => conOpciones.has(p.id)).map((p) => ({
+    id: p.id, name: p.nombre, title: p.titulo, desc: p.descripcion, type: p.tipo, min: p.minimo, max: p.maximo, dependsOn: p.depende_de || '',
+  }));
+  return json({
+    config: {
+      active: c.activo !== 0, title: c.titulo || '', intro: c.intro || '', note: c.nota_final || '',
+      dedication: { enabled: c.dedicatoria_activa !== 0, title: c.dedicatoria_titulo || '', help: c.dedicatoria_ayuda || '', max: c.dedicatoria_max || 250 },
+    },
+    pasos: lista,
+    opciones: lista.length ? opciones : [],
+  }, 200, { ...ABIERTO, 'Cache-Control': 'no-cache' });
 }
 
 // --- fotos --------------------------------------------------------------------------
@@ -106,7 +139,11 @@ export async function servirFoto(env, clave) {
 /** Borra los archivos de una foto subida, salvo que otro producto (duplicado) todavía la use. */
 async function soltarFoto(env, url) {
   if (!url?.startsWith('/fotos/')) return; // las fotos que vienen con la web no se tocan
-  if (await env.BD.prepare('SELECT 1 FROM productos WHERE imagen_url = ?').bind(url).first()) return;
+  const [p, o] = await env.BD.batch([
+    env.BD.prepare('SELECT 1 FROM productos WHERE imagen_url = ?').bind(url),
+    env.BD.prepare('SELECT 1 FROM opciones WHERE imagen_url = ?').bind(url),
+  ]);
+  if (p.results.length || o.results.length) return;
   await env.FOTOS.delete([url, url.replace('-1200.', '-600.')].map((u) => u.replace('/fotos/', '')));
 }
 
@@ -215,52 +252,124 @@ async function duplicarProducto(env, id) {
 }
 
 // --- panel: personalizador de regalos ---------------------------------------------------
-const PADRE_DE = { tamano: 'base', contenido: 'tamano' };
+const slug = (t) => quitarAcentos(t).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 30) || 'paso';
+
+/** Reglas cruzadas de un paso con sus valores finales: único = 1 elección; mínimo ≤ máximo; la dependencia existe y no hace un círculo. */
+async function revisarPaso(env, p, idActual) {
+  if (p.tipo === 'unico') { p.maximo = 1; p.minimo = Math.min(p.minimo, 1); }
+  if (p.minimo > p.maximo) falla(400, 'El mínimo no puede ser mayor que el máximo.');
+  if (!p.depende_de) return;
+  if (p.depende_de === idActual) falla(400, 'Un paso no puede depender de sí mismo.');
+  let cursor = p.depende_de;
+  for (let i = 0; cursor && i < 12; i++) {
+    const f = await env.BD.prepare('SELECT depende_de FROM pasos WHERE publico = ? AND id = ?').bind(p.publico, cursor).first();
+    if (!f) falla(400, 'El paso del que depende ya no existe.');
+    if (f.depende_de === idActual && idActual) falla(400, 'Esa dependencia haría un círculo entre pasos.');
+    cursor = f.depende_de;
+  }
+}
+
+async function crearPaso(env, d) {
+  const p = V.paso(d, true);
+  p.tipo ??= 'unico'; p.minimo ??= 1; p.maximo ??= 1; p.descripcion ??= ''; p.depende_de ??= null;
+  await revisarPaso(env, p, null);
+  // «resumen» y «dedicatoria» son pantallas fijas del recorrido: ningún paso puede usar esas direcciones.
+  const usados = new Set(['resumen', 'dedicatoria', ...(await env.BD.prepare('SELECT id FROM pasos WHERE publico = ?').bind(p.publico).all()).results.map((r) => r.id)]);
+  const base = slug(p.nombre);
+  let id = base;
+  for (let i = 2; usados.has(id); i++) id = `${base.slice(0, 27)}-${i}`;
+  p.orden ??= (await env.BD.prepare('SELECT coalesce(max(orden), 0) + 10 AS n FROM pasos WHERE publico = ?').bind(p.publico).first()).n;
+  await insertar(env, 'pasos', { ...p, id }).run();
+  return json({ id }, 201);
+}
+
+async function cambiarPaso(env, publico, id, d) {
+  const cambios = V.paso(d);
+  const actual = await env.BD.prepare('SELECT * FROM pasos WHERE publico = ? AND id = ?').bind(publico, id).first();
+  if (!actual) falla(404, 'El paso ya no existe.');
+  const final = { ...actual, ...cambios };
+  if ('depende_de' in cambios && cambios.depende_de !== actual.depende_de
+    && (await env.BD.prepare('SELECT 1 FROM opciones WHERE publico = ? AND paso = ?').bind(publico, id).first())) {
+    falla(400, 'Este paso ya tiene opciones. Bórralas antes de cambiar de qué paso depende.');
+  }
+  await revisarPaso(env, final, id);
+  const { publico: _p, id: _i, ...campos } = final;
+  await actualizar(env, 'pasos', [['publico', publico], ['id', id]], campos);
+  return json({ ok: true });
+}
+
+async function borrarPaso(env, publico, id) {
+  const dep = await env.BD.prepare('SELECT nombre FROM pasos WHERE publico = ? AND depende_de = ?').bind(publico, id).first();
+  if (dep) falla(400, `El paso «${dep.nombre}» depende de este. Cámbialo o bórralo primero.`);
+  const { results } = await env.BD.prepare('SELECT imagen_url FROM opciones WHERE publico = ? AND paso = ? AND imagen_url IS NOT NULL').bind(publico, id).all();
+  noExiste(await env.BD.prepare('DELETE FROM pasos WHERE publico = ? AND id = ?').bind(publico, id).run(), 'El paso ya no existe.');
+  for (const r of results) await soltarFoto(env, r.imagen_url);
+  return json({ ok: true });
+}
+
+async function cambiarConfig(env, publico, d) {
+  if (!V.PUBLICOS.includes(publico)) falla(404, 'Ruta no encontrada.');
+  const c = V.configRegalo(d);
+  if (!Object.keys(c).length) falla(400, 'No hay nada que guardar.');
+  await actualizar(env, 'regalo_config', [['publico', publico]], c);
+  return json({ ok: true });
+}
+
 async function revisarPadreOpcion(env, publico, paso, padreId) {
-  const esperado = PADRE_DE[paso];
-  if (!esperado) { if (padreId) falla(400, 'Este paso no depende de otro.'); return; }
-  if (!padreId) falla(400, esperado === 'base' ? 'Elige a qué base pertenece este tamaño.' : 'Elige a qué tamaño pertenece este contenido.');
+  const p = await env.BD.prepare('SELECT nombre, depende_de FROM pasos WHERE publico = ? AND id = ?').bind(publico, paso).first();
+  if (!p) falla(400, 'El paso ya no existe.');
+  if (!p.depende_de) { if (padreId) falla(400, 'Este paso no depende de otro.'); return; }
+  const de = await env.BD.prepare('SELECT nombre FROM pasos WHERE publico = ? AND id = ?').bind(publico, p.depende_de).first();
+  if (!padreId) falla(400, `Elige a qué opción de «${de?.nombre ?? p.depende_de}» pertenece.`);
   const padre = await env.BD.prepare('SELECT paso FROM opciones WHERE publico = ? AND id = ?').bind(publico, padreId).first();
-  if (padre?.paso !== esperado) falla(400, esperado === 'base' ? 'Un tamaño debe pertenecer a una base.' : 'El contenido debe pertenecer a un tamaño.');
+  if (padre?.paso !== p.depende_de) falla(400, `Debe pertenecer a una opción de «${de?.nombre ?? p.depende_de}».`);
 }
 
 async function crearOpcion(env, d) {
   const o = V.opcion(d, true);
   await revisarPadreOpcion(env, o.publico, o.paso, o.padre_id ?? null);
-  const prefijo = PREFIJO_PASO[o.paso];
-  const { results } = await env.BD.prepare("SELECT id, codigo FROM opciones WHERE publico = ? AND (id LIKE ?2 || '%' OR codigo LIKE ?2 || '%')").bind(o.publico, prefijo).all();
-  const usados = new Set(results.flatMap((r) => [r.id, r.codigo]));
+  // Referencia corta: inicial del paso + número siguiente (B7, T12…); nunca repite una que ya exista.
+  const prefijo = (o.paso.replace(/[^a-z0-9]/g, '')[0] || 'x').toUpperCase();
+  const { results } = await env.BD.prepare("SELECT id FROM opciones WHERE publico = ?1 AND id LIKE ?2 || '%'").bind(o.publico, prefijo).all();
+  const usados = new Set(results.map((r) => r.id));
   let n = results.reduce((m, r) => { const x = Number(r.id.slice(prefijo.length)); return Number.isInteger(x) ? Math.max(m, x) : m; }, 0) + 1;
   while (usados.has(`${prefijo}${n}`)) n++;
   const id = `${prefijo}${n}`;
   const orden = o.orden ?? ((await env.BD.prepare('SELECT coalesce(max(orden), 0) + 10 AS n FROM opciones WHERE publico = ? AND paso = ?').bind(o.publico, o.paso).first()).n);
-  await insertar(env, 'opciones', { ...o, id, codigo: id, padre_id: o.padre_id ?? null, orden }).run();
+  await insertar(env, 'opciones', { ...o, id, padre_id: o.padre_id ?? null, orden }).run();
   return json({ id }, 201);
 }
 
 async function cambiarOpcion(env, publico, id, d) {
   const o = V.opcion(d);
-  const actual = await env.BD.prepare('SELECT paso FROM opciones WHERE publico = ? AND id = ?').bind(publico, id).first();
+  const actual = await env.BD.prepare('SELECT paso, imagen_url FROM opciones WHERE publico = ? AND id = ?').bind(publico, id).first();
   if (!actual) falla(404, 'La opción ya no existe.');
-  if ('padre_id' in o) await revisarPadreOpcion(env, publico, actual.paso, o.padre_id);
+  if ('padre_id' in o) {
+    if (o.padre_id === id) falla(400, 'Una opción no puede pertenecer a sí misma.');
+    await revisarPadreOpcion(env, publico, actual.paso, o.padre_id);
+  }
   await actualizar(env, 'opciones', [['publico', publico], ['id', id]], o);
+  if ('imagen_url' in o && actual.imagen_url && actual.imagen_url !== o.imagen_url) await soltarFoto(env, actual.imagen_url);
   return json({ ok: true });
 }
 
 async function borrarOpcion(env, publico, id) {
-  // Borrar una base borra sus tamaños y el contenido de esos tamaños (la base de datos lo hace en cascada).
-  const r = await env.BD.prepare('DELETE FROM opciones WHERE publico = ? AND id = ?').bind(publico, id).run();
-  noExiste(r, 'La opción ya no existe.');
+  // Borrar una opción borra las que dependen de ella (la base de datos lo hace en cascada); se recogen sus fotos antes.
+  const { results } = await env.BD.prepare(`WITH RECURSIVE arbol(id) AS (SELECT ?2 UNION SELECT o.id FROM opciones o JOIN arbol a ON o.padre_id = a.id WHERE o.publico = ?1)
+    SELECT imagen_url FROM opciones WHERE publico = ?1 AND id IN (SELECT id FROM arbol) AND imagen_url IS NOT NULL`).bind(publico, id).all();
+  noExiste(await env.BD.prepare('DELETE FROM opciones WHERE publico = ? AND id = ?').bind(publico, id).run(), 'La opción ya no existe.');
+  for (const r of results) await soltarFoto(env, r.imagen_url);
   return json({ ok: true });
 }
 
-const ORDENABLES = { productos: ['id'], categorias: ['id'], opciones: ['publico', 'id'] };
+const ORDENABLES = { productos: ['id'], categorias: ['id'], opciones: ['publico', 'id'], pasos: ['publico', 'id'] };
 /** Guarda el orden de una lista: el primero de `ids` queda arriba. */
 async function ordenar(env, d) {
   const claves = ORDENABLES[d.tabla];
   if (!claves || !Array.isArray(d.ids) || d.ids.length > 2000) falla(400, 'Orden no válido.');
-  if (d.tabla === 'opciones' && !V.PUBLICOS.includes(d.publico)) falla(400, 'Orden no válido.');
-  const donde = d.tabla === 'opciones' ? 'publico = ?2 AND id = ?3' : 'id = ?3';
+  const conPublico = claves.length === 2;
+  if (conPublico && !V.PUBLICOS.includes(d.publico)) falla(400, 'Orden no válido.');
+  const donde = conPublico ? 'publico = ?2 AND id = ?3' : 'id = ?3';
   await env.BD.batch(d.ids.map((id, i) => env.BD.prepare(`UPDATE ${d.tabla} SET orden = ?1 WHERE ${donde}`).bind((i + 1) * 10, d.publico ?? null, String(id))));
   return json({ ok: true });
 }
@@ -276,11 +385,13 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
   if (m !== 'GET') exigirPermiso(s, recurso === 'ajustes' ? 'ajustes' : 'catalogo');
 
   if (m === 'GET' && recurso === 'datos') {
-    const [cats, prods, ops, aj] = await env.BD.batch([
+    const [cats, prods, ops, aj, pasos, cfg] = await env.BD.batch([
       env.BD.prepare('SELECT * FROM categorias ORDER BY orden, nombre'),
       env.BD.prepare('SELECT * FROM productos ORDER BY orden, nombre'),
       env.BD.prepare('SELECT * FROM opciones ORDER BY orden, nombre'),
       env.BD.prepare('SELECT * FROM ajustes WHERE id = 1'),
+      env.BD.prepare('SELECT * FROM pasos ORDER BY publico, orden, nombre'),
+      env.BD.prepare('SELECT * FROM regalo_config'),
     ]);
     const bool = (p) => ({ ...p, cotizar: !!p.cotizar, disponible: !!p.disponible, visible: !!p.visible });
     const todos = prods.results.map(bool);
@@ -289,6 +400,8 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
       categorias: cats.results.map((c) => ({ ...c, activa: !!c.activa })),
       productos: todos.filter((p) => !p.borrado_en), papelera: todos.filter((p) => p.borrado_en),
       opciones: ops.results.map((o) => ({ ...o, activa: !!o.activa })), ajustes,
+      pasos: pasos.results.map((p) => ({ ...p, activo: !!p.activo })),
+      regalo_config: cfg.results.map((c) => ({ ...c, dedicatoria_activa: !!c.dedicatoria_activa, activo: !!c.activo })),
     });
   }
 
@@ -314,6 +427,13 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
     if (m === 'POST' && !id) return crearCategoria(env, d);
     if (m === 'PUT' && id) return cambiarCategoria(env, id, d);
     if (m === 'DELETE' && id) return borrarCategoria(env, id);
+  } else if (recurso === 'pasos') {
+    // /pasos (crear) · /pasos/<publico>/<id> (cambiar o borrar)
+    if (m === 'POST' && !id) return crearPaso(env, d);
+    if (m === 'PUT' && id && accion) return cambiarPaso(env, id, accion, d);
+    if (m === 'DELETE' && id && accion) return borrarPaso(env, id, accion);
+  } else if (recurso === 'regalo-config') {
+    if (m === 'PUT' && id) return cambiarConfig(env, id, d);
   } else if (recurso === 'opciones') {
     // /opciones (crear) · /opciones/<publico>/<id> (cambiar o borrar)
     if (m === 'POST' && !id) return crearOpcion(env, d);
@@ -327,7 +447,7 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
 /** Respaldo en R2 (12 semanas), papelera de más de 30 días, sesiones viejas y fotos huérfanas. */
 export async function mantenimiento(env) {
   const datos = {};
-  for (const t of ['categorias', 'productos', 'opciones', 'ajustes']) datos[t] = (await env.BD.prepare(`SELECT * FROM ${t}`).all()).results;
+  for (const t of ['categorias', 'productos', 'pasos', 'regalo_config', 'opciones', 'ajustes']) datos[t] = (await env.BD.prepare(`SELECT * FROM ${t}`).all()).results;
   await env.FOTOS.put(`respaldos/${diaHonduras()}.json`, JSON.stringify({ fecha: fechaSql(), datos }), { httpMetadata: { contentType: 'application/json' } });
   const limite = diaHonduras(Date.now() - 84 * 86400000);
   const viejos = (await env.FOTOS.list({ prefix: 'respaldos/' })).objects.filter((o) => o.key.slice(10, 20) < limite).map((o) => o.key);
@@ -337,7 +457,7 @@ export async function mantenimiento(env) {
   for (const p of papelera) { await env.BD.prepare('DELETE FROM productos WHERE id = ?').bind(p.id).run(); await soltarFoto(env, p.imagen_url); }
 
   // Fotos subidas que ningún producto usa (se subió la foto pero no se guardó el producto) y tienen más de un día.
-  const usadas = new Set((await env.BD.prepare("SELECT imagen_url FROM productos WHERE imagen_url LIKE '/fotos/%'").all()).results.map((r) => r.imagen_url.replace('/fotos/', '').replace(/-1200\./, '-')));
+  const usadas = new Set((await env.BD.prepare("SELECT imagen_url FROM productos WHERE imagen_url LIKE '/fotos/%' UNION SELECT imagen_url FROM opciones WHERE imagen_url LIKE '/fotos/%'").all()).results.map((r) => r.imagen_url.replace('/fotos/', '').replace(/-1200\./, '-')));
   const huerfanas = (await env.FOTOS.list({ prefix: 'productos/' })).objects
     .filter((o) => Date.now() - o.uploaded.getTime() > 86400000 && !usadas.has(o.key.replace(/-(600|1200)\./, '-'))).map((o) => o.key);
   if (huerfanas.length) await env.FOTOS.delete(huerfanas);

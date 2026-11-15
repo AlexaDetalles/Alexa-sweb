@@ -8,6 +8,11 @@
   <meta name="theme-color" content="#782f3a">
   <title>Panel · Alexa Detalles</title>
   <link rel="icon" href="/assets/images/favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="/admin/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Panel Alexa">
   <link rel="stylesheet" href="/admin/admin.css">
   <script type="module" src="/admin/admin.js"></script>
 </head>
@@ -135,6 +140,7 @@
       </nav>
       <div class="barra-acciones">
         <span class="quien" id="quien"></span>
+        <button type="button" class="enlace-barra" id="instalar" hidden>Instalar app</button>
         <a class="enlace-barra" href="/" target="_blank" rel="noopener">Ver tienda</a>
         <button type="button" class="enlace-barra" id="salir">Salir</button>
       </div>
@@ -174,14 +180,31 @@
       <!-- Regalos personalizados -->
       <section id="sec-regalos" aria-labelledby="t-regalos" hidden>
         <div class="cabecera">
-          <div><h1 id="t-regalos">Regalos personalizados</h1><p class="suave">Lo que la clienta elige paso a paso al armar su regalo.</p></div>
+          <div><h1 id="t-regalos">Regalos personalizados</h1><p class="suave">Todo lo que la clienta ve y elige al armar su regalo: pasos, opciones con foto, textos y dedicatoria.</p></div>
+          <a class="boton suave" id="ver-regalo" href="/regalos/personalizar/ella" target="_blank" rel="noopener">Ver en la tienda</a>
         </div>
         <div class="segmentos" id="segmentos" role="group" aria-label="Para quién">
           <button type="button" data-publico="mujer" aria-pressed="true">Para ella</button>
           <button type="button" data-publico="hombre" aria-pressed="false">Para él</button>
         </div>
-        <p class="nota">Orden de la tienda: <b>Base</b> → <b>Tamaño</b> de esa base → <b>Contenido</b> de ese tamaño → peluches → globos → entrega. Una base sin tamaños, o un tamaño sin contenido, no se muestra.</p>
+        <details class="paso" id="regalo-textos">
+          <summary><b>Textos y dedicatoria</b> <span class="suave">Título, introducción y la tarjeta con mensaje</span></summary>
+          <form id="form-regalo" novalidate>
+            <label class="casilla"><input type="checkbox" name="activo"><span>Personalizador visible en la tienda</span></label>
+            <label class="campo">Título de la página<input name="titulo" maxlength="80"></label>
+            <label class="campo">Introducción<input name="intro" maxlength="240"></label>
+            <label class="campo">Nota al final (precio, entrega…)<textarea name="nota_final" maxlength="240" rows="2"></textarea></label>
+            <label class="casilla"><input type="checkbox" name="dedicatoria_activa"><span>Ofrecer dedicatoria (tarjeta con mensaje)</span></label>
+            <label class="campo">Título de la dedicatoria<input name="dedicatoria_titulo" maxlength="70"></label>
+            <label class="campo">Ayuda de la dedicatoria<textarea name="dedicatoria_ayuda" maxlength="240" rows="2"></textarea></label>
+            <label class="campo">Largo máximo del mensaje (letras)<input name="dedicatoria_max" inputmode="numeric" maxlength="3"></label>
+            <p class="error" id="error-regalo" role="alert" hidden></p>
+            <button type="submit" class="boton">Guardar textos</button>
+          </form>
+        </details>
+        <p class="nota">La clienta recorre los pasos en este orden. Un paso puede <b>depender</b> de otro (por ejemplo, los tamaños dependen de la base): entonces cada opción se asigna a una opción del paso anterior. Un paso sin opciones visibles no se muestra.</p>
         <div id="pasos"></div>
+        <button type="button" class="boton" id="paso-nuevo">+ Añadir paso</button>
       </section>
 
       <!-- Estadísticas -->
@@ -303,12 +326,46 @@
     </form>
   </dialog>
 
+  <!-- Editor de paso de regalo -->
+  <dialog id="dlg-paso" aria-labelledby="dlg-paso-t">
+    <form id="form-paso" novalidate>
+      <div class="dlg-top"><h2 id="dlg-paso-t">Paso</h2><button type="button" class="icono" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
+      <div class="dlg-cuerpo">
+        <label class="campo">Nombre corto (aparece en la barra de avance)<input name="nombre" maxlength="24" required></label>
+        <label class="campo">Título que ve la clienta<input name="titulo" maxlength="70" required></label>
+        <label class="campo">Explicación<textarea name="descripcion" maxlength="240" rows="2"></textarea></label>
+        <label class="campo">¿Cuántas puede elegir?<select name="tipo"><option value="unico">Una sola opción</option><option value="multiple">Varias opciones</option></select></label>
+        <div class="dos" id="campos-multiple">
+          <label class="campo">Mínimo<input name="minimo" inputmode="numeric" maxlength="2"></label>
+          <label class="campo">Máximo<input name="maximo" inputmode="numeric" maxlength="2"></label>
+        </div>
+        <label class="casilla" id="campo-obligatorio"><input type="checkbox" name="obligatorio"><span>Obligatorio (debe elegir antes de continuar)</span></label>
+        <label class="campo" id="campo-depende">Depende de<select name="depende_de"></select></label>
+        <p class="suave" id="ayuda-depende"></p>
+        <label class="casilla"><input type="checkbox" name="activo"><span>Visible en la tienda</span></label>
+        <p class="error" id="error-paso" role="alert" hidden></p>
+      </div>
+      <div class="dlg-pie"><button type="button" class="boton suave peligro" id="paso-borrar" hidden>Borrar</button><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cancelar</button><button type="submit" class="boton">Guardar</button></div>
+    </form>
+  </dialog>
+
   <!-- Editor de opción de regalo -->
   <dialog id="dlg-opcion" aria-labelledby="dlg-opcion-t">
     <form id="form-opcion" novalidate>
       <div class="dlg-top"><h2 id="dlg-opcion-t">Opción</h2><button type="button" class="icono" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
       <div class="dlg-cuerpo">
+        <div class="foto-campo">
+          <div class="foto-vista" id="opfoto-vista"></div>
+          <div class="foto-botones">
+            <input type="file" id="opfoto-archivo" accept="image/*" hidden>
+            <button type="button" class="boton suave" id="opfoto-subir"><svg class="ico"><use href="#i-foto"/></svg><span id="opfoto-subir-t">Subir foto</span></button>
+            <button type="button" class="boton suave peligro" id="opfoto-quitar" hidden>Quitar foto</button>
+            <p class="suave" id="opfoto-estado" role="status"></p>
+          </div>
+        </div>
         <label class="campo">Nombre<input name="nombre" maxlength="80" required></label>
+        <label class="campo">Descripción corta (opcional)<input name="descripcion" maxlength="200"></label>
+        <label class="campo">Etiqueta (opcional, ej. Popular, Nuevo)<input name="etiqueta" maxlength="20"></label>
         <label class="campo" id="campo-padre"><span id="campo-padre-t">Pertenece a</span><select name="padre_id"></select></label>
         <label class="campo">Precio extra (L)<input name="precio" inputmode="decimal" placeholder="0" autocomplete="off"></label>
         <p class="suave" id="ayuda-opcion"></p>

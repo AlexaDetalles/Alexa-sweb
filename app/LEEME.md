@@ -14,7 +14,9 @@ app/
 ## Qué puedes hacer en el panel
 - **Productos**: crear, editar, foto (se reduce sola en el celular), precio, «por cotizar», visible/oculto, hay/agotado, ordenar, duplicar, papelera de 30 días.
 - **Categorías**: crear, subcategorías, ocultar, ordenar (reemplazan los códigos HP, MP, PHP… escritos en el código).
-- **Regalos personalizados** (para ella / para él): bases → tamaños → contenido, peluches, globos y entrega, con precios; el panel avisa si algo no se va a mostrar.
+- **Regalos personalizados** (para ella / para él), totalmente configurables: pasos propios (nombre, título, una o varias opciones, mínimo/máximo, de qué otro paso dependen, orden, visible), opciones con **foto**, descripción, etiqueta («Popular») y precio, textos de la página y dedicatoria (tarjeta con mensaje). El panel avisa si algo no se va a mostrar. Se ve en `/regalos/personalizar/ella` y `/regalos/personalizar/el`.
+- **Panel instalable (PWA)**: en el navegador aparece «Instalar app» y queda como una app en el celular o la computadora.
+- **Direcciones limpias**: ninguna página termina en `.html`; las direcciones antiguas redirigen (301) a las nuevas (`worker/rutas.js`).
 - **Ajustes**: WhatsApp de las asesoras y cambio de contraseña.
 - **Usuarios y rangos** (solo administradora): invitar por correo, cambiar rango, desactivar. Rangos: Administradora (todo), Encargada de Catálogo (productos, categorías y regalos), Encargada de Atención (WhatsApp de asesoras) y Supervisora (solo lectura). El servidor valida el rango en cada llamada.
 
@@ -68,5 +70,4 @@ Importante: contraseña de 12+ caracteres; tras 5 intentos fallidos se bloquea 1
 ## Notas
 - Las **fotos que ya estaban en la web** se conservan (`/assets/images/…`). Las que apuntaban a Pinterest/placeholders/GitHub Pages no se importaron: súbelas desde el panel (2 productos quedaron sin foto).
 - El **calzado** (CHM/CMM) estaba en el Excel pero la tienda no lo mostraba: se importó **oculto**; actívalo en Categorías cuando quieras.
-- Los precios del personalizador no llevan foto (la tienda es solo texto ahí).
 - Copia de seguridad automática cada lunes en R2 (`respaldos/`, 12 semanas).

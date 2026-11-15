@@ -1,0 +1,16 @@
+{
+  "name": "Panel · Alexa Detalles",
+  "short_name": "Panel Alexa",
+  "description": "Administra productos, categorías, regalos personalizados y ajustes de Alexa Detalles & Obsequios.",
+  "lang": "es-HN",
+  "id": "/admin/",
+  "start_url": "/admin/",
+  "scope": "/admin/",
+  "display": "standalone",
+  "background_color": "#f7f4ee",
+  "theme_color": "#782f3a",
+  "icons": [
+    { "src": "/assets/images/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/images/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

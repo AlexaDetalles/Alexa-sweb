@@ -1,7 +1,6 @@
 // Reglas de los datos que llegan del panel. Repiten las de la base (migraciones/) con mensajes claros.
 import { falla } from './util.js';
 
-export const PASOS = ['base', 'tamano', 'contenido', 'peluches', 'globos', 'entrega'];
 export const PUBLICOS = ['mujer', 'hombre'];
 
 const RE_FOTO = /^\/fotos\/productos\/[0-9a-f-]{36}-1200\.(webp|jpg)$/;
@@ -71,19 +70,57 @@ export function categoria(d, crear = false) {
   return r;
 }
 
-/** `tipo` (paso) y `publico` solo se eligen al crear; después una opción no cambia de paso ni de público. */
+export const RE_PASO = /^[a-z0-9-]{1,30}$/;
+const idPaso = (v, campo) => { const s = String(v ?? ''); if (!RE_PASO.test(s)) falla(400, `${campo}: no válido.`); return s; };
+
+/** `publico` y `paso` solo se eligen al crear; después una opción no cambia de paso ni de público. */
 export function opcion(d, crear = false) {
   const r = {};
   if (crear) {
     if (!PUBLICOS.includes(d.publico)) falla(400, 'Elige si el regalo es para ella o para él.');
-    if (!PASOS.includes(d.paso)) falla(400, 'Elige el paso del regalo.');
-    r.publico = d.publico; r.paso = d.paso;
+    r.publico = d.publico; r.paso = idPaso(d.paso, 'Paso');
   }
   if (crear || 'nombre' in d) r.nombre = texto(d.nombre, 80, 'Nombre', 1);
+  if ('descripcion' in d) r.descripcion = texto(d.descripcion, 200, 'Descripción');
+  if ('etiqueta' in d) r.etiqueta = texto(d.etiqueta, 20, 'Etiqueta');
   if (crear || 'precio' in d) r.precio = numero(d.precio ?? 0, 'Precio');
   if ('padre_id' in d) r.padre_id = d.padre_id ? String(d.padre_id) : null;
+  if ('imagen_url' in d) r.imagen_url = fotoONula(d.imagen_url);
   if ('activa' in d) r.activa = booleano(d.activa);
   if ('orden' in d) r.orden = entero(d.orden, 'Orden', 10000);
+  return r;
+}
+
+/** Un paso del regalo. Las reglas cruzadas (mínimo ≤ máximo, único = 1) se revisan en datos.js con los valores finales. */
+export function paso(d, crear = false) {
+  const r = {};
+  if (crear) {
+    if (!PUBLICOS.includes(d.publico)) falla(400, 'Elige si el regalo es para ella o para él.');
+    r.publico = d.publico;
+  }
+  if (crear || 'nombre' in d) r.nombre = texto(d.nombre, 24, 'Nombre', 1);
+  if (crear || 'titulo' in d) r.titulo = texto(d.titulo, 70, 'Título', 1);
+  if ('descripcion' in d) r.descripcion = texto(d.descripcion, 240, 'Descripción');
+  if ('tipo' in d) { if (!['unico', 'multiple'].includes(d.tipo)) falla(400, 'Tipo de paso no válido.'); r.tipo = d.tipo; }
+  if ('minimo' in d) r.minimo = entero(d.minimo, 'Mínimo', 20);
+  if ('maximo' in d) { r.maximo = entero(d.maximo, 'Máximo', 50); if (r.maximo < 1) falla(400, 'Máximo: al menos 1.'); }
+  if ('depende_de' in d) r.depende_de = d.depende_de ? idPaso(d.depende_de, 'Depende de') : null;
+  if ('activo' in d) r.activo = booleano(d.activo);
+  if ('orden' in d) r.orden = entero(d.orden, 'Orden', 10000);
+  return r;
+}
+
+/** Textos y dedicatoria del regalo de cada público. */
+export function configRegalo(d) {
+  const r = {};
+  if ('titulo' in d) r.titulo = texto(d.titulo, 80, 'Título');
+  if ('intro' in d) r.intro = texto(d.intro, 240, 'Introducción');
+  if ('dedicatoria_activa' in d) r.dedicatoria_activa = booleano(d.dedicatoria_activa);
+  if ('dedicatoria_titulo' in d) r.dedicatoria_titulo = texto(d.dedicatoria_titulo, 70, 'Título de la dedicatoria');
+  if ('dedicatoria_ayuda' in d) r.dedicatoria_ayuda = texto(d.dedicatoria_ayuda, 240, 'Ayuda de la dedicatoria');
+  if ('dedicatoria_max' in d) { r.dedicatoria_max = entero(d.dedicatoria_max, 'Largo de la dedicatoria', 600); if (r.dedicatoria_max < 20) falla(400, 'Largo de la dedicatoria: mínimo 20.'); }
+  if ('nota_final' in d) r.nota_final = texto(d.nota_final, 240, 'Nota final');
+  if ('activo' in d) r.activo = booleano(d.activo);
   return r;
 }
 

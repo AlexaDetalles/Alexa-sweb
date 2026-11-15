@@ -34,7 +34,7 @@ function pintar() {
   el.setAttribute('aria-labelledby', 'ck-titulo');
   el.setAttribute('aria-describedby', 'ck-texto');
   el.innerHTML = `<div class="ck-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 1 0 9 9 4 4 0 0 1-4-4 4 4 0 0 1-4-4 1 1 0 0 0-1-1Z"/><circle cx="9" cy="10" r="1"/><circle cx="14" cy="15" r="1"/><circle cx="8.500" cy="15" r=".8"/></svg></div>
-  <div class="ck-texto"><b id="ck-titulo">¿Aceptas?</b><p id="ck-texto">Guardamos en tu navegador tu bolsa y, si aceptas, medimos las visitas con una herramienta propia, sin publicidad ni datos personales. Al aceptar confirmas que leíste los <a href="/terminos.html">Términos</a> y la <a href="/privacidad.html">Privacidad</a>.</p></div>
+  <div class="ck-texto"><b id="ck-titulo">¿Aceptas?</b><p id="ck-texto">Guardamos en tu navegador tu bolsa y, si aceptas, medimos las visitas con una herramienta propia, sin publicidad ni datos personales. Al aceptar confirmas que leíste los <a href="/terminos">Términos</a> y la <a href="/privacidad">Privacidad</a>.</p></div>
   <div class="ck-botones"><button type="button" class="ck-no" data-ck="no">Solo lo necesario</button><button type="button" class="ck-si" data-ck="si">Aceptar</button></div>`;
   document.body.append(el);
   document.body.classList.add('ck-open');

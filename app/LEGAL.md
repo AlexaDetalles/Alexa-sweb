@@ -1,6 +1,6 @@
 # Cumplimiento legal · AlexaShop (Honduras)
 
-> Esto es una guía técnica y un borrador razonable, **no asesoría legal**. Pídele a un abogado hondureño que revise `privacidad.html`, `terminos.html` y `condiciones.html` antes de darlos por definitivos.
+> Esto es una guía técnica y un borrador razonable, **no asesoría legal**. Pídele a un abogado hondureño que revise las páginas `/privacidad`, `/terminos` y `/condiciones` antes de darlos por definitivos.
 
 ## Qué se publicó
 - **Política de privacidad**: qué datos se tratan, base y finalidad, proveedores (Cloudflare, Resend, WhatsApp/Meta), conservación, derechos (hábeas data), seguridad, menores. Declara que **no hay analítica de terceros, pixeles ni cookies publicitarias**.

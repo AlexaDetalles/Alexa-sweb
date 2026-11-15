@@ -225,3 +225,14 @@ body:not([data-p-estadisticas]) [data-requiere="estadisticas"] { display: none; 
 .sk-fila .fila-texto { display: flex; flex-direction: column; gap: 8px; } .sk-l1 { height: 15px; width: 55%; } .sk-l2 { height: 12px; width: 35%; }
 @keyframes brillo { to { background-position: -120% 0; } }
 @media (prefers-reduced-motion: reduce) { .sk { animation: none; } }
+
+/* editor de regalos: fotos, etiquetas y botones de paso */
+.opcion-foto { width: 44px; height: 54px; border-radius: 6px; object-fit: cover; flex: none; background: #efe7dd; }
+.opcion-foto.sin { display: grid; place-items: center; color: var(--muted); }
+.opcion-foto.sin .ico { width: 18px; height: 18px; }
+.paso.apagada { opacity: .7; }
+.paso-botones { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+details.paso > summary { cursor: pointer; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+details.paso form { display: grid; gap: 12px; margin-top: 14px; max-width: 560px; }
+.dos { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+#paso-nuevo { margin-bottom: 30px; }

@@ -43,8 +43,8 @@ document.querySelectorAll('[data-hero-choice]').forEach(button=>button.addEventL
    const p=chosen[i];if(!p)return;
    const img=a.querySelector('img');img.src=p.img;img.alt=p.name+', propuesta de regalo';
    a.querySelector('[data-print-name]').textContent=p.name;
-   const page=group==='PAG'?'pick-and-go.html':'pick-and-go-hombre.html';
-   a.href='/Detalles/'+page+'?q='+encodeURIComponent(p.name);
+   const page=group==='PAG'?'ella':'el';
+   a.href='/regalos/prearmados/'+page+'?q='+encodeURIComponent(p.name);
    a.setAttribute('aria-label','Ver propuesta '+p.name);
   });stack.classList.remove('switching');
  }

@@ -2,7 +2,7 @@
 import { json, sha256, diaHonduras } from './util.js';
 
 const RE_VID = /^[0-9a-f-]{16,64}$/i;
-const RE_RUTA = /^\/(|catalogo|redes|condiciones|privacidad|terminos|Catalogo\/[A-Za-z]{1,20}\/[A-Za-z]{1,20}|Catalogo\/[A-Za-z]{1,20}|Detalles(\/[A-Za-z0-9-]{1,30}){0,2}|producto\/[A-Za-z0-9._-]{1,80})$/;
+const RE_RUTA = /^\/(|catalogo|contacto|condiciones|privacidad|terminos|perfumes(\/[a-z-]{1,20})?|accesorios(\/[a-z]{1,20})?|regalos(\/(personalizar|prearmados)(\/(ella|el)(\/[a-z0-9-]{1,30})?)?)?|producto\/[A-Za-z0-9._-]{1,80})$/;
 const EVENTOS_ANONIMOS = ['acepta', 'rechaza']; // se cuentan sin identificador
 const EVENTOS = ['whatsapp', 'agregar'];
 

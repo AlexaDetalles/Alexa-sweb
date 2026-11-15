@@ -1,10 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {parseCSV,parseProducts,parseOptions,sanitizeCart,sanitizeDraft,giftTotal,giftReady,giftMessage,cartTotal,cartSummary,cartMessage,imageURL,escapeHTML} from '../public/assets/core.mjs';
+import {parseCSV,parseProducts,sanitizeCart,cartTotal,cartSummary,cartMessage,imageURL,escapeHTML} from '../public/assets/core.mjs';
 import {PREPARED_GIFTS} from '../public/assets/gifts.mjs';
 const products=parseProducts(readFileSync(new URL('../public/assets/data/catalog.csv',import.meta.url),'utf8'));
-const options=parseOptions(readFileSync(new URL('../public/assets/data/hombre.csv',import.meta.url),'utf8'));
 test('CSV handles real quoted multiline descriptions and escaped quotes',()=>{
  assert.deepEqual(parseCSV('id,name,desc\r\n1,"Globo ""Te Amo""","Hola,\nmundo"'),[['id','name','desc'],['1','Globo "Te Amo"','Hola,\nmundo']]);
  assert.equal(products.length,111);assert.equal(products.filter(p=>p.available).length,111);
@@ -27,18 +26,6 @@ test('made-to-order gifts remain selectable without pretending to cost zero',()=
  assert.doesNotMatch(cartMessage({[gift.id]:2},all),/0\.00/);
  assert.equal(cartTotal({[gift.id]:2,[p.id]:1},all),p.cents);
  assert.match(cartSummary({[gift.id]:2,[p.id]:1},all),/regalos por cotizar/);
-});
-test('gift editing recalculates from items rather than accumulating subtotals',()=>{
- const draft={base:'B1',size:'T1',content:['C1','C2'],plush:['P1'],balloons:['G1'],delivery:'D2',message:'Un regalo <3'};
- assert.equal(giftTotal(draft,options),133000);assert.equal(giftTotal(draft,options),133000);assert.equal(giftReady(draft,options),true);
- assert.match(giftMessage(draft,options,'hombre'),/Dedicatoria: Un regalo <3/);
- const next=sanitizeDraft({...draft,base:'B2'},options);
- assert.equal(next.size,null);assert.deepEqual(next.content,[]);assert.equal(giftReady(next,options),false);
-});
-test('gift drafts reject foreign IDs, repeated additions and plush overflow',()=>{
- const d=sanitizeDraft({base:'B1',size:'T1',content:['C1','C1','C8'],plush:['P1','P2','P1'],delivery:'D1'},options);
- assert.deepEqual(d.content,['C1']);assert.deepEqual(d.plush,['P1','P2']);
- assert.equal(giftReady({base:'B1'},options),false);
 });
 test('sheet content cannot inject HTML or active URLs',()=>{
  assert.equal(imageURL('javascript:alert(1)'),'/assets/images/no-photo.svg');

@@ -10,17 +10,17 @@ const recortar = (t, n) => { const s = String(t ?? '').replace(/\s+/g, ' ').trim
 
 // Página de cada colección de la tienda (las páginas estáticas que ya existían).
 const PAGINA_DE = {
-  HP: '/Catalogo/Perfumes/hombre.html', MP: '/Catalogo/Perfumes/mujer.html', PHP: '/Catalogo/Perfumes/premiumhombre.html', PMP: '/Catalogo/Perfumes/premiummujer.html',
-  JYA: '/Catalogo/accesorios/joyeria.html', RLA: '/Catalogo/accesorios/relojes.html', CTA: '/Catalogo/accesorios/carteras.html',
-  PAG: '/Detalles/pick-and-go.html', PAGH: '/Detalles/pick-and-go-hombre.html',
+  HP: '/perfumes/hombre', MP: '/perfumes/mujer', PHP: '/perfumes/premium-hombre', PMP: '/perfumes/premium-mujer',
+  JYA: '/accesorios/joyeria', RLA: '/accesorios/relojes', CTA: '/accesorios/carteras',
+  PAG: '/regalos/prearmados/ella', PAGH: '/regalos/prearmados/el',
 };
-const paginaDe = (id) => PAGINA_DE[id] || `/catalogo.html?categoria=${encodeURIComponent(id)}`;
+const paginaDe = (id) => PAGINA_DE[id] || `/catalogo?categoria=${encodeURIComponent(id)}`;
 
 // Fecha de la última revisión de las páginas fijas (se actualiza cuando cambian sus textos).
 const REVISION_PAGINAS = '2026-11-15';
-const ESTATICAS = ['/', '/catalogo.html', '/Catalogo/Perfumes/index.html', '/Catalogo/Perfumes/hombre.html', '/Catalogo/Perfumes/mujer.html', '/Catalogo/Perfumes/premiumindex.html', '/Catalogo/Perfumes/premiumhombre.html', '/Catalogo/Perfumes/premiummujer.html',
-  '/Catalogo/accesorios/index.html', '/Catalogo/accesorios/joyeria.html', '/Catalogo/accesorios/relojes.html', '/Catalogo/accesorios/carteras.html', '/Detalles/index.html', '/Detalles/indexforhm.html', '/Detalles/pick-and-go.html', '/Detalles/pick-and-go-hombre.html',
-  '/redes.html', '/condiciones.html', '/privacidad.html', '/terminos.html'];
+const ESTATICAS = ['/', '/catalogo', '/perfumes', '/perfumes/hombre', '/perfumes/mujer', '/perfumes/premium', '/perfumes/premium-hombre', '/perfumes/premium-mujer',
+  '/accesorios', '/accesorios/joyeria', '/accesorios/relojes', '/accesorios/carteras', '/regalos', '/regalos/personalizar', '/regalos/personalizar/ella', '/regalos/personalizar/el',
+  '/regalos/prearmados', '/regalos/prearmados/ella', '/regalos/prearmados/el', '/contacto', '/condiciones', '/privacidad', '/terminos'];
 
 export async function sitemap(env) {
   const base = sitio(env);
@@ -29,7 +29,7 @@ export async function sitemap(env) {
   const hoy = REVISION_PAGINAS;
   const url = (loc, mod, prio) => `<url><loc>${esc(base + loc)}</loc><lastmod>${mod}</lastmod>${prio ? `<priority>${prio}</priority>` : ''}</url>`;
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
-    + ESTATICAS.map((p) => url(p, hoy, p === '/' ? '1.0' : p === '/catalogo.html' ? '0.9' : '0.7')).join('')
+    + ESTATICAS.map((p) => url(p, hoy, p === '/' ? '1.0' : p === '/catalogo' ? '0.9' : '0.7')).join('')
     + results.map((p) => url(`/producto/${encodeURIComponent(p.id)}`, String(p.actualizado || hoy).slice(0, 10), '0.6')).join('') + '</urlset>';
   return new Response(xml, { headers: { 'Content-Type': 'application/xml; charset=utf-8', 'Cache-Control': 'public, max-age=3600' } });
 }
@@ -64,7 +64,7 @@ export async function paginaProducto(req, env, id) {
     },
     {
       '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Inicio', item: `${base}/` }, { '@type': 'ListItem', position: 2, name: 'Catálogo', item: `${base}/catalogo.html` },
+        { '@type': 'ListItem', position: 1, name: 'Inicio', item: `${base}/` }, { '@type': 'ListItem', position: 2, name: 'Catálogo', item: `${base}/catalogo` },
         { '@type': 'ListItem', position: 3, name: p.cat_nombre, item: base + catUrl }, { '@type': 'ListItem', position: 4, name: p.nombre, item: canonical }],
     },
   ];
@@ -114,4 +114,31 @@ export async function conCatalogoEnHTML(resp, datos, base) {
       el.append(`<script type="application/ld+json">${jsonLd(ld)}</script>`, { html: true });
     } })
     .transform(resp);
+}
+
+/**
+ * Personalizador de regalos: una sola plantilla sirve /regalos/personalizar/ella|el y cada paso.
+ * Solo la primera pantalla se indexa; los pasos y el resumen llevan noindex y apuntan al canonical de la primera.
+ */
+export async function paginaPersonalizador(env, u, publico, paso) {
+  const resp = await env.ASSETS.fetch(new Request(`${u.origin}/assets/personalizador.tpl.html`));
+  if (!resp.ok) return new Response('No encontrada', { status: 404 });
+  const base = sitio(env);
+  const canonica = `${base}/regalos/personalizar/${publico}`;
+  const quien = publico === 'el' ? 'él' : 'ella';
+  const titulo = `Regalo personalizado para ${quien} | ALEXA`;
+  const desc = `Arma un regalo para ${quien} paso a paso: elige base, tamaño, contenido y dedicatoria, y confirma tu pedido por WhatsApp. Choluteca, Honduras.`;
+  const html = new HTMLRewriter()
+    .on('html', { element(el) { el.setAttribute('data-theme', publico); } })
+    .on('title', { element(el) { el.setInnerContent(titulo); } })
+    .on('meta[name="description"], meta[property="og:description"], meta[name="twitter:description"]', { element(el) { el.setAttribute('content', desc); } })
+    .on('meta[property="og:title"], meta[name="twitter:title"]', { element(el) { el.setAttribute('content', titulo); } })
+    .on('link[rel="canonical"]', { element(el) { el.setAttribute('href', canonica); } })
+    .on('meta[property="og:url"]', { element(el) { el.setAttribute('content', canonica); } })
+    .on('meta[name="robots"]', { element(el) { el.setAttribute('content', paso ? 'noindex,follow' : 'index,follow'); } })
+    .on('body', { element(el) { el.setAttribute('data-publico', publico); if (paso) el.setAttribute('data-paso', paso); } })
+    .transform(resp);
+  const salida = new Response(html.body, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=0, must-revalidate' } });
+  if (paso) salida.headers.set('X-Robots-Tag', 'noindex, follow');
+  return salida;
 }

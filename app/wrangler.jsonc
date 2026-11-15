@@ -18,7 +18,7 @@
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page",
     // Solo estas rutas pasan por el Worker; el resto son archivos estáticos.
-    "run_worker_first": ["/", "/api/*", "/fotos/*", "/producto/*", "/sitemap.xml", "/*.html"]
+    "run_worker_first": ["/", "/api/*", "/fotos/*", "/producto/*", "/sitemap.xml", "/*.html", "/Catalogo", "/Catalogo/*", "/Detalles", "/Detalles/*", "/redes", "/index", "/catalogo", "/catalogo/", "/perfumes", "/perfumes/*", "/accesorios", "/accesorios/*", "/regalos", "/regalos/*"]
   },
   "d1_databases": [
     {

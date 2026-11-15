@@ -194,18 +194,23 @@ test('reordenar productos', async () => {
   assert.equal((await llamar('POST', '/api/admin/orden', { tabla: 'usuarios', ids: ['x'] })).estado, 400);
 });
 
-test('personalizador: pasos encadenados, completitud, cascada y orden', async () => {
-  const pub = async (p = 'mujer') => (await llamar('GET', `/api/regalos/${p}`, undefined, { conSesion: false })).datos.opciones;
-  const antes = await pub();
-  assert.ok(antes.some((o) => o.category === 'Base') && antes.some((o) => o.category === 'Delivery'));
+test('personalizador: pasos configurables, completitud, cascada, fotos y orden', async () => {
+  const gift = async (p = 'mujer') => (await llamar('GET', `/api/regalos/${p}`, undefined, { conSesion: false })).datos;
+  const pub = async (p = 'mujer') => (await gift(p)).opciones;
+  const antes = await gift();
+  assert.deepEqual(antes.pasos.map((p) => p.id), ['base', 'tamano', 'contenido', 'peluches', 'globos', 'entrega']);
+  assert.equal(antes.pasos[2].type, 'multiple');
+  assert.equal(antes.pasos[1].dependsOn, 'base');
+  assert.ok(antes.config.title && antes.config.dedication.enabled);
   assert.equal((await llamar('GET', '/api/regalos/niño', undefined, { conSesion: false })).estado, 404);
 
   // reglas de encadenado
   assert.equal((await llamar('POST', '/api/admin/opciones', { publico: 'mujer', paso: 'tamano', nombre: 'Huérfano', precio: 10 })).estado, 400);
   assert.equal((await llamar('POST', '/api/admin/opciones', { publico: 'mujer', paso: 'peluches', nombre: 'X', precio: 1, padre_id: 'B1' })).estado, 400);
   assert.equal((await llamar('POST', '/api/admin/opciones', { publico: 'otro', paso: 'base', nombre: 'X' })).estado, 400);
+  assert.equal((await llamar('POST', '/api/admin/opciones', { publico: 'mujer', paso: 'no-existe', nombre: 'X' })).estado, 400);
 
-  const base = (await llamar('POST', '/api/admin/opciones', { publico: 'mujer', paso: 'base', nombre: 'Caja Cristal', precio: 25 })).datos.id;
+  const base = (await llamar('POST', '/api/admin/opciones', { publico: 'mujer', paso: 'base', nombre: 'Caja Cristal', precio: 25, descripcion: 'Con tapa', etiqueta: 'Nuevo' })).datos.id;
   assert.ok(!(await pub()).some((o) => o.id === base), 'una base sin tamaños no se ofrece');
   assert.equal((await llamar('POST', '/api/admin/opciones', { publico: 'mujer', paso: 'contenido', nombre: 'Salta', precio: 1, padre_id: base })).estado, 400, 'el contenido va dentro de un tamaño');
   const tam = (await llamar('POST', '/api/admin/opciones', { publico: 'mujer', paso: 'tamano', nombre: 'Cristal Mediana', precio: 120, padre_id: base })).datos.id;
@@ -214,10 +219,16 @@ test('personalizador: pasos encadenados, completitud, cascada y orden', async ()
   const lista = await pub();
   const b = lista.find((o) => o.id === base), t = lista.find((o) => o.id === tam), c = lista.find((o) => o.id === con);
   assert.ok(b && t && c);
-  assert.equal(t.parent, b.code, 'el tamaño apunta al código de su base');
-  assert.equal(c.parent, t.code, 'el contenido apunta al código de su tamaño');
+  assert.equal(t.parent, base, 'el tamaño apunta al id de su base');
+  assert.equal(c.parent, tam);
   assert.equal(c.cents, 55000);
+  assert.equal(b.desc, 'Con tapa'); assert.equal(b.badge, 'Nuevo'); assert.equal(b.paso, 'base');
   assert.ok(!(await pub('hombre')).some((o) => o.id === base), 'cada público tiene lo suyo');
+
+  // foto en una opción: solo direcciones propias
+  assert.equal((await llamar('PUT', `/api/admin/opciones/mujer/${base}`, { imagen_url: 'https://malo.example/x.jpg' })).estado, 400);
+  assert.equal((await llamar('PUT', `/api/admin/opciones/mujer/${base}`, { imagen_url: '/assets/images/logo-mark.svg' })).estado, 200);
+  assert.equal((await pub()).find((o) => o.id === base).img, '/assets/images/logo-mark.svg');
 
   // apagar la base esconde todo lo que cuelga de ella
   await llamar('PUT', `/api/admin/opciones/mujer/${base}`, { activa: false });
@@ -226,20 +237,60 @@ test('personalizador: pasos encadenados, completitud, cascada y orden', async ()
   await llamar('PUT', `/api/admin/opciones/mujer/${base}`, { activa: true });
   assert.ok((await pub()).some((o) => o.id === con));
 
-  // mover el tamaño a otra base y borrar en cascada
+  // borrar en cascada
   assert.equal((await llamar('PUT', `/api/admin/opciones/mujer/${tam}`, { padre_id: con })).estado, 400);
   assert.equal((await llamar('DELETE', `/api/admin/opciones/mujer/${base}`)).estado, 200);
   const d = await admin();
   assert.ok(![base, tam, con].some((x) => d.opciones.some((o) => o.publico === 'mujer' && o.id === x)), 'al borrar la base se van sus tamaños y contenidos');
   assert.equal((await llamar('DELETE', `/api/admin/opciones/mujer/${base}`)).estado, 404);
 
-  // ids y códigos nuevos nunca chocan; peluches libres
+  // ids nuevos nunca chocan; peluches libres; orden
   const p1 = (await llamar('POST', '/api/admin/opciones', { publico: 'hombre', paso: 'peluches', nombre: 'Oso azul', precio: 300 })).datos.id;
   const p2 = (await llamar('POST', '/api/admin/opciones', { publico: 'hombre', paso: 'peluches', nombre: 'Conejo', precio: 300 })).datos.id;
   assert.notEqual(p1, p2);
   const orden = (await admin()).opciones.filter((o) => o.publico === 'hombre' && o.paso === 'peluches').map((o) => o.id).reverse();
   await llamar('POST', '/api/admin/orden', { tabla: 'opciones', publico: 'hombre', ids: orden });
   assert.deepEqual((await admin()).opciones.filter((o) => o.publico === 'hombre' && o.paso === 'peluches').map((o) => o.id), orden);
+
+  // pasos propios: crear, depender, validar, ordenar, apagar y borrar
+  assert.equal((await llamar('POST', '/api/admin/pasos', { publico: 'mujer', nombre: 'Tarjeta', titulo: 'x', tipo: 'multiple', minimo: 3, maximo: 2 })).estado, 400, 'mínimo ≤ máximo');
+  assert.equal((await llamar('POST', '/api/admin/pasos', { publico: 'mujer', nombre: 'Tarjeta', titulo: 'x', depende_de: 'fantasma' })).estado, 400);
+  const paso = (await llamar('POST', '/api/admin/pasos', { publico: 'mujer', nombre: 'Aroma', titulo: 'Elige un aroma', descripcion: 'Para que huela a ti.', tipo: 'multiple', minimo: 0, maximo: 3 })).datos.id;
+  assert.equal(paso, 'aroma');
+  assert.equal((await llamar('POST', '/api/admin/pasos', { publico: 'mujer', nombre: 'Aroma', titulo: 'otro' })).datos.id, 'aroma-2', 'el id se vuelve único');
+  assert.ok(!(await gift()).pasos.some((p) => p.id === paso), 'un paso sin opciones no sale');
+  const ar = (await llamar('POST', '/api/admin/opciones', { publico: 'mujer', paso, nombre: 'Vainilla', precio: 40 })).datos.id;
+  assert.match(ar, /^A\d+$/);
+  const g = await gift();
+  const pa = g.pasos.find((p) => p.id === paso);
+  assert.deepEqual([pa.type, pa.min, pa.max, pa.title], ['multiple', 0, 3, 'Elige un aroma']);
+  assert.ok(g.opciones.some((o) => o.id === ar && o.paso === paso));
+  assert.equal((await llamar('PUT', `/api/admin/pasos/mujer/${paso}`, { depende_de: paso })).estado, 400, 'no depende de sí mismo');
+  assert.equal((await llamar('PUT', `/api/admin/pasos/mujer/${paso}`, { tipo: 'unico' })).estado, 200);
+  const unico = (await admin()).pasos.find((p) => p.publico === 'mujer' && p.id === paso);
+  assert.deepEqual([unico.tipo, unico.maximo], ['unico', 1], 'un paso de una sola elección admite una');
+  assert.equal((await llamar('PUT', `/api/admin/pasos/mujer/${paso}`, { depende_de: 'base' })).estado, 400, 'ya tiene opciones');
+  assert.equal((await llamar('DELETE', '/api/admin/pasos/mujer/base')).estado, 400, 'de la base cuelga el tamaño');
+  const ids = (await admin()).pasos.filter((p) => p.publico === 'mujer').map((p) => p.id).reverse();
+  assert.equal((await llamar('POST', '/api/admin/orden', { tabla: 'pasos', publico: 'mujer', ids })).estado, 200);
+  assert.deepEqual((await admin()).pasos.filter((p) => p.publico === 'mujer').map((p) => p.id), ids);
+  await llamar('PUT', `/api/admin/pasos/mujer/${paso}`, { activo: false });
+  assert.ok(!(await gift()).pasos.some((p) => p.id === paso), 'un paso apagado no sale');
+  assert.equal((await llamar('DELETE', `/api/admin/pasos/mujer/${paso}`)).estado, 200);
+  assert.ok(!(await admin()).opciones.some((o) => o.id === ar && o.publico === 'mujer'), 'las opciones se van con su paso');
+  await llamar('DELETE', '/api/admin/pasos/mujer/aroma-2');
+
+  // textos y dedicatoria
+  assert.equal((await llamar('PUT', '/api/admin/regalo-config/mujer', { dedicatoria_max: 5 })).estado, 400);
+  assert.equal((await llamar('PUT', '/api/admin/regalo-config/mujer', { titulo: 'Para mamá', dedicatoria_max: 120, dedicatoria_activa: false })).estado, 200);
+  const cfg = (await gift()).config;
+  assert.deepEqual([cfg.title, cfg.dedication.max, cfg.dedication.enabled], ['Para mamá', 120, false]);
+  assert.equal((await gift('hombre')).config.title, 'Un regalo para él, a tu gusto.', 'cada público tiene sus textos');
+  await llamar('PUT', '/api/admin/regalo-config/mujer', { titulo: 'Un regalo para ella, a tu gusto.', dedicatoria_max: 250, dedicatoria_activa: true });
+  // apagar todo el personalizador
+  await llamar('PUT', '/api/admin/regalo-config/hombre', { activo: false });
+  assert.equal((await gift('hombre')).pasos.length, 0);
+  await llamar('PUT', '/api/admin/regalo-config/hombre', { activo: true });
 });
 
 test('ajustes de contacto', async () => {
@@ -282,7 +333,7 @@ test('SEO: ficha por producto, sitemap, escape de HTML y caché con purga', asyn
   // oculto o inexistente: 404 y fuera del sitemap
   const sm = await (await fetch(`${URL_BASE}/sitemap.xml`)).text();
   assert.match(sm, new RegExp(`<loc>https://alexashop\\.cc/producto/${id}</loc>`));
-  assert.match(sm, /<loc>https:\/\/alexashop\.cc\/catalogo\.html<\/loc>/);
+  assert.match(sm, /<loc>https:\/\/alexashop\.cc\/catalogo<\/loc>/);
   await llamar('PUT', `/api/admin/productos/${id}`, { visible: false });
   assert.equal((await fetch(`${URL_BASE}/producto/${id}`)).status, 404);
   assert.equal((await fetch(`${URL_BASE}/producto/NO-EXISTE`)).status, 404);
@@ -292,14 +343,14 @@ test('SEO: ficha por producto, sitemap, escape de HTML y caché con purga', asyn
 test('medición propia: solo con identificador, anónima y con rutas válidas', async () => {
   const vista = (cuerpo, ua = 'Mozilla/5.0 (Macintosh) Safari') => fetch(`${URL_BASE}/api/vista`, { method: 'POST', headers: { Origin: URL_BASE, 'Content-Type': 'application/json', 'User-Agent': ua }, body: JSON.stringify(cuerpo) });
   const vid1 = 'a1b2c3d4-e5f6-4789-a0b1-c2d3e4f5a6b7', vid2 = 'ffeeddcc-bbaa-4988-8776-655443322110';
-  assert.equal((await vista({ vid: vid1, ruta: '/catalogo.html' })).status, 204);
-  assert.equal((await vista({ vid: vid1, ruta: '/catalogo.html' })).status, 204);     // mismo visitante: 2 páginas vistas, 1 visitante
+  assert.equal((await vista({ vid: vid1, ruta: '/catalogo' })).status, 204);
+  assert.equal((await vista({ vid: vid1, ruta: '/catalogo' })).status, 204);     // mismo visitante: 2 páginas vistas, 1 visitante
   assert.equal((await vista({ vid: vid2, ruta: '/producto/PHP-01', producto: 'PHP-01' })).status, 204);
   await vista({ vid: vid2, evento: 'whatsapp' });
   await vista({ vid: vid2, evento: 'agregar' });
   await vista({ evento: 'acepta' }); await vista({ evento: 'acepta' }); await vista({ evento: 'rechaza' });
   // basura que se descarta sin error
-  await vista({ vid: 'corto', ruta: '/catalogo.html' });                             // identificador inválido
+  await vista({ vid: 'corto', ruta: '/catalogo' });                             // identificador inválido
   await vista({ vid: vid1, ruta: '/ruta/inventada/que/no/existe' });                  // ruta fuera de la lista
   await vista({ vid: vid1, ruta: '/producto/NO-EXISTE' });                            // producto inexistente
   await vista({ vid: 'bbbbbbbb-cccc-4ddd-8eee-ffffffffffff', ruta: '/' }, 'Googlebot/2.1'); // robots no cuentan
@@ -318,13 +369,53 @@ test('medición propia: solo con identificador, anónima y con rutas válidas', 
   assert.equal((await llamar('GET', '/api/auth/sesion')).datos.sesion.rol, 'admin');
 });
 
+test('URLs limpias: sin .html, con 301 desde las direcciones antiguas', async () => {
+  const ir = (ruta) => fetch(`${URL_BASE}${ruta}`, { redirect: 'manual' });
+  for (const [vieja, nueva] of [
+    ['/catalogo.html', '/catalogo'], ['/redes.html', '/contacto'], ['/redes', '/contacto'], ['/Catalogo/Perfumes/index.html', '/perfumes'],
+    ['/Catalogo/Perfumes/premiumhombre.html', '/perfumes/premium-hombre'], ['/Catalogo/accesorios/joyeria.html', '/accesorios/joyeria'],
+    ['/Detalles/index.html', '/regalos'], ['/Detalles/indexforhm.html', '/regalos/personalizar'], ['/Detalles/pick-and-go-hombre.html', '/regalos/prearmados/el'],
+    ['/Detalles/mujer/personalizar3.html', '/regalos/personalizar/ella'], ['/Detalles/hombre/resumen.html', '/regalos/personalizar/el/resumen'],
+    ['/perfumes/', '/perfumes'], ['/terminos.html', '/terminos'], ['/index.html', '/'],
+  ]) {
+    const r = await ir(vieja);
+    assert.equal(r.status, 301, vieja);
+    assert.equal(new URL(r.headers.get('location'), URL_BASE).pathname, nueva, vieja);
+  }
+  assert.equal(new URL((await ir('/Detalles/pick-and-go.html?q=Rosas')).headers.get('location'), URL_BASE).search, '?q=Rosas', 'conserva la consulta');
+  for (const ruta of ['/', '/catalogo', '/perfumes', '/perfumes/hombre', '/perfumes/premium-mujer', '/accesorios', '/accesorios/relojes', '/regalos', '/regalos/personalizar',
+    '/regalos/prearmados', '/regalos/prearmados/ella', '/contacto', '/condiciones', '/privacidad', '/terminos']) {
+    const r = await ir(ruta);
+    assert.equal(r.status, 200, ruta);
+    const html = await r.text();
+    assert.ok(!/(href|content)="[^"]*\.html/.test(html), `${ruta}: sin .html en enlaces ni canonical`);
+    assert.ok(!/\/(Catalogo|Detalles)\//.test(html), `${ruta}: sin rutas antiguas`);
+    assert.ok(html.includes(`rel="canonical" href="https://alexashop.cc${ruta === '/' ? '/' : ruta}"`), `${ruta}: canonical limpio`);
+  }
+  // personalizador: una plantilla para todos los pasos; solo la primera pantalla se indexa
+  const p1 = await (await fetch(`${URL_BASE}/regalos/personalizar/ella`)).text();
+  assert.match(p1, /<html lang="es-HN" data-theme="ella"/);
+  assert.match(p1, /rel="canonical" href="https:\/\/alexashop\.cc\/regalos\/personalizar\/ella"/);
+  assert.match(p1, /name="robots" content="index,follow"/);
+  const p2 = await fetch(`${URL_BASE}/regalos/personalizar/el/tamano`);
+  assert.equal(p2.status, 200);
+  assert.equal(p2.headers.get('x-robots-tag'), 'noindex, follow');
+  const t2 = await p2.text();
+  assert.match(t2, /data-theme="el"/);
+  assert.match(t2, /name="robots" content="noindex,follow"/);
+  assert.match(t2, /rel="canonical" href="https:\/\/alexashop\.cc\/regalos\/personalizar\/el"/);
+  const sm = await (await fetch(`${URL_BASE}/sitemap.xml`)).text();
+  assert.ok(!sm.includes('.html') && !sm.includes('/Catalogo/') && !sm.includes('/Detalles/'));
+  assert.equal((await ir('/no-existe')).status, 404);
+});
+
 test('SEO: el catálogo sale con productos en el HTML y robots deja leer la API pública', async () => {
   const pagina = async (ruta) => (await fetch(`${URL_BASE}${ruta}`)).text();
-  const cat = await pagina('/catalogo.html');
+  const cat = await pagina('/catalogo');
   assert.equal((cat.match(/<article class="product-card">/g) || []).length, 24, 'primeras 24 tarjetas');
   assert.ok((cat.match(/href="\/producto\//g) || []).length >= 24, 'enlaces a las fichas');
   assert.match(cat, /"@type":"ItemList"/);
-  const hombre = await pagina('/Catalogo/Perfumes/hombre.html');
+  const hombre = await pagina('/perfumes/hombre');
   const ids = [...hombre.matchAll(/href="\/producto\/([^"]+)"/g)].map((m) => m[1]);
   assert.ok(ids.length >= 10 && ids.every((i) => i.startsWith('HP-')), 'solo productos de esa colección');
   assert.ok(!hombre.includes('sk-card'), 'sin esqueletos cuando ya hay productos');

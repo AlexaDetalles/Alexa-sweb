@@ -58,7 +58,7 @@ for (const publico of ['mujer', 'hombre']) {
     const padre = ['tamano', 'contenido'].includes(paso) ? idDeCodigo.get(c[1]) : null;
     if (['tamano', 'contenido'].includes(paso) && !padre) continue; // opción huérfana en la hoja
     // INSERT OR IGNORE: el padre debe existir antes, y la hoja ya trae bases → tamaños → contenido en ese orden.
-    salida.push(`INSERT OR IGNORE INTO opciones (publico, id, paso, nombre, precio, codigo, padre_id, imagen_url, orden) VALUES (${sql(publico)}, ${sql(c[0])}, ${sql(paso)}, ${sql(c[3])}, ${precio(c[4])}, ${sql(c[5])}, ${sql(padre)}, NULL, ${(contador[paso] = (contador[paso] || 0) + 1) * 10});`);
+    salida.push(`INSERT OR IGNORE INTO opciones (publico, id, paso, nombre, precio, padre_id, imagen_url, orden) VALUES (${sql(publico)}, ${sql(c[0])}, ${sql(paso)}, ${sql(c[3])}, ${precio(c[4])}, ${sql(padre)}, NULL, ${(contador[paso] = (contador[paso] || 0) + 1) * 10});`);
   }
 }
 

@@ -8,7 +8,7 @@ const ico = (id) => `<svg class="ico" aria-hidden="true"><use href="#i-${id}"/><
 const fold = (v) => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios', 'estadisticas'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: ['estadisticas'] };
-const E = { yo: null, usuarios: [], invitaciones: [], roles: {}, cats: [], prods: [], papelera: [], ops: [], ajustes: {}, vista: 'productos', texto: '', cat: '', filtro: 'todos', publico: 'mujer', foto: null, editando: null, opcion: null, categoria: null };
+const E = { yo: null, usuarios: [], invitaciones: [], roles: {}, cats: [], prods: [], papelera: [], ops: [], pasos: [], regaloCfg: [], ajustes: {}, vista: 'productos', texto: '', cat: '', filtro: 'todos', publico: 'mujer', foto: null, editando: null, opcion: null, categoria: null };
 
 // --- avisos, confirmación y llamadas a la API ------------------------------------------
 function avisar(texto, mal = false) {
@@ -155,7 +155,7 @@ $('#salir-todo').addEventListener('click', async () => { if (await confirmar('Ce
 // --- datos y navegación ---------------------------------------------------------------
 async function cargar() {
   const d = await api('GET', 'admin/datos');
-  Object.assign(E, { cats: d.categorias, prods: d.productos, papelera: d.papelera, ops: d.opciones, ajustes: d.ajustes });
+  Object.assign(E, { cats: d.categorias, prods: d.productos, papelera: d.papelera, ops: d.opciones, pasos: d.pasos, regaloCfg: d.regalo_config, ajustes: d.ajustes });
   pintar();
 }
 const VISTAS = ['productos', 'categorias', 'regalos', 'estadisticas', 'ajustes'];
@@ -393,51 +393,87 @@ $('#form-categoria').addEventListener('submit', async (ev) => {
 });
 
 // --- regalos personalizados ---------------------------------------------------------------
-const PASOS = [
-  { k: 'base', t: 'Base', d: 'El empaque del regalo: caja de madera, de cartón…', uno: 'base' },
-  { k: 'tamano', t: 'Tamaño', d: 'Cada tamaño pertenece a una base y define cuánto cabe.', padre: 'base', uno: 'tamaño' },
-  { k: 'contenido', t: 'Contenido', d: 'Lo que lleva dentro. Cada contenido pertenece a un tamaño.', padre: 'tamano', uno: 'contenido' },
-  { k: 'peluches', t: 'Peluches', d: 'Opcional. La clienta puede elegir hasta dos.', uno: 'peluche' },
-  { k: 'globos', t: 'Globos', d: 'Opcional. Puede elegir los que quiera.', uno: 'globo' },
-  { k: 'entrega', t: 'Entrega', d: 'Cómo lo recibe: retirar en tienda, delivery…', uno: 'forma de entrega' },
-];
-const opsDe = (paso, publico = E.publico) => E.ops.filter((o) => o.publico === publico && o.paso === paso);
+const pasosDe = (publico = E.publico) => E.pasos.filter((p) => p.publico === publico).sort((x, y) => x.orden - y.orden);
+const pasoPorId = (id, publico = E.publico) => E.pasos.find((p) => p.publico === publico && p.id === id);
+const opsDe = (paso, publico = E.publico) => E.ops.filter((o) => o.publico === publico && o.paso === paso).sort((x, y) => x.orden - y.orden);
 const opPorId = (id, publico = E.publico) => E.ops.find((o) => o.publico === publico && o.id === id);
-const etiquetaOp = (o) => (o.padre_id ? `${etiquetaOp(opPorId(o.padre_id, o.publico))} › ${o.nombre}` : o.nombre);
-/** ¿Se vería en la tienda? Una base necesita un tamaño y un tamaño necesita contenido (activos), igual que en la tienda. */
+const etiquetaOp = (o) => (o.padre_id && opPorId(o.padre_id, o.publico) ? `${etiquetaOp(opPorId(o.padre_id, o.publico))} › ${o.nombre}` : o.nombre);
+const mini600 = (url) => (url?.startsWith('/fotos/') ? url.replace('-1200.', '-600.') : url);
+/** ¿Se vería en la tienda? Cada paso obligatorio que depende de su paso necesita al menos una opción visible y completa. */
 function incompleta(o) {
-  if (o.paso === 'tamano') return !opsDe('contenido', o.publico).some((c) => c.padre_id === o.id && c.activa);
-  if (o.paso === 'base') return !opsDe('tamano', o.publico).some((t) => t.padre_id === o.id && t.activa && !incompleta(t));
-  return false;
+  return pasosDe(o.publico).some((p) => p.activo && p.depende_de === o.paso && p.minimo >= 1
+    && !opsDe(p.id, o.publico).some((c) => c.padre_id === o.id && c.activa && !incompleta(c)));
+}
+function resumenPaso(p) {
+  const partes = [p.tipo === 'multiple' ? `Varias (${p.minimo === 0 ? 'opcional' : `mín. ${p.minimo}`}, máx. ${p.maximo})` : (p.minimo ? 'Una opción, obligatoria' : 'Una opción, opcional')];
+  if (p.depende_de) partes.push(`depende de ${pasoPorId(p.depende_de)?.nombre ?? '…'}`);
+  return partes.join(' · ');
 }
 function filaOpcion(o, hermanos, i) {
-  const aviso = o.activa && incompleta(o) ? `<span class="etiqueta aviso">No se muestra: ${o.paso === 'base' ? 'le falta un tamaño con contenido' : 'le falta contenido'}</span>` : '';
-  return `<div class="opcion ${o.activa ? '' : 'apagada'}"><div class="opcion-texto"><div class="opcion-nombre">${esc(o.nombre)}</div><div class="opcion-meta">${o.precio ? `+ ${esc(dinero(o.precio))}` : 'Sin costo adicional'} ${!o.activa ? '<span class="etiqueta aviso">Oculta</span>' : ''} ${aviso}</div></div>
+  const aviso = o.activa && incompleta(o) ? '<span class="etiqueta aviso">No se muestra: le falta una opción dependiente</span>' : '';
+  const foto = o.imagen_url ? `<img class="opcion-foto" src="${esc(mini600(o.imagen_url))}" alt="" loading="lazy">` : `<span class="opcion-foto sin">${ico('foto')}</span>`;
+  return `<div class="opcion ${o.activa ? '' : 'apagada'}">${foto}<div class="opcion-texto"><div class="opcion-nombre">${esc(o.nombre)} ${o.etiqueta ? `<span class="etiqueta">${esc(o.etiqueta)}</span>` : ''}</div><div class="opcion-meta">${o.precio ? `+ ${esc(dinero(o.precio))}` : 'Sin costo adicional'}${o.descripcion ? ` · ${esc(o.descripcion)}` : ''} ${!o.activa ? '<span class="etiqueta aviso">Oculta</span>' : ''} ${aviso}</div></div>
     <button type="button" class="icono" data-accion="visible" data-id="${esc(o.id)}" aria-pressed="${o.activa}" aria-label="${o.activa ? 'Ocultar' : 'Mostrar'} ${esc(o.nombre)}" title="${o.activa ? 'Visible: toca para ocultar' : 'Oculta: toca para mostrar'}">${ico(o.activa ? 'ojo' : 'ojo-no')}</button>
     <button type="button" class="icono" data-accion="subir" data-id="${esc(o.id)}" aria-label="Subir ${esc(o.nombre)}" ${i === 0 ? 'disabled' : ''}>${ico('arriba')}</button>
     <button type="button" class="icono" data-accion="bajar" data-id="${esc(o.id)}" aria-label="Bajar ${esc(o.nombre)}" ${i === hermanos.length - 1 ? 'disabled' : ''}>${ico('abajo')}</button>
     <button type="button" class="icono" data-accion="editar" data-id="${esc(o.id)}" aria-label="Editar ${esc(o.nombre)}">${ico('editar')}</button></div>`;
 }
-const botonAnadir = (paso, uno, padre = '', texto = '') => `<button type="button" class="boton suave chico" data-accion="nueva" data-paso="${paso}" data-padre="${esc(padre)}">${ico('mas')} ${esc(texto || `Añadir ${uno}`)}</button>`;
+const botonAnadir = (paso, padre = '', texto = 'Añadir opción') => `<button type="button" class="boton suave chico" data-accion="nueva" data-paso="${esc(paso)}" data-padre="${esc(padre)}">${ico('mas')} ${esc(texto)}</button>`;
+function pintarTextosRegalo() {
+  const c = E.regaloCfg.find((x) => x.publico === E.publico) || {}, f = $('#form-regalo');
+  f.activo.checked = c.activo !== false; f.titulo.value = c.titulo ?? ''; f.intro.value = c.intro ?? ''; f.nota_final.value = c.nota_final ?? '';
+  f.dedicatoria_activa.checked = c.dedicatoria_activa !== false; f.dedicatoria_titulo.value = c.dedicatoria_titulo ?? ''; f.dedicatoria_ayuda.value = c.dedicatoria_ayuda ?? ''; f.dedicatoria_max.value = c.dedicatoria_max ?? 250;
+  $('#ver-regalo').href = `/regalos/personalizar/${E.publico === 'mujer' ? 'ella' : 'el'}`;
+}
 function pintarRegalos() {
   $$('#segmentos button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.publico === E.publico)));
-  $('#pasos').innerHTML = PASOS.map((s, n) => {
-    const lista = opsDe(s.k);
+  if (!$('#regalo-textos').open || !$('#form-regalo').contains(document.activeElement)) pintarTextosRegalo();
+  const pasos = pasosDe();
+  $('#pasos').innerHTML = pasos.map((s, n) => {
+    const lista = opsDe(s.id);
+    const padre = s.depende_de ? pasoPorId(s.depende_de) : null;
     let cuerpo;
-    if (!s.padre) {
+    if (!padre) {
       cuerpo = lista.map((o, i) => filaOpcion(o, lista, i)).join('') || '<p class="vacio">Todavía no hay opciones en este paso.</p>';
     } else {
-      const padres = opsDe(s.padre);
+      const padres = opsDe(padre.id);
       cuerpo = padres.map((pa) => {
         const hijos = lista.filter((o) => o.padre_id === pa.id);
-        return `<div class="grupo"><div class="grupo-cab"><span>${s.t === 'Tamaño' ? 'Tamaños de' : 'Contenido de'} <b>${esc(etiquetaOp(pa))}</b></span>${botonAnadir(s.k, s.uno, pa.id)}</div>${hijos.map((o, i) => filaOpcion(o, hijos, i)).join('') || `<p class="suave">Aún no tiene ${s.t === 'Tamaño' ? 'tamaños' : 'contenido'}.</p>`}</div>`;
-      }).join('') || `<p class="vacio">Primero crea ${s.padre === 'base' ? 'una base' : 'un tamaño'}.</p>`;
+        return `<div class="grupo"><div class="grupo-cab"><span>${esc(s.nombre)} de <b>${esc(etiquetaOp(pa))}</b></span>${botonAnadir(s.id, pa.id)}</div>${hijos.map((o, i) => filaOpcion(o, hijos, i)).join('') || '<p class="suave">Aún no tiene opciones.</p>'}</div>`;
+      }).join('') || `<p class="vacio">Primero crea opciones en «${esc(padre.nombre)}».</p>`;
     }
-    return `<section class="paso"><div class="paso-cab"><div><h2><span class="paso-num">${n + 1}</span>${s.t}</h2><p class="suave">${s.d}</p></div>${s.padre ? '' : botonAnadir(s.k, s.uno)}</div>${cuerpo}</section>`;
-  }).join('');
+    const sinOpciones = s.activo && !lista.some((o) => o.activa && !incompleta(o) && (!padre || opPorId(o.padre_id)?.activa)) ? '<span class="etiqueta aviso">No se muestra: sin opciones visibles</span>' : '';
+    return `<section class="paso ${s.activo ? '' : 'apagada'}"><div class="paso-cab"><div><h2><span class="paso-num">${n + 1}</span>${esc(s.nombre)} ${!s.activo ? '<span class="etiqueta aviso">Oculto</span>' : ''} ${sinOpciones}</h2><p class="suave">${esc(s.titulo)} · ${esc(resumenPaso(s))}</p></div>
+      <div class="paso-botones">
+       <button type="button" class="icono" data-paso-accion="visible" data-paso="${esc(s.id)}" aria-pressed="${s.activo}" aria-label="${s.activo ? 'Ocultar' : 'Mostrar'} el paso ${esc(s.nombre)}" title="${s.activo ? 'Visible' : 'Oculto'}">${ico(s.activo ? 'ojo' : 'ojo-no')}</button>
+       <button type="button" class="icono" data-paso-accion="subir" data-paso="${esc(s.id)}" aria-label="Subir el paso ${esc(s.nombre)}" ${n === 0 ? 'disabled' : ''}>${ico('arriba')}</button>
+       <button type="button" class="icono" data-paso-accion="bajar" data-paso="${esc(s.id)}" aria-label="Bajar el paso ${esc(s.nombre)}" ${n === pasos.length - 1 ? 'disabled' : ''}>${ico('abajo')}</button>
+       <button type="button" class="icono" data-paso-accion="editar" data-paso="${esc(s.id)}" aria-label="Editar el paso ${esc(s.nombre)}">${ico('editar')}</button>
+       ${padre ? '' : botonAnadir(s.id)}</div></div>${cuerpo}</section>`;
+  }).join('') || '<p class="vacio">Todavía no hay pasos. Añade el primero.</p>';
 }
-$('#segmentos').addEventListener('click', (ev) => { const b = ev.target.closest('[data-publico]'); if (b) { E.publico = b.dataset.publico; pintarRegalos(); } });
+$('#segmentos').addEventListener('click', (ev) => { const b = ev.target.closest('[data-publico]'); if (b) { E.publico = b.dataset.publico; pintarTextosRegalo(); pintarRegalos(); } });
+$('#form-regalo').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const f = ev.target;
+  mostrarError('#error-regalo');
+  const max = Number(f.dedicatoria_max.value);
+  if (!Number.isInteger(max) || max < 20 || max > 600) return mostrarError('#error-regalo', 'El largo del mensaje debe ser un número entre 20 y 600.');
+  try {
+    await api('PUT', `admin/regalo-config/${E.publico}`, { activo: f.activo.checked, titulo: f.titulo.value, intro: f.intro.value, nota_final: f.nota_final.value, dedicatoria_activa: f.dedicatoria_activa.checked, dedicatoria_titulo: f.dedicatoria_titulo.value, dedicatoria_ayuda: f.dedicatoria_ayuda.value, dedicatoria_max: max });
+    await cargar(); avisar('Textos guardados.');
+  } catch (e) { mostrarError('#error-regalo', e.message); }
+});
 $('#pasos').addEventListener('click', (ev) => {
+  const pa = ev.target.closest('[data-paso-accion]');
+  if (pa) {
+    const p = pasoPorId(pa.dataset.paso), url = `admin/pasos/${E.publico}/${encodeURIComponent(p.id)}`;
+    if (pa.dataset.pasoAccion === 'editar') return abrirPaso(p);
+    if (pa.dataset.pasoAccion === 'visible') return void hacer(() => api('PUT', url, { activo: !p.activo }));
+    const nuevo = intercambiar(pasosDe().map((x) => x.id), p.id, pa.dataset.pasoAccion === 'subir' ? -1 : 1);
+    if (nuevo) void hacer(() => api('POST', 'admin/orden', { tabla: 'pasos', publico: E.publico, ids: nuevo }));
+    return;
+  }
   const b = ev.target.closest('[data-accion]');
   if (!b) return;
   if (b.dataset.accion === 'nueva') return abrirOpcion(null, b.dataset.paso, b.dataset.padre);
@@ -450,31 +486,101 @@ $('#pasos').addEventListener('click', (ev) => {
   if (nuevo) void hacer(() => api('POST', 'admin/orden', { tabla: 'opciones', publico: o.publico, ids: permutar(opsDe(o.paso).map((x) => x.id), nuevo) }));
 });
 
+// --- editor de paso ---
+const fpaso = () => $('#form-paso');
+function ajustarFormPaso() {
+  const f = fpaso(), multiple = f.tipo.value === 'multiple';
+  $('#campos-multiple').hidden = !multiple; $('#campo-obligatorio').hidden = multiple;
+}
+fpaso().tipo.addEventListener('change', ajustarFormPaso);
+function abrirPaso(p) {
+  E.paso = p ? { ...p } : { publico: E.publico, nuevo: true };
+  const f = fpaso(); f.reset();
+  $('#dlg-paso-t').textContent = `${p ? 'Editar' : 'Nuevo'} paso · ${E.publico === 'mujer' ? 'para ella' : 'para él'}`;
+  f.nombre.value = p?.nombre ?? ''; f.titulo.value = p?.titulo ?? ''; f.descripcion.value = p?.descripcion ?? '';
+  f.tipo.value = p?.tipo ?? 'unico';
+  f.minimo.value = p ? p.minimo : 1; f.maximo.value = p ? p.maximo : 1;
+  f.obligatorio.checked = p ? p.minimo >= 1 : true;
+  f.activo.checked = p ? p.activo : true;
+  const otros = pasosDe().filter((x) => x.id !== p?.id);
+  f.depende_de.innerHTML = '<option value="">Ninguno (independiente)</option>' + otros.map((x) => `<option value="${esc(x.id)}" ${x.id === p?.depende_de ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('');
+  const bloqueado = !!p && opsDe(p.id).length > 0;
+  f.depende_de.disabled = bloqueado;
+  $('#ayuda-depende').textContent = bloqueado ? 'Este paso ya tiene opciones: para cambiar de qué depende, bórralas primero.' : 'Si dependen de otro paso, cada opción se asigna a una opción de ese paso (ej. los tamaños de cada base).';
+  $('#paso-borrar').hidden = !p;
+  ajustarFormPaso(); mostrarError('#error-paso');
+  $('#dlg-paso').showModal();
+}
+$('#paso-nuevo').addEventListener('click', () => abrirPaso(null));
+fpaso().addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const f = ev.target, p = E.paso, multiple = f.tipo.value === 'multiple';
+  if (!f.nombre.value.trim() || !f.titulo.value.trim()) return mostrarError('#error-paso', 'Escribe el nombre y el título.');
+  const cuerpo = { nombre: f.nombre.value, titulo: f.titulo.value, descripcion: f.descripcion.value, tipo: f.tipo.value, activo: f.activo.checked,
+    minimo: multiple ? Number(f.minimo.value) : (f.obligatorio.checked ? 1 : 0), maximo: multiple ? Number(f.maximo.value) : 1 };
+  if (multiple && (!Number.isInteger(cuerpo.minimo) || !Number.isInteger(cuerpo.maximo) || cuerpo.maximo < 1)) return mostrarError('#error-paso', 'Mínimo y máximo deben ser números (el máximo, al menos 1).');
+  if (!f.depende_de.disabled) cuerpo.depende_de = f.depende_de.value || null;
+  mostrarError('#error-paso');
+  try {
+    if (p.nuevo) await api('POST', 'admin/pasos', { ...cuerpo, publico: p.publico });
+    else await api('PUT', `admin/pasos/${p.publico}/${encodeURIComponent(p.id)}`, cuerpo);
+    $('#dlg-paso').close(); await cargar(); avisar('Paso guardado.');
+  } catch (e) { mostrarError('#error-paso', e.message); }
+});
+$('#paso-borrar').addEventListener('click', async () => {
+  const p = E.paso, n = opsDe(p.id).length;
+  if (!(await confirmar('Borrar paso', `Se borrará el paso «${p.nombre}»${n ? ` y sus ${n} opción(es)` : ''}. Si solo quieres que no se vea, mejor ocúltalo.`, 'Borrar'))) return;
+  if (await hacer(() => api('DELETE', `admin/pasos/${p.publico}/${encodeURIComponent(p.id)}`), 'Paso borrado.')) $('#dlg-paso').close();
+});
+
+// --- editor de opción ---
+function pintarFotoOp() {
+  $('#opfoto-vista').innerHTML = E.fotoOp ? `<img src="${esc(mini600(E.fotoOp))}" alt="Foto de la opción">` : ico('foto');
+  $('#opfoto-quitar').hidden = !E.fotoOp;
+  $('#opfoto-subir-t').textContent = E.fotoOp ? 'Cambiar foto' : 'Subir foto';
+}
+$('#opfoto-subir').addEventListener('click', () => $('#opfoto-archivo').click());
+$('#opfoto-quitar').addEventListener('click', () => { E.fotoOp = null; pintarFotoOp(); });
+$('#opfoto-archivo').addEventListener('change', async (ev) => {
+  const archivo = ev.target.files[0]; ev.target.value = '';
+  if (!archivo) return;
+  const estado = $('#opfoto-estado'), boton = $('#opfoto-subir');
+  boton.disabled = true; estado.textContent = 'Preparando la foto…'; mostrarError('#error-opcion');
+  try {
+    const { grande, chica } = await prepararFoto(archivo);
+    estado.textContent = 'Subiendo…';
+    const form = new FormData(); form.set('1200', grande, 'g'); form.set('600', chica, 'c');
+    E.fotoOp = (await api('POST', 'admin/fotos', form)).url;
+    pintarFotoOp(); estado.textContent = 'Foto lista. Recuerda guardar la opción.';
+  } catch (e) { estado.textContent = ''; mostrarError('#error-opcion', e.message); }
+  boton.disabled = false;
+});
 function abrirOpcion(o, paso = o?.paso, padre = '') {
-  const s = PASOS.find((x) => x.k === paso);
+  const s = pasoPorId(paso), anterior = s?.depende_de ? pasoPorId(s.depende_de) : null;
   E.opcion = o ? { ...o } : { publico: E.publico, paso, nuevo: true };
+  E.fotoOp = o?.imagen_url || null;
   const f = $('#form-opcion'); f.reset();
-  $('#dlg-opcion-t').textContent = `${o ? 'Editar' : 'Nueva'} ${s.uno} · ${E.publico === 'mujer' ? 'para ella' : 'para él'}`;
-  f.nombre.value = o?.nombre ?? '';
+  $('#dlg-opcion-t').textContent = `${o ? 'Editar' : 'Nueva'} opción de ${s.nombre} · ${E.publico === 'mujer' ? 'para ella' : 'para él'}`;
+  f.nombre.value = o?.nombre ?? ''; f.descripcion.value = o?.descripcion ?? ''; f.etiqueta.value = o?.etiqueta ?? '';
   f.precio.value = o ? o.precio : '';
   f.activa.checked = o ? o.activa : true;
-  $('#campo-padre').hidden = !s.padre;
-  if (s.padre) {
-    $('#campo-padre-t').textContent = s.padre === 'base' ? 'Pertenece a la base' : 'Pertenece al tamaño';
-    f.padre_id.innerHTML = opsDe(s.padre).map((pa) => `<option value="${esc(pa.id)}" ${pa.id === (o?.padre_id ?? padre) ? 'selected' : ''}>${esc(etiquetaOp(pa))}</option>`).join('');
+  $('#campo-padre').hidden = !anterior;
+  if (anterior) {
+    $('#campo-padre-t').textContent = `Pertenece a (${anterior.nombre})`;
+    f.padre_id.innerHTML = opsDe(anterior.id).map((pa) => `<option value="${esc(pa.id)}" ${pa.id === (o?.padre_id ?? padre) ? 'selected' : ''}>${esc(etiquetaOp(pa))}</option>`).join('');
   }
-  $('#ayuda-opcion').textContent = paso === 'base' ? 'Después de crear la base, añádele al menos un tamaño con contenido para que se muestre.' : paso === 'tamano' ? 'Añádele al menos un contenido para que se muestre.' : 'El precio se suma al total del regalo.';
-  $('#opcion-borrar').hidden = !o;
-  mostrarError('#error-opcion');
+  $('#ayuda-opcion').textContent = anterior ? 'Esta opción solo aparece cuando la clienta elige la opción a la que pertenece. El precio se suma al total.' : 'El precio se suma al total del regalo. La foto se ve en la tarjeta de la tienda y en la vista previa.';
+  $('#opcion-borrar').hidden = !o; $('#opfoto-estado').textContent = '';
+  mostrarError('#error-opcion'); pintarFotoOp();
   $('#dlg-opcion').showModal();
 }
 $('#form-opcion').addEventListener('submit', async (ev) => {
   ev.preventDefault();
-  const f = ev.target, b = $('button[type=submit]', f), o = E.opcion, s = PASOS.find((x) => x.k === o.paso);
+  const f = ev.target, b = $('button[type=submit]', f), o = E.opcion, s = pasoPorId(o.paso);
   if (!f.nombre.value.trim()) return mostrarError('#error-opcion', 'Escribe el nombre.');
-  if (s.padre && !f.padre_id.value) return mostrarError('#error-opcion', s.padre === 'base' ? 'Primero crea una base.' : 'Primero crea un tamaño.');
-  const cuerpo = { nombre: f.nombre.value, precio: f.precio.value.trim() === '' ? 0 : f.precio.value, activa: f.activa.checked };
-  if (s.padre) cuerpo.padre_id = f.padre_id.value;
+  if (s.depende_de && !f.padre_id.value) return mostrarError('#error-opcion', `Primero crea una opción en «${pasoPorId(s.depende_de)?.nombre}».`);
+  const cuerpo = { nombre: f.nombre.value, descripcion: f.descripcion.value, etiqueta: f.etiqueta.value, precio: f.precio.value.trim() === '' ? 0 : f.precio.value, activa: f.activa.checked, imagen_url: E.fotoOp };
+  if (s.depende_de) cuerpo.padre_id = f.padre_id.value;
   b.disabled = true; mostrarError('#error-opcion');
   try {
     if (o.nuevo) await api('POST', 'admin/opciones', { ...cuerpo, publico: o.publico, paso: o.paso });
@@ -485,9 +591,9 @@ $('#form-opcion').addEventListener('submit', async (ev) => {
 });
 $('#opcion-borrar').addEventListener('click', async () => {
   const o = E.opcion;
-  const sub = o.paso === 'base' ? opsDe('tamano').filter((t) => t.padre_id === o.id) : [];
-  const cont = o.paso === 'tamano' ? opsDe('contenido').filter((c) => c.padre_id === o.id) : sub.flatMap((t) => opsDe('contenido').filter((c) => c.padre_id === t.id));
-  const extra = o.paso === 'base' ? ` También se borrarán sus ${sub.length} tamaño(s) y ${cont.length} contenido(s).` : o.paso === 'tamano' ? ` También se borrarán sus ${cont.length} contenido(s).` : '';
+  const arbol = (id) => E.ops.filter((x) => x.publico === o.publico && x.padre_id === id).flatMap((x) => [x, ...arbol(x.id)]);
+  const n = arbol(o.id).length;
+  const extra = n ? ` También se borrarán las ${n} opción(es) que dependen de ella.` : '';
   if (!(await confirmar('Borrar opción', `Se borrará «${o.nombre}».${extra} Si solo quieres que no se vea, mejor ocúltala.`, 'Borrar'))) return;
   if (await hacer(() => api('DELETE', `admin/opciones/${o.publico}/${encodeURIComponent(o.id)}`), 'Borrado.')) $('#dlg-opcion').close();
 });
@@ -524,7 +630,7 @@ $$('dialog').forEach((d) => d.addEventListener('click', (ev) => { if (ev.target 
 window.addEventListener('hashchange', () => { if (!$('#vista-panel').hidden && !/^#(restablecer|invitacion)=/.test(location.hash)) ir(location.hash.slice(1)); });
 
 // --- estadísticas -----------------------------------------------------------------------------
-const NOMBRES_RUTA = { '/': 'Inicio', '/catalogo': 'Catálogo', '/redes': 'Contacto', '/condiciones': 'Compra y atención', '/privacidad': 'Privacidad', '/terminos': 'Términos' };
+const NOMBRES_RUTA = { '/': 'Inicio', '/catalogo': 'Catálogo', '/contacto': 'Contacto', '/perfumes': 'Perfumes', '/accesorios': 'Accesorios', '/regalos': 'Regalos', '/regalos/personalizar': 'Personalizar regalo', '/regalos/prearmados': 'Regalos prearmados', '/condiciones': 'Compra y atención', '/privacidad': 'Privacidad', '/terminos': 'Términos' };
 const nombreRuta = (r) => NOMBRES_RUTA[r] || (r.startsWith('/producto/') ? `Ficha: ${decodeURIComponent(r.slice(10))}` : r.replace(/^\//, '').replace(/\//g, ' › '));
 const num = (n) => Number(n || 0).toLocaleString('es-HN');
 function grafica(serie) {
@@ -697,3 +803,10 @@ window.addEventListener('hashchange', procesarEnlace);
     else mostrarEntrar('', r.configurar ? 'configurar' : 'entrar');
   } catch { mostrarEntrar(); }
 })();
+
+// Panel instalable (PWA): registra el service worker mínimo y ofrece el botón «Instalar» cuando el navegador lo permite.
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/admin/sw.js', { scope: '/admin/' }).catch(() => {});
+let instalador = null;
+window.addEventListener('beforeinstallprompt', (ev) => { ev.preventDefault(); instalador = ev; $('#instalar').hidden = false; });
+window.addEventListener('appinstalled', () => { instalador = null; $('#instalar').hidden = true; avisar('App instalada.'); });
+$('#instalar').addEventListener('click', async () => { if (!instalador) return; instalador.prompt(); await instalador.userChoice.catch(() => {}); instalador = null; $('#instalar').hidden = true; });

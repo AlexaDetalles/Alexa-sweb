@@ -3,7 +3,8 @@
 import { ErrorApi, falla, json } from './util.js';
 import { rutasAuth } from './auth.js';
 import { rutasAdmin, catalogo, regalos, servirFoto, mantenimiento, conCache, purgarCache } from './datos.js';
-import { sitemap, paginaProducto, conCatalogoEnHTML } from './seo.js';
+import { sitemap, paginaProducto, conCatalogoEnHTML, paginaPersonalizador } from './seo.js';
+import { redireccion, CON_PRODUCTOS, RE_PERSONALIZADOR } from './rutas.js';
 import { sitio } from './correo.js';
 import { registrarVista } from './estadisticas.js';
 
@@ -68,16 +69,19 @@ export default {
       if (pathname === '/sitemap.xml' && ['GET', 'HEAD'].includes(req.method)) return conCabeceras(await sitemap(env));
       if (pathname.startsWith('/producto/') && ['GET', 'HEAD'].includes(req.method)) return conCabeceras(await paginaProducto(req, env, decodeURIComponent(pathname.slice(10)).replace(/\/$/, '')));
       if (pathname.startsWith('/fotos/') && req.method === 'GET') return conCabeceras(await servirFoto(env, decodeURIComponent(pathname.slice(7))));
-      // Las direcciones con «.html» se sirven tal cual (sin redirección 307), para que coincidan con el canonical y el sitemap.
-      if (pathname.endsWith('.html') && ['GET', 'HEAD'].includes(req.method)) {
-        const limpia = pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
-        const pagina = await env.ASSETS.fetch(new Request(new URL(limpia + new URL(req.url).search, req.url), req));
+      if (['GET', 'HEAD'].includes(req.method)) {
+        // Direcciones antiguas y «.html» → 301 a la dirección limpia (conserva ?consulta).
+        const nueva = redireccion(pathname);
+        if (nueva) return conCabeceras(new Response(null, { status: 301, headers: { Location: nueva + new URL(req.url).search } }));
+        const pers = pathname.match(RE_PERSONALIZADOR);
+        if (pers) return conCabeceras(await paginaPersonalizador(env, new URL(req.url), pers[1], pers[2]));
         // Páginas de catálogo: dejan los productos escritos en el HTML (ver seo.js).
-        if (pagina.ok && (pathname === '/catalogo.html' || pathname.startsWith('/Catalogo/') || pathname.startsWith('/Detalles/pick-and-go')) && !pathname.endsWith('/index.html')) {
+        if (CON_PRODUCTOS.has(pathname)) {
+          const pagina = await env.ASSETS.fetch(req);
+          if (!pagina.ok) return conCabeceras(pagina);
           const datos = await (await conCache('catalogo', () => catalogo(env))).json();
           return conCabeceras(await conCatalogoEnHTML(pagina, datos, sitio(env)));
         }
-        return conCabeceras(pagina);
       }
       return env.ASSETS.fetch(req);
     } catch (e) {
