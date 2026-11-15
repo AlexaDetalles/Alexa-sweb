@@ -3,7 +3,8 @@
 import { ErrorApi, falla, json } from './util.js';
 import { rutasAuth } from './auth.js';
 import { rutasAdmin, catalogo, regalos, servirFoto, mantenimiento, conCache, purgarCache } from './datos.js';
-import { sitemap, paginaProducto } from './seo.js';
+import { sitemap, paginaProducto, conCatalogoEnHTML } from './seo.js';
+import { sitio } from './correo.js';
 import { registrarVista } from './estadisticas.js';
 
 const CABECERAS = {
@@ -59,7 +60,9 @@ async function api(req, env, ruta, ctx) {
 
 export default {
   async fetch(req, env, ctx) {
-    const { pathname } = new URL(req.url);
+    const { pathname, hostname } = new URL(req.url);
+    // Una sola dirección por página: www.alexashop.cc redirige (301) a alexashop.cc.
+    if (hostname.startsWith('www.') && ['GET', 'HEAD'].includes(req.method)) return Response.redirect(req.url.replace('//www.', '//'), 301);
     try {
       if (pathname.startsWith('/api/')) return conCabeceras(await api(req, env, pathname.slice(5), ctx));
       if (pathname === '/sitemap.xml' && ['GET', 'HEAD'].includes(req.method)) return conCabeceras(await sitemap(env));
@@ -68,7 +71,13 @@ export default {
       // Las direcciones con «.html» se sirven tal cual (sin redirección 307), para que coincidan con el canonical y el sitemap.
       if (pathname.endsWith('.html') && ['GET', 'HEAD'].includes(req.method)) {
         const limpia = pathname.replace(/\/index\.html$/, '/').replace(/\.html$/, '');
-        return conCabeceras(await env.ASSETS.fetch(new Request(new URL(limpia + new URL(req.url).search, req.url), req)));
+        const pagina = await env.ASSETS.fetch(new Request(new URL(limpia + new URL(req.url).search, req.url), req));
+        // Páginas de catálogo: dejan los productos escritos en el HTML (ver seo.js).
+        if (pagina.ok && (pathname === '/catalogo.html' || pathname.startsWith('/Catalogo/') || pathname.startsWith('/Detalles/pick-and-go')) && !pathname.endsWith('/index.html')) {
+          const datos = await (await conCache('catalogo', () => catalogo(env))).json();
+          return conCabeceras(await conCatalogoEnHTML(pagina, datos, sitio(env)));
+        }
+        return conCabeceras(pagina);
       }
       return env.ASSETS.fetch(req);
     } catch (e) {

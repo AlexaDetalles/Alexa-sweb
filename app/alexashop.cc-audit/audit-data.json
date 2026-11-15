@@ -1,0 +1,255 @@
+{
+ "summary": {
+  "health_score": 82,
+  "business_type": "Comercio electrónico de catálogo (pedido por WhatsApp) + comercio local en Choluteca, Honduras",
+  "top_findings": [
+   "robots.txt bloqueaba /api/, de donde el catálogo toma sus productos (corregido)",
+   "Catálogo y colecciones salían sin productos en el HTML: 0 enlaces a las fichas sin JavaScript (corregido: 24 tarjetas y ItemList)",
+   "www.alexashop.cc servía contenido duplicado (corregido: 301 al dominio principal)",
+   "Títulos de ficha largos y 32 descripciones cortas (corregido)",
+   "Faltan páginas de confianza (Quiénes somos, dirección, horario) y descripciones de producto más ricas (pendiente)"
+  ],
+  "quick_wins": [
+   "Enviar el sitemap a Google Search Console y Bing",
+   "Crear/verificar la ficha de Google Business Profile",
+   "Escribir 28 descripciones de producto de más de 60 caracteres",
+   "Agregar texto introductorio a las 5 páginas de portada de sección",
+   "Añadir horario y coordenadas al dato estructurado de la tienda"
+  ]
+ },
+ "categories": [
+  {
+   "name": "Technical SEO",
+   "score": 90,
+   "what_works": [
+    "HTTPS forzado, HSTS y cabeceras de seguridad",
+    "Compresión Brotli y respuesta mediana de 103 ms",
+    "135 URLs del sitemap devuelven 200, con canonical correcto",
+    "404 real con página propia",
+    "Sitemap dinámico con todos los productos"
+   ],
+   "findings": [
+    {
+     "title": "robots.txt bloqueaba /api/",
+     "severity": "High",
+     "description": "El catálogo se dibuja con /api/catalogo; con Disallow: /api/ Googlebot no podía leer los datos al renderizar.",
+     "recommendation": "Hecho: se permite /api/catalogo y /api/regalos/, se mantiene bloqueado /api/admin/, /api/auth/ y /api/vista."
+    },
+    {
+     "title": "www duplicaba el sitio",
+     "severity": "Medium",
+     "description": "www.alexashop.cc respondía 200 con el mismo contenido.",
+     "recommendation": "Hecho: 301 a alexashop.cc."
+    },
+    {
+     "title": "Fechas lastmod del sitemap",
+     "severity": "Low",
+     "description": "Las páginas fijas llevaban la fecha de hoy en cada consulta, lo que Google aprende a ignorar.",
+     "recommendation": "Hecho: fecha fija de última revisión."
+    },
+    {
+     "title": "Las páginas HTML estáticas no declaran charset en la cabecera",
+     "severity": "Low",
+     "description": "Se declara en <meta charset> (suficiente para navegadores y Google), pero no en Content-Type.",
+     "recommendation": "Opcional: forzar text/html; charset=utf-8."
+    }
+   ]
+  },
+  {
+   "name": "Content Quality",
+   "score": 64,
+   "what_works": [
+    "Políticas legales completas y actualizadas",
+    "Textos únicos por página",
+    "Mensaje de marca claro"
+   ],
+   "findings": [
+    {
+     "title": "28 productos con descripción de menos de 60 caracteres",
+     "severity": "Medium",
+     "description": "Ej.: «Pulsera Van Cleef de plata 725» (30). Las fichas tienen ~158 palabras, con poco texto propio.",
+     "recommendation": "Escribir 2–3 frases por producto (notas olfativas, tamaño, ocasión). Evitar «estilo [marca]»: puede ser una referencia engañosa a una marca ajena."
+    },
+    {
+     "title": "Sin página «Quiénes somos» ni datos del titular",
+     "severity": "Medium",
+     "description": "No hay dirección, horario, ni quién está detrás; es la señal de confianza (E-E-A-T) más débil.",
+     "recommendation": "Crear /nosotros con historia, dirección, horario y fotos propias; enlazarla en el pie."
+    },
+    {
+     "title": "5 portadas de sección con menos de 150 palabras",
+     "severity": "Low",
+     "description": "/Catalogo/Perfumes/, /Catalogo/accesorios/, /Detalles/…",
+     "recommendation": "Agregar un párrafo útil (cómo elegir, rangos de precio, ocasiones)."
+    },
+    {
+     "title": "Sin reseñas ni testimonios",
+     "severity": "Low",
+     "description": "No hay prueba social visible ni datos de valoración.",
+     "recommendation": "Mostrar reseñas reales (con permiso) y, si existen, marcarlas con Review/AggregateRating."
+    }
+   ]
+  },
+  {
+   "name": "On-Page SEO",
+   "score": 92,
+   "what_works": [
+    "1 solo H1 por página",
+    "Títulos y descripciones únicos",
+    "Open Graph y Twitter Card completos",
+    "Enlaces internos: ficha → colección, productos relacionados"
+   ],
+   "findings": [
+    {
+     "title": "Títulos de ficha de más de 60 caracteres (10)",
+     "severity": "Medium",
+     "description": "Se cortaban en los resultados de Google.",
+     "recommendation": "Hecho: máx. 60 caracteres."
+    },
+    {
+     "title": "Meta descriptions de menos de 70 caracteres (32)",
+     "severity": "Medium",
+     "description": "Fichas con descripción corta.",
+     "recommendation": "Hecho: se completa con una frase de contexto local."
+    },
+    {
+     "title": "Título de la portada sin palabras clave",
+     "severity": "Medium",
+     "description": "«Regala con intención | ALEXA» no dice qué se vende ni dónde.",
+     "recommendation": "Hecho: «Perfumes, joyería y regalos en Choluteca | ALEXA»."
+    }
+   ]
+  },
+  {
+   "name": "Schema / Structured Data",
+   "score": 82,
+   "what_works": [
+    "Store, WebSite, Product y BreadcrumbList válidos (sin errores de sintaxis)",
+    "ItemList en el catálogo y las colecciones (nuevo)"
+   ],
+   "findings": [
+    {
+     "title": "La tienda no declara horario, coordenadas ni mapa",
+     "severity": "Medium",
+     "description": "El Store tiene dirección (ciudad y país) y teléfonos, pero no openingHours, geo ni hasMap.",
+     "recommendation": "Agregarlos cuando se confirme el horario y la dirección; enlazar el perfil de Google Business."
+    },
+    {
+     "title": "Product sin brand, política de devolución ni envío",
+     "severity": "Low",
+     "description": "Google Merchant recomienda brand, hasMerchantReturnPolicy y shippingDetails.",
+     "recommendation": "Agregar cuando las políticas de cambios y envíos estén definidas por la tienda."
+    }
+   ]
+  },
+  {
+   "name": "Performance (CWV)",
+   "score": 96,
+   "what_works": [
+    "LCP 0,44–0,71 s en celular",
+    "CLS 0–0,023",
+    "Casi sin tareas largas",
+    "15–23 peticiones y 128–425 KB por página"
+   ],
+   "findings": [
+    {
+     "title": "El loader añade ~0,9 s al LCP de la primera visita",
+     "severity": "Info",
+     "description": "LCP 1,47 s con loader frente a 0,56 s sin él; sigue por debajo de 2,5 s y solo ocurre una vez por visita.",
+     "recommendation": "Sin acción. Vigilar si se alarga la animación."
+    }
+   ]
+  },
+  {
+   "name": "AI Search Readiness",
+   "score": 66,
+   "what_works": [
+    "Fichas con datos estructurados completos",
+    "Catálogo legible sin JavaScript (nuevo)",
+    "llms.txt publicado (nuevo)",
+    "robots.txt no bloquea a los rastreadores de IA"
+   ],
+   "findings": [
+    {
+     "title": "Sin contenido de tipo «pregunta–respuesta»",
+     "severity": "Medium",
+     "description": "No hay preguntas frecuentes (cómo pedir, entregas, cambios) que un asistente pueda citar.",
+     "recommendation": "Añadir una sección de preguntas frecuentes en /redes.html o /nosotros con respuestas breves y verificables."
+    },
+    {
+     "title": "Señales de marca fuera del sitio",
+     "severity": "Low",
+     "description": "Solo Instagram en sameAs.",
+     "recommendation": "Sumar Google Business Profile y otras redes cuando existan."
+    }
+   ]
+  },
+  {
+   "name": "Images",
+   "score": 90,
+   "what_works": [
+    "Todas las imágenes tienen alt y dimensiones",
+    "Formato WebP",
+    "Carga diferida bajo el pliegue",
+    "Imagen social 1200×630"
+   ],
+   "findings": [
+    {
+     "title": "Una sola resolución por foto",
+     "severity": "Low",
+     "description": "Las fotos del catálogo no usan srcset; las subidas desde el panel ya generan 600 y 1200 px.",
+     "recommendation": "Opcional: añadir srcset con ambas medidas."
+    }
+   ]
+  }
+ ],
+ "action_plan": {
+  "phases": [
+   {
+    "name": "Fase 1 · Crítico (hecho)",
+    "timeframe": "Semana 1",
+    "items": [
+     "robots.txt: permitir /api/catalogo y /api/regalos",
+     "Catálogo y colecciones con productos en el HTML",
+     "www → dominio principal",
+     "Títulos y descripciones de ficha",
+     "Título de portada con palabras clave",
+     "llms.txt"
+    ]
+   },
+   {
+    "name": "Fase 2 · Alto impacto",
+    "timeframe": "Semanas 2–3",
+    "items": [
+     "Enviar sitemap a Google Search Console y Bing",
+     "Crear y verificar Google Business Profile",
+     "Escribir 28 descripciones de producto de más de 60 caracteres",
+     "Página «Quiénes somos» con dirección y horario"
+    ]
+   },
+   {
+    "name": "Fase 3 · Contenido y autoridad",
+    "timeframe": "Mes 2",
+    "items": [
+     "Preguntas frecuentes",
+     "Texto en las 5 portadas de sección",
+     "Reseñas reales de clientas",
+     "Guías de compra (cómo elegir un perfume, regalos por ocasión)"
+    ]
+   },
+   {
+    "name": "Fase 4 · Seguimiento",
+    "timeframe": "Continuo",
+    "items": [
+     "Revisar Search Console cada semana el primer mes",
+     "Repetir la auditoría tras cada cambio grande",
+     "Mantener actualizados horarios y precios"
+    ]
+   }
+  ]
+ },
+ "artifacts": {
+  "findings_dir": "findings/",
+  "screenshots_dir": "screenshots/"
+ }
+}

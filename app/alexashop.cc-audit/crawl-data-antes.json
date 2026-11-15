@@ -1,0 +1,5212 @@
+{
+ "urls": [
+  {
+   "url": "https://alexashop.cc/",
+   "status": 200,
+   "ms": 73,
+   "bytes": 12390,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Regala con intenciÃ³n | ALEXA",
+   "desc": "Alexa Detalles & Obsequios en Choluteca, Honduras: perfumes, joyerÃ­a, relojes, carteras y regalos personalizados. Arma tu regalo y pide por WhatsApp.",
+   "canonical": "https://alexashop.cc/",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "NO ES SOLO UN REGALO."
+   ],
+   "h2": 4,
+   "og": {
+    "title": "Regala con intenciÃ³n | ALEXA",
+    "description": "Alexa Detalles & Obsequios en Choluteca, Honduras: perfumes, joyerÃ­a, relojes, carteras y regalos personalizados. Arma tu regalo y pide por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 9,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 3,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 230,
+   "jsonld": [
+    "Store",
+    "WebSite"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/catalogo.html",
+   "status": 200,
+   "ms": 488,
+   "bytes": 9544,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Tus prÃ³ximos favoritos. | ALEXA",
+   "desc": "CatÃ¡logo de Tiendas Alexa en Choluteca: perfumes para ella y para Ã©l, joyerÃ­a, relojes y carteras. Mira precios y fotos y pide por WhatsApp.",
+   "canonical": "https://alexashop.cc/catalogo.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Tus prÃ³ximos favoritos."
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Tus prÃ³ximos favoritos. | ALEXA",
+    "description": "CatÃ¡logo de Tiendas Alexa en Choluteca: perfumes para ella y para Ã©l, joyerÃ­a, relojes y carteras. Mira precios y fotos y pide por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/catalogo.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 15,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 156,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Catalogo/Perfumes/index.html",
+   "status": 200,
+   "ms": 576,
+   "bytes": 7107,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Un aroma que se queda. | ALEXA",
+   "desc": "Un aroma que se queda. en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Catalogo/Perfumes/index.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Un aroma que se queda."
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Un aroma que se queda. | ALEXA",
+    "description": "Un aroma que se queda. en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Catalogo/Perfumes/index.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 5,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 3,
+   "enlaces_int": 15,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 112,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Catalogo/Perfumes/hombre.html",
+   "status": 200,
+   "ms": 620,
+   "bytes": 9503,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Perfumes para Ã©l | ALEXA",
+   "desc": "Perfumes para Ã©l en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Catalogo/Perfumes/hombre.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Perfumes para Ã©l"
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Perfumes para Ã©l | ALEXA",
+    "description": "Perfumes para Ã©l en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Catalogo/Perfumes/hombre.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 161,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Catalogo/Perfumes/mujer.html",
+   "status": 200,
+   "ms": 703,
+   "bytes": 9511,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Perfumes para ella | ALEXA",
+   "desc": "Perfumes para ella en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Catalogo/Perfumes/mujer.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Perfumes para ella"
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Perfumes para ella | ALEXA",
+    "description": "Perfumes para ella en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Catalogo/Perfumes/mujer.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 158,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Catalogo/Perfumes/premiumindex.html",
+   "status": 200,
+   "ms": 185,
+   "bytes": 6547,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Una elecciÃ³n especial. | ALEXA",
+   "desc": "Una elecciÃ³n especial. en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Catalogo/Perfumes/premiumindex.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Una elecciÃ³n especial."
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Una elecciÃ³n especial. | ALEXA",
+    "description": "Una elecciÃ³n especial. en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Catalogo/Perfumes/premiumindex.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 4,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 2,
+   "enlaces_int": 14,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 92,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Catalogo/Perfumes/premiumhombre.html",
+   "status": 200,
+   "ms": 171,
+   "bytes": 9510,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Premium para Ã©l | ALEXA",
+   "desc": "Premium para Ã©l en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Catalogo/Perfumes/premiumhombre.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Premium para Ã©l"
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Premium para Ã©l | ALEXA",
+    "description": "Premium para Ã©l en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Catalogo/Perfumes/premiumhombre.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 161,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Catalogo/Perfumes/premiummujer.html",
+   "status": 200,
+   "ms": 167,
+   "bytes": 9518,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Premium para ella | ALEXA",
+   "desc": "Premium para ella en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Catalogo/Perfumes/premiummujer.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Premium para ella"
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Premium para ella | ALEXA",
+    "description": "Premium para ella en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Catalogo/Perfumes/premiummujer.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 158,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Catalogo/accesorios/index.html",
+   "status": 200,
+   "ms": 205,
+   "bytes": 6938,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "El toque que lo cambia todo. | ALEXA",
+   "desc": "El toque que lo cambia todo. en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Catalogo/accesorios/index.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "El toque que lo cambia todo."
+   ],
+   "h2": 1,
+   "og": {
+    "title": "El toque que lo cambia todo. | ALEXA",
+    "description": "El toque que lo cambia todo. en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Catalogo/accesorios/index.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 5,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 3,
+   "enlaces_int": 15,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 101,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Catalogo/accesorios/joyeria.html",
+   "status": 200,
+   "ms": 176,
+   "bytes": 9422,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "JoyerÃ­a | ALEXA",
+   "desc": "JoyerÃ­a en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Catalogo/accesorios/joyeria.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "JoyerÃ­a"
+   ],
+   "h2": 1,
+   "og": {
+    "title": "JoyerÃ­a | ALEXA",
+    "description": "JoyerÃ­a en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Catalogo/accesorios/joyeria.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 155,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Catalogo/accesorios/relojes.html",
+   "status": 200,
+   "ms": 161,
+   "bytes": 9414,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Relojes | ALEXA",
+   "desc": "Relojes en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Catalogo/accesorios/relojes.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Relojes"
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Relojes | ALEXA",
+    "description": "Relojes en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Catalogo/accesorios/relojes.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 152,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Catalogo/accesorios/carteras.html",
+   "status": 200,
+   "ms": 223,
+   "bytes": 9424,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Carteras | ALEXA",
+   "desc": "Carteras en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Catalogo/accesorios/carteras.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Carteras"
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Carteras | ALEXA",
+    "description": "Carteras en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Catalogo/accesorios/carteras.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 152,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Detalles/index.html",
+   "status": 200,
+   "ms": 188,
+   "bytes": 6792,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Regalar tambiÃ©n es decir. | ALEXA",
+   "desc": "Arma un regalo personalizado en Choluteca, Honduras: elige la base, el tamaÃ±o y el contenido, y confirma con una asesora de Alexa por WhatsApp.",
+   "canonical": "https://alexashop.cc/Detalles/index.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Regalar tambiÃ©n es decir."
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Regalar tambiÃ©n es decir. | ALEXA",
+    "description": "Arma un regalo personalizado en Choluteca, Honduras: elige la base, el tamaÃ±o y el contenido, y confirma con una asesora de Alexa por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Detalles/index.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 4,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 2,
+   "enlaces_int": 14,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 115,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Detalles/indexforhm.html",
+   "status": 200,
+   "ms": 184,
+   "bytes": 6747,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Hazlo a su medida. | ALEXA",
+   "desc": "Regalos personalizados para ella o para Ã©l en Choluteca. Elige paso a paso cÃ³mo serÃ¡ tu regalo y pÃ­delo por WhatsApp.",
+   "canonical": "https://alexashop.cc/Detalles/indexforhm.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Hazlo a su medida."
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Hazlo a su medida. | ALEXA",
+    "description": "Regalos personalizados para ella o para Ã©l en Choluteca. Elige paso a paso cÃ³mo serÃ¡ tu regalo y pÃ­delo por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Detalles/indexforhm.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 4,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 2,
+   "enlaces_int": 14,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 117,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Detalles/pick-and-go.html",
+   "status": 200,
+   "ms": 197,
+   "bytes": 9546,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Regalos para ella | ALEXA",
+   "desc": "Regalos para ella en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Detalles/pick-and-go.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Regalos para ella"
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Regalos para ella | ALEXA",
+    "description": "Regalos para ella en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Detalles/pick-and-go.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 166,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/Detalles/pick-and-go-hombre.html",
+   "status": 200,
+   "ms": 370,
+   "bytes": 9551,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Regalos para Ã©l | ALEXA",
+   "desc": "Regalos para Ã©l en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+   "canonical": "https://alexashop.cc/Detalles/pick-and-go-hombre.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Regalos para Ã©l"
+   ],
+   "h2": 1,
+   "og": {
+    "title": "Regalos para Ã©l | ALEXA",
+    "description": "Regalos para Ã©l en Choluteca, Honduras. Mira precios y fotos en Tiendas Alexa y haz tu pedido por WhatsApp.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/Detalles/pick-and-go-hombre.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 169,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/redes.html",
+   "status": 200,
+   "ms": 103,
+   "bytes": 8375,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Contacto y pedidos | ALEXA",
+   "desc": "Habla con una asesora de Alexa por WhatsApp o Instagram: pedidos, disponibilidad y entregas en Choluteca, Honduras.",
+   "canonical": "https://alexashop.cc/redes.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Hablemos de ese detalle."
+   ],
+   "h2": 7,
+   "og": {
+    "title": "Contacto y pedidos | ALEXA",
+    "description": "Habla con una asesora de Alexa por WhatsApp o Instagram: pedidos, disponibilidad y entregas en Choluteca, Honduras.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/redes.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 11,
+   "enlaces_ext": 8,
+   "enlaces_producto": 0,
+   "palabras": 299,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/condiciones.html",
+   "status": 200,
+   "ms": 206,
+   "bytes": 9251,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "Compra y atenciÃ³n | ALEXA",
+   "desc": "Condiciones de compra, entregas y reclamos de Tiendas Alexa en Choluteca, Honduras.",
+   "canonical": "https://alexashop.cc/condiciones.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Antes de confirmar tu pedido."
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Compra y atenciÃ³n | ALEXA",
+    "description": "Condiciones de compra, entregas y reclamos de Tiendas Alexa en Choluteca, Honduras.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/condiciones.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 12,
+   "enlaces_ext": 4,
+   "enlaces_producto": 0,
+   "palabras": 612,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/privacidad.html",
+   "status": 200,
+   "ms": 208,
+   "bytes": 12319,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "PolÃ­tica de privacidad | ALEXA",
+   "desc": "QuÃ© datos trata Tiendas Alexa, para quÃ©, con quiÃ©n se comparten y cÃ³mo ejercer tus derechos. Sin cuentas de clientes, sin cookies publicitarias.",
+   "canonical": "https://alexashop.cc/privacidad.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Tu informaciÃ³n, con claridad."
+   ],
+   "h2": 1,
+   "og": {
+    "title": "PolÃ­tica de privacidad | ALEXA",
+    "description": "QuÃ© datos trata Tiendas Alexa, para quÃ©, con quiÃ©n se comparten y cÃ³mo ejercer tus derechos. Sin cuentas de clientes, sin cookies publicitarias.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/privacidad.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 13,
+   "enlaces_ext": 3,
+   "enlaces_producto": 0,
+   "palabras": 1057,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/terminos.html",
+   "status": 200,
+   "ms": 80,
+   "bytes": 10611,
+   "location": null,
+   "ct": "text/html",
+   "lang": "es",
+   "title": "TÃ©rminos de uso | ALEXA",
+   "desc": "TÃ©rminos de uso del sitio de Tiendas Alexa: informaciÃ³n de productos, propiedad intelectual, marcas de terceros, responsabilidad y ley aplicable en Honduras.",
+   "canonical": "https://alexashop.cc/terminos.html",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Reglas claras para todos."
+   ],
+   "h2": 1,
+   "og": {
+    "title": "TÃ©rminos de uso | ALEXA",
+    "description": "TÃ©rminos de uso del sitio de Tiendas Alexa: informaciÃ³n de productos, propiedad intelectual, marcas de terceros, responsabilidad y ley aplicable en Honduras.",
+    "image": "https://alexashop.cc/assets/images/og.jpg",
+    "url": "https://alexashop.cc/terminos.html",
+    "type": "website"
+   },
+   "tw": "summary_large_image",
+   "imgs": 2,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 0,
+   "enlaces_int": 15,
+   "enlaces_ext": 4,
+   "enlaces_producto": 0,
+   "palabras": 745,
+   "jsonld": []
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-01",
+   "status": 200,
+   "ms": 244,
+   "bytes": 8922,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Valentino Born in Roma Eau de Toilette · Premium para él | ALEXA",
+   "desc": "Valentino: Un choque magnético de salvia y vetiver ahumado que deja una estela amaderada inolvidable.",
+   "canonical": "https://alexashop.cc/producto/PHP-01",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Valentino Born in Roma Eau de Toilette"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Valentino Born in Roma Eau de Toilette · Premium para él | ALEXA",
+    "description": "Valentino: Un choque magnético de salvia y vetiver ahumado que deja una estela amaderada inolvidable.",
+    "image": "https://alexashop.cc/assets/images/1.webp",
+    "url": "https://alexashop.cc/producto/PHP-01",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 172,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-02",
+   "status": 200,
+   "ms": 183,
+   "bytes": 8838,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "VERSACE EROS Eau de Parfum · Premium para él | ALEXA",
+   "desc": "Versace: Una explosión refrescante de menta y limón que se funde con la dulzura de la manzana verde.",
+   "canonical": "https://alexashop.cc/producto/PHP-02",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "VERSACE EROS Eau de Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "VERSACE EROS Eau de Parfum · Premium para él | ALEXA",
+    "description": "Versace: Una explosión refrescante de menta y limón que se funde con la dulzura de la manzana verde.",
+    "image": "https://alexashop.cc/assets/images/2.webp",
+    "url": "https://alexashop.cc/producto/PHP-02",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 171,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-03",
+   "status": 200,
+   "ms": 125,
+   "bytes": 8831,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "1 Million Eau de Toilette · Premium para él | ALEXA",
+   "desc": "Paco Rabanne: El lujo se siente en su mezcla de canela picante. cuero audaz y una chispa de mandarina.",
+   "canonical": "https://alexashop.cc/producto/PHP-03",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "1 Million Eau de Toilette"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "1 Million Eau de Toilette · Premium para él | ALEXA",
+    "description": "Paco Rabanne: El lujo se siente en su mezcla de canela picante. cuero audaz y una chispa de mandarina.",
+    "image": "https://alexashop.cc/assets/images/3.webp",
+    "url": "https://alexashop.cc/producto/PHP-03",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 172,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-04",
+   "status": 200,
+   "ms": 132,
+   "bytes": 8903,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Azzaro Wanted by Night Eau de Parfum · Premium para él | ALEXA",
+   "desc": "Azzaro: Un aroma nocturno y cálido donde el tabaco y el cedro rojo se envuelven en canela explosiva.",
+   "canonical": "https://alexashop.cc/producto/PHP-04",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Azzaro Wanted by Night Eau de Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Azzaro Wanted by Night Eau de Parfum · Premium para él | ALEXA",
+    "description": "Azzaro: Un aroma nocturno y cálido donde el tabaco y el cedro rojo se envuelven en canela explosiva.",
+    "image": "https://alexashop.cc/assets/images/4.webp",
+    "url": "https://alexashop.cc/producto/PHP-04",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 175,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-05",
+   "status": 200,
+   "ms": 83,
+   "bytes": 8910,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Jean paul gaultier scandal pour Homme · Premium para él | ALEXA",
+   "desc": "JPG Scandal: Una tentación dulce de caramelo tostado y haba tonka sobre una base de madera profunda.",
+   "canonical": "https://alexashop.cc/producto/PHP-05",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Jean paul gaultier scandal pour Homme"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Jean paul gaultier scandal pour Homme · Premium para él | ALEXA",
+    "description": "JPG Scandal: Una tentación dulce de caramelo tostado y haba tonka sobre una base de madera profunda.",
+    "image": "https://alexashop.cc/assets/images/5.webp",
+    "url": "https://alexashop.cc/producto/PHP-05",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 172,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-06",
+   "status": 200,
+   "ms": 113,
+   "bytes": 8832,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Gucci Guilty Pour Homme Parfum · Premium para él | ALEXA",
+   "desc": "Gucci Guilty: La elegancia de la lavanda francesa mezclada con la intensidad terrosa del pachulí.",
+   "canonical": "https://alexashop.cc/producto/PHP-06",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Gucci Guilty Pour Homme Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Gucci Guilty Pour Homme Parfum · Premium para él | ALEXA",
+    "description": "Gucci Guilty: La elegancia de la lavanda francesa mezclada con la intensidad terrosa del pachulí.",
+    "image": "https://alexashop.cc/assets/images/6.webp",
+    "url": "https://alexashop.cc/producto/PHP-06",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 167,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-07",
+   "status": 200,
+   "ms": 113,
+   "bytes": 8792,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Gucci guilty black Men ED · Premium para él | ALEXA",
+   "desc": "Gucci Black: Un suspiro misterioso de cilantro verde y flores de azahar que despierta los sentidos.",
+   "canonical": "https://alexashop.cc/producto/PHP-07",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Gucci guilty black Men ED"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Gucci guilty black Men ED · Premium para él | ALEXA",
+    "description": "Gucci Black: Un suspiro misterioso de cilantro verde y flores de azahar que despierta los sentidos.",
+    "image": "https://alexashop.cc/assets/images/7.webp",
+    "url": "https://alexashop.cc/producto/PHP-07",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 168,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-08",
+   "status": 200,
+   "ms": 110,
+   "bytes": 8880,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Prada Luna Rossa Ocean Le Parfum · Premium para él | ALEXA",
+   "desc": "Prada: La sofisticación del iris se encuentra con maderas preciosas para un olor limpio y tecnológico.",
+   "canonical": "https://alexashop.cc/producto/PHP-08",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Prada Luna Rossa Ocean Le Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Prada Luna Rossa Ocean Le Parfum · Premium para él | ALEXA",
+    "description": "Prada: La sofisticación del iris se encuentra con maderas preciosas para un olor limpio y tecnológico.",
+    "image": "https://alexashop.cc/assets/images/8.webp",
+    "url": "https://alexashop.cc/producto/PHP-08",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 171,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-09",
+   "status": 200,
+   "ms": 91,
+   "bytes": 8770,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Paco Rabanne Invictus Parfum Men · Premium para él | ALEXA",
+   "desc": "Invictus: El golpe fresco del mar combinado con la fuerza de la madera de guayaco.",
+   "canonical": "https://alexashop.cc/producto/PHP-09",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Paco Rabanne Invictus Parfum Men"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Paco Rabanne Invictus Parfum Men · Premium para él | ALEXA",
+    "description": "Invictus: El golpe fresco del mar combinado con la fuerza de la madera de guayaco.",
+    "image": "https://alexashop.cc/assets/images/9.webp",
+    "url": "https://alexashop.cc/producto/PHP-09",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 167,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-10",
+   "status": 200,
+   "ms": 118,
+   "bytes": 8971,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Carolina Herrera Men's Bad Boy Extreme · Premium para él | ALEXA",
+   "desc": "Bad Boy: Un aroma ardiente que equilibra el picante del jengibre con la oscuridad del cacao y el vetiver.",
+   "canonical": "https://alexashop.cc/producto/PHP-10",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Carolina Herrera Men's Bad Boy Extreme"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Carolina Herrera Men's Bad Boy Extreme · Premium para él | ALEXA",
+    "description": "Bad Boy: Un aroma ardiente que equilibra el picante del jengibre con la oscuridad del cacao y el vetiver.",
+    "image": "https://alexashop.cc/assets/images/10.webp",
+    "url": "https://alexashop.cc/producto/PHP-10",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 177,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-11",
+   "status": 200,
+   "ms": 115,
+   "bytes": 8780,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Bharara viking kashmir Men · Premium para él | ALEXA",
+   "desc": "Bharara: Un viaje exótico marcado por especias orientales y la solidez de las maderas nobles.",
+   "canonical": "https://alexashop.cc/producto/PHP-11",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Bharara viking kashmir Men"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Bharara viking kashmir Men · Premium para él | ALEXA",
+    "description": "Bharara: Un viaje exótico marcado por especias orientales y la solidez de las maderas nobles.",
+    "image": "https://alexashop.cc/assets/images/11.webp",
+    "url": "https://alexashop.cc/producto/PHP-11",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 164,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-12",
+   "status": 200,
+   "ms": 119,
+   "bytes": 8918,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Armaf Club De Nuit Intense Lux Edition · Premium para él | ALEXA",
+   "desc": "Armaf: Un aroma icónico donde la frescura de la piña se encuentra con el toque ahumado del abedul.",
+   "canonical": "https://alexashop.cc/producto/PHP-12",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Armaf Club De Nuit Intense Lux Edition"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Armaf Club De Nuit Intense Lux Edition · Premium para él | ALEXA",
+    "description": "Armaf: Un aroma icónico donde la frescura de la piña se encuentra con el toque ahumado del abedul.",
+    "image": "https://alexashop.cc/assets/images/12.webp",
+    "url": "https://alexashop.cc/producto/PHP-12",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 176,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-13",
+   "status": 200,
+   "ms": 70,
+   "bytes": 8899,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Jean Paul Gaultier Ultra Male Intense · Premium para él | ALEXA",
+   "desc": "Ultra Male: Una mezcla ultra-seductora de pera jugosa. lavanda fresca y una vainilla irresistible.",
+   "canonical": "https://alexashop.cc/producto/PHP-13",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Jean Paul Gaultier Ultra Male Intense"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Jean Paul Gaultier Ultra Male Intense · Premium para él | ALEXA",
+    "description": "Ultra Male: Una mezcla ultra-seductora de pera jugosa. lavanda fresca y una vainilla irresistible.",
+    "image": "https://alexashop.cc/assets/images/13.webp",
+    "url": "https://alexashop.cc/producto/PHP-13",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 170,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PHP-14",
+   "status": 200,
+   "ms": 76,
+   "bytes": 8772,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Paco Rabanne Phantom Men · Premium para él | ALEXA",
+   "desc": "Phantom: Un aroma futurista que destaca por su lavanda cremosa y un toque de limón energizante.",
+   "canonical": "https://alexashop.cc/producto/PHP-14",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Paco Rabanne Phantom Men"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Paco Rabanne Phantom Men · Premium para él | ALEXA",
+    "description": "Phantom: Un aroma futurista que destaca por su lavanda cremosa y un toque de limón energizante.",
+    "image": "https://alexashop.cc/assets/images/14.webp",
+    "url": "https://alexashop.cc/producto/PHP-14",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 165,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-01",
+   "status": 200,
+   "ms": 118,
+   "bytes": 8817,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Club de Nuit Eau de Parfum · Perfumes para ella | ALEXA",
+   "desc": "Armaf: Una elegancia clásica que abre con cítricos brillantes y evoluciona hacia un corazón floral de rosa y jazmín.",
+   "canonical": "https://alexashop.cc/producto/MP-01",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Club de Nuit Eau de Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Club de Nuit Eau de Parfum · Perfumes para ella | ALEXA",
+    "description": "Armaf: Una elegancia clásica que abre con cítricos brillantes y evoluciona hacia un corazón floral de rosa y jazmín.",
+    "image": "https://alexashop.cc/assets/images/15.webp",
+    "url": "https://alexashop.cc/producto/MP-01",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 164,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-02",
+   "status": 200,
+   "ms": 77,
+   "bytes": 8744,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Set Yara Eau de Parfum · Perfumes para ella | ALEXA",
+   "desc": "Lattafa: La experiencia completa del aroma viral; un batido cremoso de fresas. vainilla y almizcle que enamora.",
+   "canonical": "https://alexashop.cc/producto/MP-02",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Set Yara Eau de Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Set Yara Eau de Parfum · Perfumes para ella | ALEXA",
+    "description": "Lattafa: La experiencia completa del aroma viral; un batido cremoso de fresas. vainilla y almizcle que enamora.",
+    "image": "https://alexashop.cc/assets/images/16.webp",
+    "url": "https://alexashop.cc/producto/MP-02",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 160,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-03",
+   "status": 200,
+   "ms": 75,
+   "bytes": 8798,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Mayar Cherry Intense EDP · Perfumes para ella | ALEXA",
+   "desc": "Lattafa: Una explosión jugosa de cerezas negras y notas florales intensas. perfecta para una estela dulce y seductora.",
+   "canonical": "https://alexashop.cc/producto/MP-03",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Mayar Cherry Intense EDP"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Mayar Cherry Intense EDP · Perfumes para ella | ALEXA",
+    "description": "Lattafa: Una explosión jugosa de cerezas negras y notas florales intensas. perfecta para una estela dulce y seductora.",
+    "image": "https://alexashop.cc/assets/images/17.webp",
+    "url": "https://alexashop.cc/producto/MP-03",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 159,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-04",
+   "status": 200,
+   "ms": 108,
+   "bytes": 8812,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Britney Spears Circus Fantasy · Perfumes para ella | ALEXA",
+   "desc": "Britney Spears: Un aroma divertido y mágico con notas de frambuesa azucarada. flor de loto y un toque de vainilla.",
+   "canonical": "https://alexashop.cc/producto/MP-04",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Britney Spears Circus Fantasy"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Britney Spears Circus Fantasy · Perfumes para ella | ALEXA",
+    "description": "Britney Spears: Un aroma divertido y mágico con notas de frambuesa azucarada. flor de loto y un toque de vainilla.",
+    "image": "https://alexashop.cc/assets/images/18.webp",
+    "url": "https://alexashop.cc/producto/MP-04",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 161,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-4.5",
+   "status": 200,
+   "ms": 120,
+   "bytes": 8682,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Yara Lataffa · Perfumes para ella | ALEXA",
+   "desc": "El perfume rosa más viral. Es un batido de fresas con vainilla y un toque de flores blancas. Súper femenino.",
+   "canonical": "https://alexashop.cc/producto/MP-4.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Yara Lataffa"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Yara Lataffa · Perfumes para ella | ALEXA",
+    "description": "El perfume rosa más viral. Es un batido de fresas con vainilla y un toque de flores blancas. Súper femenino.",
+    "image": "https://alexashop.cc/assets/images/yara.webp",
+    "url": "https://alexashop.cc/producto/MP-4.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 158,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-05",
+   "status": 200,
+   "ms": 113,
+   "bytes": 8740,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Haya Eau de Parfum · Perfumes para ella | ALEXA",
+   "desc": "Lattafa: Elegancia radiante en un frasco; notas de champaña rosada. fresia y maderas suaves para un aura de lujo.",
+   "canonical": "https://alexashop.cc/producto/MP-05",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Haya Eau de Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Haya Eau de Parfum · Perfumes para ella | ALEXA",
+    "description": "Lattafa: Elegancia radiante en un frasco; notas de champaña rosada. fresia y maderas suaves para un aura de lujo.",
+    "image": "https://alexashop.cc/assets/images/19.webp",
+    "url": "https://alexashop.cc/producto/MP-05",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 162,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-5.5",
+   "status": 200,
+   "ms": 117,
+   "bytes": 8777,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Dubai Niche Bubbles · Perfumes para ella | ALEXA",
+   "desc": "Fragancia exótica que combina notas dulces con el toque opulento característico de la perfumería árabe",
+   "canonical": "https://alexashop.cc/producto/MP-5.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Dubai Niche Bubbles"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Dubai Niche Bubbles · Perfumes para ella | ALEXA",
+    "description": "Fragancia exótica que combina notas dulces con el toque opulento característico de la perfumería árabe",
+    "image": "https://alexashop.cc/assets/images/dubainichebubbles.webp",
+    "url": "https://alexashop.cc/producto/MP-5.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 156,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-06",
+   "status": 200,
+   "ms": 93,
+   "bytes": 8781,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Yara Moi Eau de Parfum · Perfumes para ella | ALEXA",
+   "desc": "Lattafa: La versión blanca de Yara; un aroma sofisticado de jazmín y melocotón con un fondo cálido de caramelo.",
+   "canonical": "https://alexashop.cc/producto/MP-06",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Yara Moi Eau de Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Yara Moi Eau de Parfum · Perfumes para ella | ALEXA",
+    "description": "Lattafa: La versión blanca de Yara; un aroma sofisticado de jazmín y melocotón con un fondo cálido de caramelo.",
+    "image": "https://alexashop.cc/assets/images/20.webp",
+    "url": "https://alexashop.cc/producto/MP-06",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 165,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-6.5",
+   "status": 200,
+   "ms": 106,
+   "bytes": 8694,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Paris Hilton Can Can · Perfumes para ella | ALEXA",
+   "desc": "Un aroma juguetón de nectarina, grosellas negras y flor de azahar sobre una base de ámbar dulce",
+   "canonical": "https://alexashop.cc/producto/MP-6.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Paris Hilton Can Can"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Paris Hilton Can Can · Perfumes para ella | ALEXA",
+    "description": "Un aroma juguetón de nectarina, grosellas negras y flor de azahar sobre una base de ámbar dulce",
+    "image": "https://alexashop.cc/assets/images/cancan.webp",
+    "url": "https://alexashop.cc/producto/MP-6.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 160,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-07",
+   "status": 200,
+   "ms": 108,
+   "bytes": 8895,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Victoria Secret Love Spell Body Mist · Perfumes para ella | ALEXA",
+   "desc": "Victoria's Secret: Un hechizo irresistible de flor de cerezo y durazno fresco que se siente ligero y vibrante.",
+   "canonical": "https://alexashop.cc/producto/MP-07",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Victoria Secret Love Spell Body Mist"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Victoria Secret Love Spell Body Mist · Perfumes para ella | ALEXA",
+    "description": "Victoria's Secret: Un hechizo irresistible de flor de cerezo y durazno fresco que se siente ligero y vibrante.",
+    "image": "https://alexashop.cc/assets/images/21.webp",
+    "url": "https://alexashop.cc/producto/MP-07",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 167,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-7.5",
+   "status": 200,
+   "ms": 110,
+   "bytes": 8791,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Charlie Gold Eau De Toilette · Perfumes para ella | ALEXA",
+   "desc": "Un oriental floral intenso con notas de durazno, ciruela, canela y sándalo. Muy cálido y otoñal",
+   "canonical": "https://alexashop.cc/producto/MP-7.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Charlie Gold Eau De Toilette"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Charlie Gold Eau De Toilette · Perfumes para ella | ALEXA",
+    "description": "Un oriental floral intenso con notas de durazno, ciruela, canela y sándalo. Muy cálido y otoñal",
+    "image": "https://alexashop.cc/assets/images/charliegold.webp",
+    "url": "https://alexashop.cc/producto/MP-7.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 162,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-08",
+   "status": 200,
+   "ms": 68,
+   "bytes": 8734,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "9 AM Pour Femme EDP · Perfumes para ella | ALEXA",
+   "desc": "Afnan: Frescura matutina con notas de mandarina y frambuesa. ideal para empezar el día con energía y dulzura.",
+   "canonical": "https://alexashop.cc/producto/MP-08",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "9 AM Pour Femme EDP"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "9 AM Pour Femme EDP · Perfumes para ella | ALEXA",
+    "description": "Afnan: Frescura matutina con notas de mandarina y frambuesa. ideal para empezar el día con energía y dulzura.",
+    "image": "https://alexashop.cc/assets/images/22.webp",
+    "url": "https://alexashop.cc/producto/MP-08",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 164,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-8.5",
+   "status": 200,
+   "ms": 104,
+   "bytes": 8615,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Genius Blush · Perfumes para ella | ALEXA",
+   "desc": "Un floral suave y empolvado, ideal para oficina o uso diario por su discreción y elegancia",
+   "canonical": "https://alexashop.cc/producto/MP-8.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Genius Blush"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Genius Blush · Perfumes para ella | ALEXA",
+    "description": "Un floral suave y empolvado, ideal para oficina o uso diario por su discreción y elegancia",
+    "image": "https://alexashop.cc/assets/images/geniusblush.webp",
+    "url": "https://alexashop.cc/producto/MP-8.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 154,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-09",
+   "status": 200,
+   "ms": 101,
+   "bytes": 8757,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Touch Eau de Toilette · Perfumes para ella | ALEXA",
+   "desc": "Tous: Una caricia suave y limpia de flores blancas y bayas rojas que transmite una elegancia sencilla y natural.",
+   "canonical": "https://alexashop.cc/producto/MP-09",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Touch Eau de Toilette"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Touch Eau de Toilette · Perfumes para ella | ALEXA",
+    "description": "Tous: Una caricia suave y limpia de flores blancas y bayas rojas que transmite una elegancia sencilla y natural.",
+    "image": "https://alexashop.cc/assets/images/23.webp",
+    "url": "https://alexashop.cc/producto/MP-09",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 162,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-9.5",
+   "status": 200,
+   "ms": 93,
+   "bytes": 8594,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Paris Hilton Rush · Perfumes para ella | ALEXA",
+   "desc": "Un aroma magnético de clementina y flores blancas. Es sensual, chispeante y directo",
+   "canonical": "https://alexashop.cc/producto/MP-9.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Paris Hilton Rush"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Paris Hilton Rush · Perfumes para ella | ALEXA",
+    "description": "Un aroma magnético de clementina y flores blancas. Es sensual, chispeante y directo",
+    "image": "https://alexashop.cc/assets/images/rush.webp",
+    "url": "https://alexashop.cc/producto/MP-9.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 153,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-10",
+   "status": 200,
+   "ms": 108,
+   "bytes": 8751,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Armaf Eter Desert Rose · Perfumes para ella | ALEXA",
+   "desc": "Armaf: Una rosa exótica y mística del desierto. con matices empolvados y un fondo ambarino muy sofisticado.",
+   "canonical": "https://alexashop.cc/producto/MP-10",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Armaf Eter Desert Rose"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Armaf Eter Desert Rose · Perfumes para ella | ALEXA",
+    "description": "Armaf: Una rosa exótica y mística del desierto. con matices empolvados y un fondo ambarino muy sofisticado.",
+    "image": "https://alexashop.cc/assets/images/24.webp",
+    "url": "https://alexashop.cc/producto/MP-10",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 160,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-10.5",
+   "status": 200,
+   "ms": 77,
+   "bytes": 8724,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Victoria Secret Rush Aqua · Perfumes para ella | ALEXA",
+   "desc": "Fragancias icónicas basadas en la pureza de la vainilla o la frescura del agua marina",
+   "canonical": "https://alexashop.cc/producto/MP-10.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Victoria Secret Rush Aqua"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Victoria Secret Rush Aqua · Perfumes para ella | ALEXA",
+    "description": "Fragancias icónicas basadas en la pureza de la vainilla o la frescura del agua marina",
+    "image": "https://alexashop.cc/assets/images/victoriasecret.webp",
+    "url": "https://alexashop.cc/producto/MP-10.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 158,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-11",
+   "status": 200,
+   "ms": 141,
+   "bytes": 8708,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Armaf Pride Rose Oud · Perfumes para ella | ALEXA",
+   "desc": "Armaf: El contraste perfecto entre la delicadeza de la rosa y la profundidad oscura y amaderada del Oud.",
+   "canonical": "https://alexashop.cc/producto/MP-11",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Armaf Pride Rose Oud"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Armaf Pride Rose Oud · Perfumes para ella | ALEXA",
+    "description": "Armaf: El contraste perfecto entre la delicadeza de la rosa y la profundidad oscura y amaderada del Oud.",
+    "image": "https://alexashop.cc/assets/images/25.webp",
+    "url": "https://alexashop.cc/producto/MP-11",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 161,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-11.5",
+   "status": 200,
+   "ms": 101,
+   "bytes": 8611,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Warm Vanilla Sugar Mist · Perfumes para ella | ALEXA",
+   "desc": "Una nota cálida y reconfortante que recuerda a la repostería fina",
+   "canonical": "https://alexashop.cc/producto/MP-11.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Warm Vanilla Sugar Mist"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Warm Vanilla Sugar Mist · Perfumes para ella | ALEXA",
+    "description": "Una nota cálida y reconfortante que recuerda a la repostería fina",
+    "image": "https://alexashop.cc/assets/images/vainillaazucar.webp",
+    "url": "https://alexashop.cc/producto/MP-11.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 154,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-12",
+   "status": 200,
+   "ms": 81,
+   "bytes": 8779,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Armaf Tag Donna Di Terra · Perfumes para ella | ALEXA",
+   "desc": "Armaf: Un aroma terroso y sofisticado que mezcla notas verdes con especias suaves y un corazón floral cálido.",
+   "canonical": "https://alexashop.cc/producto/MP-12",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Armaf Tag Donna Di Terra"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Armaf Tag Donna Di Terra · Perfumes para ella | ALEXA",
+    "description": "Armaf: Un aroma terroso y sofisticado que mezcla notas verdes con especias suaves y un corazón floral cálido.",
+    "image": "https://alexashop.cc/assets/images/26.webp",
+    "url": "https://alexashop.cc/producto/MP-12",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 164,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-12.5",
+   "status": 200,
+   "ms": 95,
+   "bytes": 8941,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Armaf Club De Nuit Intense Woman · Perfumes para ella | ALEXA",
+   "desc": "Un floral frutal chipre. Elegante, con notas de rosa, jazmín y pachulí (similar a perfumes de alta gama franceses)",
+   "canonical": "https://alexashop.cc/producto/MP-12.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Armaf Club De Nuit Intense Woman"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Armaf Club De Nuit Intense Woman · Perfumes para ella | ALEXA",
+    "description": "Un floral frutal chipre. Elegante, con notas de rosa, jazmín y pachulí (similar a perfumes de alta gama franceses)",
+    "image": "https://alexashop.cc/assets/images/clubdenuitwoman.webp",
+    "url": "https://alexashop.cc/producto/MP-12.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 168,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-13",
+   "status": 200,
+   "ms": 103,
+   "bytes": 8829,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Set Perry Ellis 360 Red Women · Perfumes para ella | ALEXA",
+   "desc": "Perry Ellis: Un trío de frescura chispeante con notas de hoja de naranja y orquídea. ideal para el uso diario.",
+   "canonical": "https://alexashop.cc/producto/MP-13",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Set Perry Ellis 360 Red Women"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Set Perry Ellis 360 Red Women · Perfumes para ella | ALEXA",
+    "description": "Perry Ellis: Un trío de frescura chispeante con notas de hoja de naranja y orquídea. ideal para el uso diario.",
+    "image": "https://alexashop.cc/assets/images/27.webp",
+    "url": "https://alexashop.cc/producto/MP-13",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 169,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-14",
+   "status": 200,
+   "ms": 136,
+   "bytes": 8791,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Guess Seductive Flirt Women · Perfumes para ella | ALEXA",
+   "desc": "Guess: Un juego de seducción frutal y floral con notas de bergamota. lirio y un toque de vainilla adictiva.",
+   "canonical": "https://alexashop.cc/producto/MP-14",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Guess Seductive Flirt Women"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Guess Seductive Flirt Women · Perfumes para ella | ALEXA",
+    "description": "Guess: Un juego de seducción frutal y floral con notas de bergamota. lirio y un toque de vainilla adictiva.",
+    "image": "https://alexashop.cc/assets/images/28.webp",
+    "url": "https://alexashop.cc/producto/MP-14",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 162,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-15",
+   "status": 200,
+   "ms": 124,
+   "bytes": 8687,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Ariana Grande Body Mist · Perfumes para ella | ALEXA",
+   "desc": "Explosión de azúcar, crema batida y malvavisco (marshmallow). Muy juvenil y adictivo.",
+   "canonical": "https://alexashop.cc/producto/MP-15",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Ariana Grande Body Mist"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Ariana Grande Body Mist · Perfumes para ella | ALEXA",
+    "description": "Explosión de azúcar, crema batida y malvavisco (marshmallow). Muy juvenil y adictivo.",
+    "image": "https://alexashop.cc/assets/images/arianagrande.webp",
+    "url": "https://alexashop.cc/producto/MP-15",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 154,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-16",
+   "status": 200,
+   "ms": 67,
+   "bytes": 8717,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Armaf Candy Sprye · Perfumes para ella | ALEXA",
+   "desc": "Una fragancia intensamente frutal y dulce, diseñada para quienes aman los olores tipo \"caramelo\"",
+   "canonical": "https://alexashop.cc/producto/MP-16",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Armaf Candy Sprye"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Armaf Candy Sprye · Perfumes para ella | ALEXA",
+    "description": "Una fragancia intensamente frutal y dulce, diseñada para quienes aman los olores tipo \"caramelo\"",
+    "image": "https://alexashop.cc/assets/images/armafcandy.webp",
+    "url": "https://alexashop.cc/producto/MP-16",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 153,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/MP-17",
+   "status": 200,
+   "ms": 112,
+   "bytes": 8620,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Khamrah Lataffa · Perfumes para ella | ALEXA",
+   "desc": "Una joya nicho. Huele a tarta de manzana con canela, dátiles y vainilla licorosa. Muy lujoso",
+   "canonical": "https://alexashop.cc/producto/MP-17",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Khamrah Lataffa"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Khamrah Lataffa · Perfumes para ella | ALEXA",
+    "description": "Una joya nicho. Huele a tarta de manzana con canela, dátiles y vainilla licorosa. Muy lujoso",
+    "image": "https://alexashop.cc/assets/images/kamra.webp",
+    "url": "https://alexashop.cc/producto/MP-17",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 153,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-01",
+   "status": 200,
+   "ms": 88,
+   "bytes": 8738,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Adidas Victory League · Perfumes para él | ALEXA",
+   "desc": "Una fragancia aromática con notas de canela, lavanda y vainilla. Es cálida, deportiva y clásica",
+   "canonical": "https://alexashop.cc/producto/HP-01",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Adidas Victory League"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Adidas Victory League · Perfumes para él | ALEXA",
+    "description": "Una fragancia aromática con notas de canela, lavanda y vainilla. Es cálida, deportiva y clásica",
+    "image": "https://alexashop.cc/assets/images/adidasamarilla.webp",
+    "url": "https://alexashop.cc/producto/HP-01",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 152,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-1.5",
+   "status": 200,
+   "ms": 78,
+   "bytes": 8780,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Adidas Team Force · Perfumes para él | ALEXA",
+   "desc": "Energética y vibrante, con una mezcla de cítricos (naranja, toronja) y notas amaderadas. Ideal para el gimnasio",
+   "canonical": "https://alexashop.cc/producto/HP-1.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Adidas Team Force"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Adidas Team Force · Perfumes para él | ALEXA",
+    "description": "Energética y vibrante, con una mezcla de cítricos (naranja, toronja) y notas amaderadas. Ideal para el gimnasio",
+    "image": "https://alexashop.cc/assets/images/adidasrojo.webp",
+    "url": "https://alexashop.cc/producto/HP-1.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 155,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-02",
+   "status": 200,
+   "ms": 76,
+   "bytes": 8786,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "CR7 Play It Cool EDT · Perfumes para él | ALEXA",
+   "desc": "Cristiano Ronaldo: Energía pura con notas marinas, mandarina vibrante y un toque de almizcle para el hombre activo.",
+   "canonical": "https://alexashop.cc/producto/HP-02",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "CR7 Play It Cool EDT"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "CR7 Play It Cool EDT · Perfumes para él | ALEXA",
+    "description": "Cristiano Ronaldo: Energía pura con notas marinas, mandarina vibrante y un toque de almizcle para el hombre activo.",
+    "image": "https://alexashop.cc/assets/images/30.webp",
+    "url": "https://alexashop.cc/producto/HP-02",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 159,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-2.5",
+   "status": 200,
+   "ms": 95,
+   "bytes": 8861,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Blue Banderas Seduction Eau De Toilette · Perfumes para él | ALEXA",
+   "desc": "Un frescor mediterráneo con notas de bergamota, grosellas negras y menta. Muy masculina y limpia",
+   "canonical": "https://alexashop.cc/producto/HP-2.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Blue Banderas Seduction Eau De Toilette"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Blue Banderas Seduction Eau De Toilette · Perfumes para él | ALEXA",
+    "description": "Un frescor mediterráneo con notas de bergamota, grosellas negras y menta. Muy masculina y limpia",
+    "image": "https://alexashop.cc/assets/images/bluebanderas.webp",
+    "url": "https://alexashop.cc/producto/HP-2.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 159,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-01.9",
+   "status": 200,
+   "ms": 107,
+   "bytes": 8774,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Diesel Plus Plus EDT · Perfumes para él | ALEXA",
+   "desc": "Diesel: Un aroma cremoso y limpio, con toques de leche, especias suaves y un fondo de sándalo muy confortable.",
+   "canonical": "https://alexashop.cc/producto/HP-01.9",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Diesel Plus Plus EDT"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Diesel Plus Plus EDT · Perfumes para él | ALEXA",
+    "description": "Diesel: Un aroma cremoso y limpio, con toques de leche, especias suaves y un fondo de sándalo muy confortable.",
+    "image": "https://alexashop.cc/assets/images/29.webp",
+    "url": "https://alexashop.cc/producto/HP-01.9",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 159,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-2.9",
+   "status": 200,
+   "ms": 124,
+   "bytes": 8782,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Club De Nuit Intense Man · Perfumes para él | ALEXA",
+   "desc": "Famoso por su aroma a piña ahumada, limón y maderas. Es elegante, potente y perfecto para destacar",
+   "canonical": "https://alexashop.cc/producto/HP-2.9",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Club De Nuit Intense Man"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Club De Nuit Intense Man · Perfumes para él | ALEXA",
+    "description": "Famoso por su aroma a piña ahumada, limón y maderas. Es elegante, potente y perfecto para destacar",
+    "image": "https://alexashop.cc/assets/images/clubdenuit.webp",
+    "url": "https://alexashop.cc/producto/HP-2.9",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 161,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-03",
+   "status": 200,
+   "ms": 82,
+   "bytes": 8732,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Hawas Eau de Parfum · Perfumes para él | ALEXA",
+   "desc": "Rasasi: Una mezcla acuática y dulce de canela, melón y bergamota que proyecta una seguridad irresistible.",
+   "canonical": "https://alexashop.cc/producto/HP-03",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Hawas Eau de Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Hawas Eau de Parfum · Perfumes para él | ALEXA",
+    "description": "Rasasi: Una mezcla acuática y dulce de canela, melón y bergamota que proyecta una seguridad irresistible.",
+    "image": "https://alexashop.cc/assets/images/31.webp",
+    "url": "https://alexashop.cc/producto/HP-03",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 156,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-3.5",
+   "status": 200,
+   "ms": 72,
+   "bytes": 8744,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cold Eau De Toilette · Perfumes para él | ALEXA",
+   "desc": "Un clásico cítrico y aromático. Huele a limpio, con toques de mandarina, geranio y pachulí. Es unisex",
+   "canonical": "https://alexashop.cc/producto/HP-3.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cold Eau De Toilette"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cold Eau De Toilette · Perfumes para él | ALEXA",
+    "description": "Un clásico cítrico y aromático. Huele a limpio, con toques de mandarina, geranio y pachulí. Es unisex",
+    "image": "https://alexashop.cc/assets/images/cold.webp",
+    "url": "https://alexashop.cc/producto/HP-3.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 157,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-04",
+   "status": 200,
+   "ms": 150,
+   "bytes": 8848,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Club de Nuit Blue Iconic EDP · Perfumes para él | ALEXA",
+   "desc": "Armaf: Elegancia azul intensa con notas de pomelo, jengibre picante y maderas nobles para una presencia impecable.",
+   "canonical": "https://alexashop.cc/producto/HP-04",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Club de Nuit Blue Iconic EDP"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Club de Nuit Blue Iconic EDP · Perfumes para él | ALEXA",
+    "description": "Armaf: Elegancia azul intensa con notas de pomelo, jengibre picante y maderas nobles para una presencia impecable.",
+    "image": "https://alexashop.cc/assets/images/32.webp",
+    "url": "https://alexashop.cc/producto/HP-04",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 163,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-4.5",
+   "status": 200,
+   "ms": 64,
+   "bytes": 8716,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Glacier Pour Homme · Perfumes para él | ALEXA",
+   "desc": "Inspirado en el frescor del aire ártico. Es acuático, refrescante y muy ligero para días de calor",
+   "canonical": "https://alexashop.cc/producto/HP-4.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Glacier Pour Homme"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Glacier Pour Homme · Perfumes para él | ALEXA",
+    "description": "Inspirado en el frescor del aire ártico. Es acuático, refrescante y muy ligero para días de calor",
+    "image": "https://alexashop.cc/assets/images/glacier.webp",
+    "url": "https://alexashop.cc/producto/HP-4.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 155,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-05",
+   "status": 200,
+   "ms": 124,
+   "bytes": 8698,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "TOMMY MEN EDT · Perfumes para él | ALEXA",
+   "desc": "Tommy Hilfiger: El clásico americano que huele a libertad, con notas de manzana verde, menta y lavanda fresca.",
+   "canonical": "https://alexashop.cc/producto/HP-05",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "TOMMY MEN EDT"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "TOMMY MEN EDT · Perfumes para él | ALEXA",
+    "description": "Tommy Hilfiger: El clásico americano que huele a libertad, con notas de manzana verde, menta y lavanda fresca.",
+    "image": "https://alexashop.cc/assets/images/33.webp",
+    "url": "https://alexashop.cc/producto/HP-05",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 155,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-5.5",
+   "status": 200,
+   "ms": 115,
+   "bytes": 8679,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Nautica Voyage · Perfumes para él | ALEXA",
+   "desc": "El aroma marino por excelencia. Notas de manzana verde, loto y brisa salada. Frescura pura",
+   "canonical": "https://alexashop.cc/producto/HP-5.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Nautica Voyage"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Nautica Voyage · Perfumes para él | ALEXA",
+    "description": "El aroma marino por excelencia. Notas de manzana verde, loto y brisa salada. Frescura pura",
+    "image": "https://alexashop.cc/assets/images/nauticaperronaosiosi.webp",
+    "url": "https://alexashop.cc/producto/HP-5.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 149,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-06",
+   "status": 200,
+   "ms": 82,
+   "bytes": 8766,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Curve Wave Eau de Cologne · Perfumes para él | ALEXA",
+   "desc": "Curve: Una ola de frescura tropical con notas de bambú, bayas de enebro y un soplo de brisa oceánica.",
+   "canonical": "https://alexashop.cc/producto/HP-06",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Curve Wave Eau de Cologne"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Curve Wave Eau de Cologne · Perfumes para él | ALEXA",
+    "description": "Curve: Una ola de frescura tropical con notas de bambú, bayas de enebro y un soplo de brisa oceánica.",
+    "image": "https://alexashop.cc/assets/images/34.webp",
+    "url": "https://alexashop.cc/producto/HP-06",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 162,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-6.5",
+   "status": 200,
+   "ms": 76,
+   "bytes": 8774,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Blue Night Desert Angel · Perfumes para él | ALEXA",
+   "desc": "Una fragancia misteriosa con notas de salida frescas que evolucionan hacia especias y maderas oscuras",
+   "canonical": "https://alexashop.cc/producto/HP-6.5",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Blue Night Desert Angel"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Blue Night Desert Angel · Perfumes para él | ALEXA",
+    "description": "Una fragancia misteriosa con notas de salida frescas que evolucionan hacia especias y maderas oscuras",
+    "image": "https://alexashop.cc/assets/images/bluenigth.webp",
+    "url": "https://alexashop.cc/producto/HP-6.5",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 156,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-07",
+   "status": 200,
+   "ms": 92,
+   "bytes": 8692,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Nautica Blue EDT · Perfumes para él | ALEXA",
+   "desc": "Nautica: La esencia del mar en la piel; una combinación energizante de piña, nenúfar y sándalo suave.",
+   "canonical": "https://alexashop.cc/producto/HP-07",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Nautica Blue EDT"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Nautica Blue EDT · Perfumes para él | ALEXA",
+    "description": "Nautica: La esencia del mar en la piel; una combinación energizante de piña, nenúfar y sándalo suave.",
+    "image": "https://alexashop.cc/assets/images/35.webp",
+    "url": "https://alexashop.cc/producto/HP-07",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 153,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-08",
+   "status": 200,
+   "ms": 103,
+   "bytes": 8768,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Hayati Eau de Parfum · Perfumes para él | ALEXA",
+   "desc": "Al Haramain: Un viaje sensorial dulce y frutal con bayas silvestres y vainilla que envuelve con calidez oriental.",
+   "canonical": "https://alexashop.cc/producto/HP-08",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Hayati Eau de Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Hayati Eau de Parfum · Perfumes para él | ALEXA",
+    "description": "Al Haramain: Un viaje sensorial dulce y frutal con bayas silvestres y vainilla que envuelve con calidez oriental.",
+    "image": "https://alexashop.cc/assets/images/36.webp",
+    "url": "https://alexashop.cc/producto/HP-08",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 157,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-09",
+   "status": 200,
+   "ms": 99,
+   "bytes": 8949,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Lattafa Set Asad + Zanzibar + Atheeri · Perfumes para él | ALEXA",
+   "desc": "Lattafa: Un set explosivo de especias oscuras, pimienta negra y tabaco, diseñado para una estela profunda y duradera.",
+   "canonical": "https://alexashop.cc/producto/HP-09",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Lattafa Set Asad + Zanzibar + Atheeri"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Lattafa Set Asad + Zanzibar + Atheeri · Perfumes para él | ALEXA",
+    "description": "Lattafa: Un set explosivo de especias oscuras, pimienta negra y tabaco, diseñado para una estela profunda y duradera.",
+    "image": "https://alexashop.cc/assets/images/37.webp",
+    "url": "https://alexashop.cc/producto/HP-09",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 161,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-10",
+   "status": 200,
+   "ms": 103,
+   "bytes": 8801,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Moschino Gift Set Toy Boy · Perfumes para él | ALEXA",
+   "desc": "Moschino: Una rosa masculina y oscura mezclada con pimienta rosa y pera, desafiando las reglas convencionales.",
+   "canonical": "https://alexashop.cc/producto/HP-10",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Moschino Gift Set Toy Boy"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Moschino Gift Set Toy Boy · Perfumes para él | ALEXA",
+    "description": "Moschino: Una rosa masculina y oscura mezclada con pimienta rosa y pera, desafiando las reglas convencionales.",
+    "image": "https://alexashop.cc/assets/images/38.webp",
+    "url": "https://alexashop.cc/producto/HP-10",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 159,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-11",
+   "status": 200,
+   "ms": 105,
+   "bytes": 8796,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Calvin Klein Euphoria Men · Perfumes para él | ALEXA",
+   "desc": "CK: Una seducción misteriosa con notas de jengibre, albahaca negra y un fondo de ámbar sólido y masculino.",
+   "canonical": "https://alexashop.cc/producto/HP-11",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Calvin Klein Euphoria Men"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Calvin Klein Euphoria Men · Perfumes para él | ALEXA",
+    "description": "CK: Una seducción misteriosa con notas de jengibre, albahaca negra y un fondo de ámbar sólido y masculino.",
+    "image": "https://alexashop.cc/assets/images/39.webp",
+    "url": "https://alexashop.cc/producto/HP-11",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 158,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/HP-12",
+   "status": 200,
+   "ms": 96,
+   "bytes": 8790,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Jaguar Classic Blue EDT · Perfumes para él | ALEXA",
+   "desc": "Jaguar: Refinamiento motorizado; una mezcla cítrica de mandarina y bergamota con una base amaderada muy limpia.",
+   "canonical": "https://alexashop.cc/producto/HP-12",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Jaguar Classic Blue EDT"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Jaguar Classic Blue EDT · Perfumes para él | ALEXA",
+    "description": "Jaguar: Refinamiento motorizado; una mezcla cítrica de mandarina y bergamota con una base amaderada muy limpia.",
+    "image": "https://alexashop.cc/assets/images/40.webp",
+    "url": "https://alexashop.cc/producto/HP-12",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 155,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-01",
+   "status": 200,
+   "ms": 102,
+   "bytes": 8804,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "VALENTINO DONNA BORN IN ROMA · Premium para ella | ALEXA",
+   "desc": "Valentino: Una elegancia rebelde que exhala jazmín de alta costura y vainilla bourbon con un toque amaderado.",
+   "canonical": "https://alexashop.cc/producto/PMP-01",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "VALENTINO DONNA BORN IN ROMA"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "VALENTINO DONNA BORN IN ROMA · Premium para ella | ALEXA",
+    "description": "Valentino: Una elegancia rebelde que exhala jazmín de alta costura y vainilla bourbon con un toque amaderado.",
+    "image": "https://alexashop.cc/assets/images/41.webp",
+    "url": "https://alexashop.cc/producto/PMP-01",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 160,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-02",
+   "status": 200,
+   "ms": 74,
+   "bytes": 8800,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Dior Poison Girl Woman EDT · Premium para ella | ALEXA",
+   "desc": "Dior: Una trampa deliciosa de naranja agridulce que se rinde ante la calidez del haba tonka y la rosa de Grasse.",
+   "canonical": "https://alexashop.cc/producto/PMP-02",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Dior Poison Girl Woman EDT"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Dior Poison Girl Woman EDT · Premium para ella | ALEXA",
+    "description": "Dior: Una trampa deliciosa de naranja agridulce que se rinde ante la calidez del haba tonka y la rosa de Grasse.",
+    "image": "https://alexashop.cc/assets/images/42.webp",
+    "url": "https://alexashop.cc/producto/PMP-02",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 164,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-03",
+   "status": 200,
+   "ms": 94,
+   "bytes": 8773,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Carolina Herrera CH Woman · Premium para ella | ALEXA",
+   "desc": "CH: Un equilibrio perfecto entre frescura cítrica. el dulce del praliné y un fondo de gamuza de puro lujo.",
+   "canonical": "https://alexashop.cc/producto/PMP-03",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Carolina Herrera CH Woman"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Carolina Herrera CH Woman · Premium para ella | ALEXA",
+    "description": "CH: Un equilibrio perfecto entre frescura cítrica. el dulce del praliné y un fondo de gamuza de puro lujo.",
+    "image": "https://alexashop.cc/assets/images/43.webp",
+    "url": "https://alexashop.cc/producto/PMP-03",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 160,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-04",
+   "status": 200,
+   "ms": 110,
+   "bytes": 8724,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Gucci Guilty Women · Premium para ella | ALEXA",
+   "desc": "Gucci: La liberación femenina hecha aroma con notas de mandora. lila vibrante y un toque audaz de pachulí.",
+   "canonical": "https://alexashop.cc/producto/PMP-04",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Gucci Guilty Women"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Gucci Guilty Women · Premium para ella | ALEXA",
+    "description": "Gucci: La liberación femenina hecha aroma con notas de mandora. lila vibrante y un toque audaz de pachulí.",
+    "image": "https://alexashop.cc/assets/images/44.webp",
+    "url": "https://alexashop.cc/producto/PMP-04",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 157,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-05",
+   "status": 200,
+   "ms": 80,
+   "bytes": 8703,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Black Opium EDP · Premium para ella | ALEXA",
+   "desc": "YSL: Una descarga adictiva de café negro mezclada con flores blancas y el dulzor hipnótico de la vainilla.",
+   "canonical": "https://alexashop.cc/producto/PMP-05",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Black Opium EDP"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Black Opium EDP · Premium para ella | ALEXA",
+    "description": "YSL: Una descarga adictiva de café negro mezclada con flores blancas y el dulzor hipnótico de la vainilla.",
+    "image": "https://alexashop.cc/assets/images/45.webp",
+    "url": "https://alexashop.cc/producto/PMP-05",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 157,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-06",
+   "status": 200,
+   "ms": 69,
+   "bytes": 8747,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Bright Crystal Parfum · Premium para ella | ALEXA",
+   "desc": "Versace: Una joya brillante de granada jugosa y peonías frescas. envueltas en un fondo de ámber vegetal.",
+   "canonical": "https://alexashop.cc/producto/PMP-06",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Bright Crystal Parfum"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Bright Crystal Parfum · Premium para ella | ALEXA",
+    "description": "Versace: Una joya brillante de granada jugosa y peonías frescas. envueltas en un fondo de ámber vegetal.",
+    "image": "https://alexashop.cc/assets/images/46.webp",
+    "url": "https://alexashop.cc/producto/PMP-06",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 156,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-07",
+   "status": 200,
+   "ms": 115,
+   "bytes": 8805,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Gucci Bloom Profumo Di Fiori · Premium para ella | ALEXA",
+   "desc": "Gucci: Un jardín nocturno e intenso que destaca por el jazmín sambac. nardos y el exótico ylang-ylang.",
+   "canonical": "https://alexashop.cc/producto/PMP-07",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Gucci Bloom Profumo Di Fiori"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Gucci Bloom Profumo Di Fiori · Premium para ella | ALEXA",
+    "description": "Gucci: Un jardín nocturno e intenso que destaca por el jazmín sambac. nardos y el exótico ylang-ylang.",
+    "image": "https://alexashop.cc/assets/images/47.webp",
+    "url": "https://alexashop.cc/producto/PMP-07",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 163,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-08",
+   "status": 200,
+   "ms": 131,
+   "bytes": 8731,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Dior Addict Women · Premium para ella | ALEXA",
+   "desc": "Dior: El aroma de la seducción nocturna con flor de azahar de Túnez y la profundidad de la vainilla Bourbon.",
+   "canonical": "https://alexashop.cc/producto/PMP-08",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Dior Addict Women"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Dior Addict Women · Premium para ella | ALEXA",
+    "description": "Dior: El aroma de la seducción nocturna con flor de azahar de Túnez y la profundidad de la vainilla Bourbon.",
+    "image": "https://alexashop.cc/assets/images/48.webp",
+    "url": "https://alexashop.cc/producto/PMP-08",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 159,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-09",
+   "status": 200,
+   "ms": 115,
+   "bytes": 8825,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Ariana Grande God Is A Woman · Premium para ella | ALEXA",
+   "desc": "Ariana Grande: Una caricia natural de pera jugosa y lirio. que evoluciona hacia una vainilla cremosa y cedro.",
+   "canonical": "https://alexashop.cc/producto/PMP-09",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Ariana Grande God Is A Woman"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Ariana Grande God Is A Woman · Premium para ella | ALEXA",
+    "description": "Ariana Grande: Una caricia natural de pera jugosa y lirio. que evoluciona hacia una vainilla cremosa y cedro.",
+    "image": "https://alexashop.cc/assets/images/49.webp",
+    "url": "https://alexashop.cc/producto/PMP-09",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 166,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-10",
+   "status": 200,
+   "ms": 70,
+   "bytes": 8861,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Paco Rabanne Olympea Aqua Legere · Premium para ella | ALEXA",
+   "desc": "Paco Rabanne: Frescura de diosa marina; flores de limonero y jazmín de agua con un toque de vainilla salada.",
+   "canonical": "https://alexashop.cc/producto/PMP-10",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Paco Rabanne Olympea Aqua Legere"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Paco Rabanne Olympea Aqua Legere · Premium para ella | ALEXA",
+    "description": "Paco Rabanne: Frescura de diosa marina; flores de limonero y jazmín de agua con un toque de vainilla salada.",
+    "image": "https://alexashop.cc/assets/images/50.webp",
+    "url": "https://alexashop.cc/producto/PMP-10",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 164,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-11",
+   "status": 200,
+   "ms": 70,
+   "bytes": 8891,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Carolina Herrera Good Girl Superstars · Premium para ella | ALEXA",
+   "desc": "Good Girl: Edición de coleccionista con el aroma icónico de jazmín y haba tonka bajo un brillo estelar.",
+   "canonical": "https://alexashop.cc/producto/PMP-11",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Carolina Herrera Good Girl Superstars"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Carolina Herrera Good Girl Superstars · Premium para ella | ALEXA",
+    "description": "Good Girl: Edición de coleccionista con el aroma icónico de jazmín y haba tonka bajo un brillo estelar.",
+    "image": "https://alexashop.cc/assets/images/51.webp",
+    "url": "https://alexashop.cc/producto/PMP-11",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 163,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-12",
+   "status": 200,
+   "ms": 102,
+   "bytes": 8740,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Armani In Love With You · Premium para ella | ALEXA",
+   "desc": "Armani: Un flechazo frutal de cerezas ácidas. frambuesa y pachulí que se siente audaz y apasionado.",
+   "canonical": "https://alexashop.cc/producto/PMP-12",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Armani In Love With You"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Armani In Love With You · Premium para ella | ALEXA",
+    "description": "Armani: Un flechazo frutal de cerezas ácidas. frambuesa y pachulí que se siente audaz y apasionado.",
+    "image": "https://alexashop.cc/assets/images/52.webp",
+    "url": "https://alexashop.cc/producto/PMP-12",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 161,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-13",
+   "status": 200,
+   "ms": 71,
+   "bytes": 8721,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Givenchy Ange Ou Demon · Premium para ella | ALEXA",
+   "desc": "Givenchy: Un aura de misterio que oscila entre la pureza del lirio blanco y la oscuridad del roble.",
+   "canonical": "https://alexashop.cc/producto/PMP-13",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Givenchy Ange Ou Demon"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Givenchy Ange Ou Demon · Premium para ella | ALEXA",
+    "description": "Givenchy: Un aura de misterio que oscila entre la pureza del lirio blanco y la oscuridad del roble.",
+    "image": "https://alexashop.cc/assets/images/53.webp",
+    "url": "https://alexashop.cc/producto/PMP-13",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 160,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/PMP-14",
+   "status": 200,
+   "ms": 78,
+   "bytes": 8909,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Carolina Herrera Good Girl Gold Fantasy · Premium para ella | ALEXA",
+   "desc": "Gold Fantasy: El lujo absoluto del jazmín imperial y la calidez del cacao en un aura dorada de opulencia.",
+   "canonical": "https://alexashop.cc/producto/PMP-14",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Carolina Herrera Good Girl Gold Fantasy"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Carolina Herrera Good Girl Gold Fantasy · Premium para ella | ALEXA",
+    "description": "Gold Fantasy: El lujo absoluto del jazmín imperial y la calidez del cacao en un aura dorada de opulencia.",
+    "image": "https://alexashop.cc/assets/images/54.webp",
+    "url": "https://alexashop.cc/producto/PMP-14",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 167,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-01",
+   "status": 200,
+   "ms": 114,
+   "bytes": 8368,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Pulsera de Plata Van Cleef · Joyería | ALEXA",
+   "desc": "Pulsera Van Cleef de plata 725",
+   "canonical": "https://alexashop.cc/producto/JYA-01",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Pulsera de Plata Van Cleef"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Pulsera de Plata Van Cleef · Joyería | ALEXA",
+    "description": "Pulsera Van Cleef de plata 725",
+    "image": "https://alexashop.cc/assets/images/79.webp",
+    "url": "https://alexashop.cc/producto/JYA-01",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 142,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-02",
+   "status": 200,
+   "ms": 120,
+   "bytes": 8493,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Pulsera Acero Inoxidable de Cereza · Joyería | ALEXA",
+   "desc": "Pulsera de acero estilo van cleef con cereza",
+   "canonical": "https://alexashop.cc/producto/JYA-02",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Pulsera Acero Inoxidable de Cereza"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Pulsera Acero Inoxidable de Cereza · Joyería | ALEXA",
+    "description": "Pulsera de acero estilo van cleef con cereza",
+    "image": "https://alexashop.cc/assets/images/80.webp",
+    "url": "https://alexashop.cc/producto/JYA-02",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 144,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-03",
+   "status": 200,
+   "ms": 62,
+   "bytes": 8478,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Set acero cristales · Joyería | ALEXA",
+   "desc": "Aritos, cadena, dije, anillo y pulsera de acero con cristales.",
+   "canonical": "https://alexashop.cc/producto/JYA-03",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Set acero cristales"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Set acero cristales · Joyería | ALEXA",
+    "description": "Aritos, cadena, dije, anillo y pulsera de acero con cristales.",
+    "image": "https://alexashop.cc/assets/images/81.webp",
+    "url": "https://alexashop.cc/producto/JYA-03",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 142,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-04",
+   "status": 200,
+   "ms": 77,
+   "bytes": 8594,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Pulsera de Estrella Oro laminado · Joyería | ALEXA",
+   "desc": "Pulsera de oro laminado ajustable con detalle de estrella y zircón",
+   "canonical": "https://alexashop.cc/producto/JYA-04",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Pulsera de Estrella Oro laminado"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Pulsera de Estrella Oro laminado · Joyería | ALEXA",
+    "description": "Pulsera de oro laminado ajustable con detalle de estrella y zircón",
+    "image": "https://alexashop.cc/assets/images/82.webp",
+    "url": "https://alexashop.cc/producto/JYA-04",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 147,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-05",
+   "status": 200,
+   "ms": 123,
+   "bytes": 8490,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Set de Cereza Acero Inoxidable · Joyería | ALEXA",
+   "desc": "Aritos, cadena y dije de acero en forma de cereza",
+   "canonical": "https://alexashop.cc/producto/JYA-05",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Set de Cereza Acero Inoxidable"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Set de Cereza Acero Inoxidable · Joyería | ALEXA",
+    "description": "Aritos, cadena y dije de acero en forma de cereza",
+    "image": "https://alexashop.cc/assets/images/83.webp",
+    "url": "https://alexashop.cc/producto/JYA-05",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 146,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-06",
+   "status": 200,
+   "ms": 98,
+   "bytes": 8345,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cadena de Plata De Luna · Joyería | ALEXA",
+   "desc": "Cadena de plata con dije de luna",
+   "canonical": "https://alexashop.cc/producto/JYA-06",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cadena de Plata De Luna"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cadena de Plata De Luna · Joyería | ALEXA",
+    "description": "Cadena de plata con dije de luna",
+    "image": "https://alexashop.cc/assets/images/84.webp",
+    "url": "https://alexashop.cc/producto/JYA-06",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 144,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-07",
+   "status": 200,
+   "ms": 101,
+   "bytes": 8312,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cadena Figaro Juvenil · Joyería | ALEXA",
+   "desc": "Cadena de Plata Estilo Figaro",
+   "canonical": "https://alexashop.cc/producto/JYA-07",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cadena Figaro Juvenil"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cadena Figaro Juvenil · Joyería | ALEXA",
+    "description": "Cadena de Plata Estilo Figaro",
+    "image": "https://alexashop.cc/assets/images/85.webp",
+    "url": "https://alexashop.cc/producto/JYA-07",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 136,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-08",
+   "status": 200,
+   "ms": 89,
+   "bytes": 8541,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Pulsera Estilo Pandora para Caballero · Joyería | ALEXA",
+   "desc": "Pulsera pandora negra con broches de plata 725",
+   "canonical": "https://alexashop.cc/producto/JYA-08",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Pulsera Estilo Pandora para Caballero"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Pulsera Estilo Pandora para Caballero · Joyería | ALEXA",
+    "description": "Pulsera pandora negra con broches de plata 725",
+    "image": "https://alexashop.cc/assets/images/86.webp",
+    "url": "https://alexashop.cc/producto/JYA-08",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 145,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-09",
+   "status": 200,
+   "ms": 73,
+   "bytes": 8490,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Pulsera plata Para Caballero · Joyería | ALEXA",
+   "desc": "Pulsera de plata con placa curva y diseño planchado",
+   "canonical": "https://alexashop.cc/producto/JYA-09",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Pulsera plata Para Caballero"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Pulsera plata Para Caballero · Joyería | ALEXA",
+    "description": "Pulsera de plata con placa curva y diseño planchado",
+    "image": "https://alexashop.cc/assets/images/87.webp",
+    "url": "https://alexashop.cc/producto/JYA-09",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 143,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-10",
+   "status": 200,
+   "ms": 100,
+   "bytes": 8445,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Pulsera Dama De corazones · Joyería | ALEXA",
+   "desc": "Pulsera de plata con dije de corazones y plaquita",
+   "canonical": "https://alexashop.cc/producto/JYA-10",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Pulsera Dama De corazones"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Pulsera Dama De corazones · Joyería | ALEXA",
+    "description": "Pulsera de plata con dije de corazones y plaquita",
+    "image": "https://alexashop.cc/assets/images/88.webp",
+    "url": "https://alexashop.cc/producto/JYA-10",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 142,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-11",
+   "status": 200,
+   "ms": 105,
+   "bytes": 8608,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Pulsera Plata con detalles de Rosas · Joyería | ALEXA",
+   "desc": "Pulsera plata italiana 925 con diseño de flor electroformatura",
+   "canonical": "https://alexashop.cc/producto/JYA-11",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Pulsera Plata con detalles de Rosas"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Pulsera Plata con detalles de Rosas · Joyería | ALEXA",
+    "description": "Pulsera plata italiana 925 con diseño de flor electroformatura",
+    "image": "https://alexashop.cc/assets/images/89.webp",
+    "url": "https://alexashop.cc/producto/JYA-11",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 149,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/JYA-12",
+   "status": 200,
+   "ms": 126,
+   "bytes": 8431,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Anillo de Flor Para Dama · Joyería | ALEXA",
+   "desc": "Anillo de plata italiana 925 con diseño de flor",
+   "canonical": "https://alexashop.cc/producto/JYA-12",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Anillo de Flor Para Dama"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Anillo de Flor Para Dama · Joyería | ALEXA",
+    "description": "Anillo de plata italiana 925 con diseño de flor",
+    "image": "https://alexashop.cc/assets/images/90.webp",
+    "url": "https://alexashop.cc/producto/JYA-12",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 145,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-01",
+   "status": 200,
+   "ms": 103,
+   "bytes": 8377,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Set reloj negro aguila · Relojes | ALEXA",
+   "desc": "Incluye brazaletes de cuero con detalle de águila.",
+   "canonical": "https://alexashop.cc/producto/RLA-01",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Set reloj negro aguila"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Set reloj negro aguila · Relojes | ALEXA",
+    "description": "Incluye brazaletes de cuero con detalle de águila.",
+    "image": "https://alexashop.cc/assets/images/91.webp",
+    "url": "https://alexashop.cc/producto/RLA-01",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 139,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-02",
+   "status": 200,
+   "ms": 68,
+   "bytes": 8411,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Reloj Analogo Acero Caballero · Relojes | ALEXA",
+   "desc": "Reloj Rackio Superior con banda de acero bitono.",
+   "canonical": "https://alexashop.cc/producto/RLA-02",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Reloj Analogo Acero Caballero"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Reloj Analogo Acero Caballero · Relojes | ALEXA",
+    "description": "Reloj Rackio Superior con banda de acero bitono.",
+    "image": "https://alexashop.cc/assets/images/92.webp",
+    "url": "https://alexashop.cc/producto/RLA-02",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 139,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-03",
+   "status": 200,
+   "ms": 114,
+   "bytes": 8315,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Reloj analogo de dama · Relojes | ALEXA",
+   "desc": "Reloj Roche con diseño de malla dorada.",
+   "canonical": "https://alexashop.cc/producto/RLA-03",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Reloj analogo de dama"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Reloj analogo de dama · Relojes | ALEXA",
+    "description": "Reloj Roche con diseño de malla dorada.",
+    "image": "https://alexashop.cc/assets/images/93.webp",
+    "url": "https://alexashop.cc/producto/RLA-03",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 138,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-04",
+   "status": 200,
+   "ms": 120,
+   "bytes": 8337,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Reloj de acero de dama · Relojes | ALEXA",
+   "desc": "Esfera negra con pedrería y dije colgante.",
+   "canonical": "https://alexashop.cc/producto/RLA-04",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Reloj de acero de dama"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Reloj de acero de dama · Relojes | ALEXA",
+    "description": "Esfera negra con pedrería y dije colgante.",
+    "image": "https://alexashop.cc/assets/images/94.webp",
+    "url": "https://alexashop.cc/producto/RLA-04",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 140,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-05",
+   "status": 200,
+   "ms": 86,
+   "bytes": 8298,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Hummer WH2-224112 · Relojes | ALEXA",
+   "desc": "Reloj Hummer dorado con fondo texturizado.",
+   "canonical": "https://alexashop.cc/producto/RLA-05",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Hummer WH2-224112"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Hummer WH2-224112 · Relojes | ALEXA",
+    "description": "Reloj Hummer dorado con fondo texturizado.",
+    "image": "https://alexashop.cc/assets/images/95.webp",
+    "url": "https://alexashop.cc/producto/RLA-05",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 135,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-06",
+   "status": 200,
+   "ms": 87,
+   "bytes": 8240,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Mini focus · Relojes | ALEXA",
+   "desc": "Bisel con incrustaciones y esfera plateada.",
+   "canonical": "https://alexashop.cc/producto/RLA-06",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Mini focus"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Mini focus · Relojes | ALEXA",
+    "description": "Bisel con incrustaciones y esfera plateada.",
+    "image": "https://alexashop.cc/assets/images/96.webp",
+    "url": "https://alexashop.cc/producto/RLA-06",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 132,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-07",
+   "status": 200,
+   "ms": 103,
+   "bytes": 8246,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Reloj Yes · Relojes | ALEXA",
+   "desc": "Reloj Yess con esfera azul y pulso tipo malla.",
+   "canonical": "https://alexashop.cc/producto/RLA-07",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Reloj Yes"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Reloj Yes · Relojes | ALEXA",
+    "description": "Reloj Yess con esfera azul y pulso tipo malla.",
+    "image": "https://alexashop.cc/assets/images/97.webp",
+    "url": "https://alexashop.cc/producto/RLA-07",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 135,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-08",
+   "status": 200,
+   "ms": 85,
+   "bytes": 8354,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Reloj Hummer plateado · Relojes | ALEXA",
+   "desc": "Diseño clásico en acero inoxidable plateado.",
+   "canonical": "https://alexashop.cc/producto/RLA-08",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Reloj Hummer plateado"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Reloj Hummer plateado · Relojes | ALEXA",
+    "description": "Diseño clásico en acero inoxidable plateado.",
+    "image": "https://alexashop.cc/assets/images/98.webp",
+    "url": "https://alexashop.cc/producto/RLA-08",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 135,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-09",
+   "status": 200,
+   "ms": 118,
+   "bytes": 8348,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Hummer dorado con azul · Relojes | ALEXA",
+   "desc": "Cronógrafo robusto en tonos azul y dorado.",
+   "canonical": "https://alexashop.cc/producto/RLA-09",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Hummer dorado con azul"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Hummer dorado con azul · Relojes | ALEXA",
+    "description": "Cronógrafo robusto en tonos azul y dorado.",
+    "image": "https://alexashop.cc/assets/images/99.webp",
+    "url": "https://alexashop.cc/producto/RLA-09",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 139,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-10",
+   "status": 200,
+   "ms": 80,
+   "bytes": 8301,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Reloj Nautica · Relojes | ALEXA",
+   "desc": "Cronógrafo deportivo con banda de silicona azul.",
+   "canonical": "https://alexashop.cc/producto/RLA-10",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Reloj Nautica"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Reloj Nautica · Relojes | ALEXA",
+    "description": "Cronógrafo deportivo con banda de silicona azul.",
+    "image": "https://alexashop.cc/assets/images/100.webp",
+    "url": "https://alexashop.cc/producto/RLA-10",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 133,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-11",
+   "status": 200,
+   "ms": 102,
+   "bytes": 8791,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Reloj Hummer WH2-224096 · Relojes | ALEXA",
+   "desc": "Reloj formal de la marca Hummer analógico con brazalete de acero color azul y reloj de fondo azul con detalles dorados y blanco.",
+   "canonical": "https://alexashop.cc/producto/RLA-11",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Reloj Hummer WH2-224096"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Reloj Hummer WH2-224096 · Relojes | ALEXA",
+    "description": "Reloj formal de la marca Hummer analógico con brazalete de acero color azul y reloj de fondo azul con detalles dorados y blanco.",
+    "image": "https://alexashop.cc/assets/images/101.webp",
+    "url": "https://alexashop.cc/producto/RLA-11",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 155,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-12",
+   "status": 200,
+   "ms": 104,
+   "bytes": 9047,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Reloj Michael Kors MK7212 · Relojes | ALEXA",
+   "desc": "El Michael Kors MK7212 es un elegante reloj de mujer con caja de acero inoxidable dorado, bisel con cristales, esfera blanca y cronógrafo, que combina estilo…",
+   "canonical": "https://alexashop.cc/producto/RLA-12",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Reloj Michael Kors MK7212"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Reloj Michael Kors MK7212 · Relojes | ALEXA",
+    "description": "El Michael Kors MK7212 es un elegante reloj de mujer con caja de acero inoxidable dorado, bisel con cristales, esfera blanca y cronógrafo, que combina estilo…",
+    "image": "https://alexashop.cc/assets/images/102.webp",
+    "url": "https://alexashop.cc/producto/RLA-12",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 162,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/RLA-13",
+   "status": 200,
+   "ms": 72,
+   "bytes": 8876,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Reloj Hummer WH2-224082 · Relojes | ALEXA",
+   "desc": "Reloj formal de la marca Hummer analógico con brazalete de acero color azul y reloj de fonfo azul oscuro y detalles en color anaranjado y blanco.",
+   "canonical": "https://alexashop.cc/producto/RLA-13",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Reloj Hummer WH2-224082"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Reloj Hummer WH2-224082 · Relojes | ALEXA",
+    "description": "Reloj formal de la marca Hummer analógico con brazalete de acero color azul y reloj de fonfo azul oscuro y detalles en color anaranjado y blanco.",
+    "image": "https://alexashop.cc/assets/images/103.webp",
+    "url": "https://alexashop.cc/producto/RLA-13",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 158,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-01",
+   "status": 200,
+   "ms": 87,
+   "bytes": 8513,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cartera mensajera para Dama · Carteras | ALEXA",
+   "desc": "Hermosa cartera mensajera para Dama con detalles de perlas",
+   "canonical": "https://alexashop.cc/producto/CTA-01",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cartera mensajera para Dama"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cartera mensajera para Dama · Carteras | ALEXA",
+    "description": "Hermosa cartera mensajera para Dama con detalles de perlas",
+    "image": "https://alexashop.cc/assets/images/104.webp",
+    "url": "https://alexashop.cc/producto/CTA-01",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 143,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-02",
+   "status": 200,
+   "ms": 112,
+   "bytes": 8426,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cartera mensajera Cuadrada · Carteras | ALEXA",
+   "desc": "Mensajera con cuadrada con cadena colgante",
+   "canonical": "https://alexashop.cc/producto/CTA-02",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cartera mensajera Cuadrada"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cartera mensajera Cuadrada · Carteras | ALEXA",
+    "description": "Mensajera con cuadrada con cadena colgante",
+    "image": "https://alexashop.cc/assets/images/105.webp",
+    "url": "https://alexashop.cc/producto/CTA-02",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 138,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-03",
+   "status": 200,
+   "ms": 87,
+   "bytes": 8388,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cartera Con Cadenas Dama · Carteras | ALEXA",
+   "desc": "Cartera mensajera con manga de cadena",
+   "canonical": "https://alexashop.cc/producto/CTA-03",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cartera Con Cadenas Dama"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cartera Con Cadenas Dama · Carteras | ALEXA",
+    "description": "Cartera mensajera con manga de cadena",
+    "image": "https://alexashop.cc/assets/images/106.webp",
+    "url": "https://alexashop.cc/producto/CTA-03",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 140,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-04",
+   "status": 200,
+   "ms": 116,
+   "bytes": 8467,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cartera de noche para dama · Carteras | ALEXA",
+   "desc": "Cartera de noche para dama con diseño de pedreria",
+   "canonical": "https://alexashop.cc/producto/CTA-04",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cartera de noche para dama"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cartera de noche para dama · Carteras | ALEXA",
+    "description": "Cartera de noche para dama con diseño de pedreria",
+    "image": "https://alexashop.cc/assets/images/107.webp",
+    "url": "https://alexashop.cc/producto/CTA-04",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 145,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-05",
+   "status": 200,
+   "ms": 81,
+   "bytes": 8510,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cartera Con Pedreria para Dama · Carteras | ALEXA",
+   "desc": "Cartera de noche para dama, brillante y con cristales",
+   "canonical": "https://alexashop.cc/producto/CTA-05",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cartera Con Pedreria para Dama"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cartera Con Pedreria para Dama · Carteras | ALEXA",
+    "description": "Cartera de noche para dama, brillante y con cristales",
+    "image": "https://alexashop.cc/assets/images/108.webp",
+    "url": "https://alexashop.cc/producto/CTA-05",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 145,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-06",
+   "status": 200,
+   "ms": 85,
+   "bytes": 8770,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Hermosa cartera para Dama · Carteras | ALEXA",
+   "desc": "Cartera para dama con detalles de ziper a los extremos, mangas solidas en forma redonda, colgante de gato y correa",
+   "canonical": "https://alexashop.cc/producto/CTA-06",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Hermosa cartera para Dama"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Hermosa cartera para Dama · Carteras | ALEXA",
+    "description": "Cartera para dama con detalles de ziper a los extremos, mangas solidas en forma redonda, colgante de gato y correa",
+    "image": "https://alexashop.cc/assets/images/109.webp",
+    "url": "https://alexashop.cc/producto/CTA-06",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 153,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-07",
+   "status": 200,
+   "ms": 141,
+   "bytes": 8641,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cartera para dama Luis Vuiton · Carteras | ALEXA",
+   "desc": "Cartera mensajera para dama Louis Vuitton con diseño minimalista, triple correa.",
+   "canonical": "https://alexashop.cc/producto/CTA-07",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cartera para dama Luis Vuiton"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cartera para dama Luis Vuiton · Carteras | ALEXA",
+    "description": "Cartera mensajera para dama Louis Vuitton con diseño minimalista, triple correa.",
+    "image": "https://alexashop.cc/assets/images/110.webp",
+    "url": "https://alexashop.cc/producto/CTA-07",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 147,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-08",
+   "status": 200,
+   "ms": 103,
+   "bytes": 8680,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Set de cartera y monedero fino · Carteras | ALEXA",
+   "desc": "Set de cartera y monedero fino para dama con diseño de piel en charol, mangas y correa",
+   "canonical": "https://alexashop.cc/producto/CTA-08",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Set de cartera y monedero fino"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Set de cartera y monedero fino · Carteras | ALEXA",
+    "description": "Set de cartera y monedero fino para dama con diseño de piel en charol, mangas y correa",
+    "image": "https://alexashop.cc/assets/images/111.webp",
+    "url": "https://alexashop.cc/producto/CTA-08",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 156,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-09",
+   "status": 200,
+   "ms": 88,
+   "bytes": 8480,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cartera de mano para dama · Carteras | ALEXA",
+   "desc": "Cartera de mano para dama coach con estampado y colgante",
+   "canonical": "https://alexashop.cc/producto/CTA-09",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cartera de mano para dama"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cartera de mano para dama · Carteras | ALEXA",
+    "description": "Cartera de mano para dama coach con estampado y colgante",
+    "image": "https://alexashop.cc/assets/images/112.webp",
+    "url": "https://alexashop.cc/producto/CTA-09",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 146,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-10",
+   "status": 200,
+   "ms": 98,
+   "bytes": 8394,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Hermosa cartera Okiss · Carteras | ALEXA",
+   "desc": "cartera para dama de mano color cafe para dama",
+   "canonical": "https://alexashop.cc/producto/CTA-10",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Hermosa cartera Okiss"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Hermosa cartera Okiss · Carteras | ALEXA",
+    "description": "cartera para dama de mano color cafe para dama",
+    "image": "https://alexashop.cc/assets/images/113.webp",
+    "url": "https://alexashop.cc/producto/CTA-10",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 139,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-11",
+   "status": 200,
+   "ms": 87,
+   "bytes": 8405,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cartera Nb para dama · Carteras | ALEXA",
+   "desc": "Cartera con diseño de estampado en tamaño grande",
+   "canonical": "https://alexashop.cc/producto/CTA-11",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cartera Nb para dama"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cartera Nb para dama · Carteras | ALEXA",
+    "description": "Cartera con diseño de estampado en tamaño grande",
+    "image": "https://alexashop.cc/assets/images/114.webp",
+    "url": "https://alexashop.cc/producto/CTA-11",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 141,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/CTA-12",
+   "status": 200,
+   "ms": 68,
+   "bytes": 8313,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Cartera de mano Min · Carteras | ALEXA",
+   "desc": "Cartera de mano para dama, min min",
+   "canonical": "https://alexashop.cc/producto/CTA-12",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Cartera de mano Min"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Cartera de mano Min · Carteras | ALEXA",
+    "description": "Cartera de mano para dama, min min",
+    "image": "https://alexashop.cc/assets/images/115.webp",
+    "url": "https://alexashop.cc/producto/CTA-12",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 7,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 4,
+   "enlaces_int": 19,
+   "enlaces_ext": 3,
+   "enlaces_producto": 4,
+   "palabras": 139,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/REG-ELLA-ROSAS",
+   "status": 200,
+   "ms": 95,
+   "bytes": 8215,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Rosas & Chocolate · Regalos para ella | ALEXA",
+   "desc": "Propuesta de caja con rosas y chocolates, terminada con lazo vino. Puedes pedir una dedicatoria y consultar los colores disponibles. Imagen ilustrativa; conf…",
+   "canonical": "https://alexashop.cc/producto/REG-ELLA-ROSAS",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Rosas & Chocolate"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Rosas & Chocolate · Regalos para ella | ALEXA",
+    "description": "Propuesta de caja con rosas y chocolates, terminada con lazo vino. Puedes pedir una dedicatoria y consultar los colores disponibles. Imagen ilustrativa; conf…",
+    "image": "https://alexashop.cc/assets/images/regalo-rosas.webp",
+    "url": "https://alexashop.cc/producto/REG-ELLA-ROSAS",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 4,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 1,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 1,
+   "palabras": 138,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/REG-ELLA-ABRAZO",
+   "status": 200,
+   "ms": 88,
+   "bytes": 8208,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Abrazo Dulce · Regalos para ella | ALEXA",
+   "desc": "Propuesta de caja con un pequeño peluche, chocolates y tarjeta para tu dedicatoria. Ideal para adaptar a un cumpleaños o un detalle espontáneo. Imagen ilustr…",
+   "canonical": "https://alexashop.cc/producto/REG-ELLA-ABRAZO",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Abrazo Dulce"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Abrazo Dulce · Regalos para ella | ALEXA",
+    "description": "Propuesta de caja con un pequeño peluche, chocolates y tarjeta para tu dedicatoria. Ideal para adaptar a un cumpleaños o un detalle espontáneo. Imagen ilustr…",
+    "image": "https://alexashop.cc/assets/images/regalo-abrazo.webp",
+    "url": "https://alexashop.cc/producto/REG-ELLA-ABRAZO",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 4,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 1,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 1,
+   "palabras": 144,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/REG-EL-CAFE",
+   "status": 200,
+   "ms": 120,
+   "bytes": 8153,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Pausa para Él · Regalos para él | ALEXA",
+   "desc": "Propuesta de caja con taza, café y chocolates, en tonos oscuros y vino. Añade tu dedicatoria en las notas de la bolsa. Imagen ilustrativa; confirmamos marcas…",
+   "canonical": "https://alexashop.cc/producto/REG-EL-CAFE",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Pausa para Él"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Pausa para Él · Regalos para él | ALEXA",
+    "description": "Propuesta de caja con taza, café y chocolates, en tonos oscuros y vino. Añade tu dedicatoria en las notas de la bolsa. Imagen ilustrativa; confirmamos marcas…",
+    "image": "https://alexashop.cc/assets/images/regalo-cafe.webp",
+    "url": "https://alexashop.cc/producto/REG-EL-CAFE",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 4,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 1,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 1,
+   "palabras": 143,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  },
+  {
+   "url": "https://alexashop.cc/producto/REG-EL-ESENCIAL",
+   "status": 200,
+   "ms": 79,
+   "bytes": 8192,
+   "location": null,
+   "ct": "text/html; charset=utf-8",
+   "lang": "es",
+   "title": "Detalle Esencial · Regalos para él | ALEXA",
+   "desc": "Propuesta de caja con un detalle de cuidado personal, toalla pequeña y chocolates. Se puede adaptar a sus gustos al conversar con la tienda. Imagen ilustrati…",
+   "canonical": "https://alexashop.cc/producto/REG-EL-ESENCIAL",
+   "robots": null,
+   "viewport": true,
+   "h1": [
+    "Detalle Esencial"
+   ],
+   "h2": 2,
+   "og": {
+    "title": "Detalle Esencial · Regalos para él | ALEXA",
+    "description": "Propuesta de caja con un detalle de cuidado personal, toalla pequeña y chocolates. Se puede adaptar a sus gustos al conversar con la tienda. Imagen ilustrati…",
+    "image": "https://alexashop.cc/assets/images/regalo-esencial.webp",
+    "url": "https://alexashop.cc/producto/REG-EL-ESENCIAL",
+    "type": "product"
+   },
+   "tw": "summary_large_image",
+   "imgs": 4,
+   "imgs_sin_alt": 0,
+   "imgs_alt_vacio": 2,
+   "imgs_sin_dim": 0,
+   "lazy": 1,
+   "enlaces_int": 16,
+   "enlaces_ext": 3,
+   "enlaces_producto": 1,
+   "palabras": 141,
+   "jsonld": [
+    "Product",
+    "BreadcrumbList"
+   ]
+  }
+ ]
+}

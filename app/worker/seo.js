@@ -16,6 +16,8 @@ const PAGINA_DE = {
 };
 const paginaDe = (id) => PAGINA_DE[id] || `/catalogo.html?categoria=${encodeURIComponent(id)}`;
 
+// Fecha de la última revisión de las páginas fijas (se actualiza cuando cambian sus textos).
+const REVISION_PAGINAS = '2026-11-15';
 const ESTATICAS = ['/', '/catalogo.html', '/Catalogo/Perfumes/index.html', '/Catalogo/Perfumes/hombre.html', '/Catalogo/Perfumes/mujer.html', '/Catalogo/Perfumes/premiumindex.html', '/Catalogo/Perfumes/premiumhombre.html', '/Catalogo/Perfumes/premiummujer.html',
   '/Catalogo/accesorios/index.html', '/Catalogo/accesorios/joyeria.html', '/Catalogo/accesorios/relojes.html', '/Catalogo/accesorios/carteras.html', '/Detalles/index.html', '/Detalles/indexforhm.html', '/Detalles/pick-and-go.html', '/Detalles/pick-and-go-hombre.html',
   '/redes.html', '/condiciones.html', '/privacidad.html', '/terminos.html'];
@@ -24,7 +26,7 @@ export async function sitemap(env) {
   const base = sitio(env);
   const { results } = await env.BD.prepare(`SELECT p.id, p.actualizado FROM productos p JOIN categorias c ON c.id = p.categoria_id LEFT JOIN categorias pa ON pa.id = c.padre_id
     WHERE p.borrado_en IS NULL AND p.visible = 1 AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1) ORDER BY p.orden`).all();
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = REVISION_PAGINAS;
   const url = (loc, mod, prio) => `<url><loc>${esc(base + loc)}</loc><lastmod>${mod}</lastmod>${prio ? `<priority>${prio}</priority>` : ''}</url>`;
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
     + ESTATICAS.map((p) => url(p, hoy, p === '/' ? '1.0' : p === '/catalogo.html' ? '0.9' : '0.7')).join('')
@@ -49,8 +51,11 @@ export async function paginaProducto(req, env, id) {
   const img = imgRel.startsWith('http') ? imgRel : `${base}${imgRel}`;
   const precio = p.cotizar ? 'Por cotizar por WhatsApp' : lempiras(p.precio);
   const catUrl = paginaDe(p.cat_id);
-  const descripcion = recortar(p.descripcion || `${p.nombre} en Tiendas Alexa, Choluteca, Honduras. Consulta precio y disponibilidad y pide por WhatsApp.`, 158);
-  const titulo = `${recortar(p.nombre, 60)} · ${p.cat_nombre} | ALEXA`;
+  const cola = ' Disponible en Tiendas Alexa, Choluteca, Honduras: consulta precio y pide por WhatsApp.';
+  const descripcion = recortar((p.descripcion || '').length >= 70 ? p.descripcion : `${p.nombre}. ${p.descripcion ? `${p.descripcion.replace(/[.\s]+$/, '')}.` : ''}${cola}`, 158);
+  // Máx. 60 caracteres: nombre + colección si caben; si no, solo el nombre (nunca cortado a media palabra por la colección).
+  const conColeccion = `${p.nombre} · ${p.cat_nombre}`;
+  const titulo = `${conColeccion.length <= 51 ? conColeccion : recortar(p.nombre, 51)} | ALEXA`;
   const ld = [
     {
       '@context': 'https://schema.org', '@type': 'Product', name: p.nombre, sku: p.id, description: recortar(p.descripcion || p.nombre, 500), image: [img], url: canonical,
@@ -76,4 +81,37 @@ export async function paginaProducto(req, env, id) {
   };
   const html = plantilla.replace(/%%([A-Z_]+)%%/g, (_, k) => (k in valores ? valores[k] : ''));
   return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=0, must-revalidate' } });
+}
+
+// --- Catálogo con contenido en el HTML ----------------------------------------------------------------
+// Las páginas de catálogo y de cada colección se pintan con JavaScript desde /api/catalogo. Para que buscadores y
+// asistentes de IA que no ejecutan JavaScript vean los productos (y los enlaces a cada ficha), el servidor deja en el
+// HTML las primeras 24 tarjetas con el mismo formato que usa shop.mjs, y una lista de datos estructurados (ItemList).
+// shop.mjs las reemplaza al cargar, así que no se duplica nada.
+const NOMBRE_FOTO = '/assets/images/no-photo.svg';
+const miniaturaDe = (u) => (u ? (u.startsWith('/fotos/') ? u.replace('-1200.', '-600.') : u) : NOMBRE_FOTO);
+
+export function tarjetaHTML(p, nombresGrupo) {
+  const id = encodeURIComponent(p.id);
+  const precio = p.quote ? 'Cotizar por WhatsApp' : lempiras(p.cents / 100);
+  const etiqueta = p.quote ? '<span class="availability">Por encargo · imagen ilustrativa</span>' : !p.available ? '<span class="availability">No disponible</span>' : '';
+  return `<article class="product-card"><button class="product-image" type="button" data-product="${esc(p.id)}" aria-label="Ver detalles de ${esc(p.name)}"><img src="${esc(p.thumb || p.img)}" alt="${esc(p.name)}" width="400" height="480" loading="lazy" decoding="async">${etiqueta}</button><p class="product-group">${esc(nombresGrupo[p.group] || '')}</p><h2><a class="product-name-button" href="/producto/${id}" data-product="${esc(p.id)}">${esc(p.name)}</a></h2><p class="price">${esc(precio)}</p><div class="add-slot" data-slot="${esc(p.id)}"></div></article>`;
+}
+
+/** Reescribe una página de catálogo: rellena #product-grid con los productos de sus colecciones y añade ItemList. */
+export async function conCatalogoEnHTML(resp, datos, base) {
+  let grupos = null;
+  const productos = () => (grupos && grupos.length ? datos.productos.filter((p) => grupos.includes(p.group)) : datos.productos)
+    .slice().sort((a, b) => Number(b.available) - Number(a.available)).slice(0, 24);
+  const nombres = Object.fromEntries(datos.categorias.map((c) => [c.id, c.nombre]));
+  return new HTMLRewriter()
+    .on('body', { element(el) { const g = el.getAttribute('data-groups'); grupos = g ? g.split(',').filter(Boolean) : []; } })
+    .on('#product-grid', { element(el) { el.setInnerContent(productos().map((p) => tarjetaHTML(p, nombres)).join(''), { html: true }); } })
+    .on('head', { element(el) {
+      const lista = productos().filter((p) => !p.quote && Number.isInteger(p.cents));
+      if (!lista.length) return;
+      const ld = { '@context': 'https://schema.org', '@type': 'ItemList', itemListElement: lista.map((p, i) => ({ '@type': 'ListItem', position: i + 1, url: `${base}/producto/${encodeURIComponent(p.id)}`, name: p.name })) };
+      el.append(`<script type="application/ld+json">${jsonLd(ld)}</script>`, { html: true });
+    } })
+    .transform(resp);
 }

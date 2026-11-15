@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /
+Allow: /api/catalogo
+Allow: /api/regalos/
 Disallow: /admin
-Disallow: /api/
+Disallow: /api/auth/
+Disallow: /api/admin/
+Disallow: /api/vista
 Sitemap: https://alexashop.cc/sitemap.xml

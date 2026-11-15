@@ -258,7 +258,7 @@ test('SEO: ficha por producto, sitemap, escape de HTML y caché con purga', asyn
 
   // ficha pública con título, canonical, Open Graph y datos estructurados
   const ficha = await (await fetch(`${URL_BASE}/producto/PHP-01`)).text();
-  assert.match(ficha, /<title>Valentino Born in Roma Eau de Toilette · Premium para él \| ALEXA<\/title>/);
+  assert.match(ficha, /<title>Valentino Born in Roma Eau de Toilette \| ALEXA<\/title>/);
   assert.match(ficha, /<link rel="canonical" href="https:\/\/alexashop\.cc\/producto\/PHP-01">/);
   assert.match(ficha, /"@type":"Product"/);
   assert.match(ficha, /"priceCurrency":"HNL","price":"4600\.00"/);
@@ -316,6 +316,32 @@ test('medición propia: solo con identificador, anónima y con rutas válidas', 
   assert.equal(a.serie.length, 14);
   // la base no guarda la IP ni el identificador original: solo un código de 32 caracteres que cambia cada día
   assert.equal((await llamar('GET', '/api/auth/sesion')).datos.sesion.rol, 'admin');
+});
+
+test('SEO: el catálogo sale con productos en el HTML y robots deja leer la API pública', async () => {
+  const pagina = async (ruta) => (await fetch(`${URL_BASE}${ruta}`)).text();
+  const cat = await pagina('/catalogo.html');
+  assert.equal((cat.match(/<article class="product-card">/g) || []).length, 24, 'primeras 24 tarjetas');
+  assert.ok((cat.match(/href="\/producto\//g) || []).length >= 24, 'enlaces a las fichas');
+  assert.match(cat, /"@type":"ItemList"/);
+  const hombre = await pagina('/Catalogo/Perfumes/hombre.html');
+  const ids = [...hombre.matchAll(/href="\/producto\/([^"]+)"/g)].map((m) => m[1]);
+  assert.ok(ids.length >= 10 && ids.every((i) => i.startsWith('HP-')), 'solo productos de esa colección');
+  assert.ok(!hombre.includes('sk-card'), 'sin esqueletos cuando ya hay productos');
+  assert.ok(!cat.includes('%%'));
+  const robots = await pagina('/robots.txt');
+  assert.match(robots, /Allow: \/api\/catalogo/);
+  assert.match(robots, /Disallow: \/api\/admin\//);
+  assert.ok(!/Disallow: \/api\/\s/.test(robots), 'no se bloquea toda la API');
+  // títulos de ficha ≤ 60 caracteres y descripciones ≥ 70
+  for (const id of ['PHP-01', 'JYA-01', 'MP-11.5']) {
+    const f = await pagina(`/producto/${id}`);
+    const titulo = f.match(/<title>([^<]*)<\/title>/)[1];
+    const desc = f.match(/<meta name="description" content="([^"]*)"/)[1];
+    assert.ok(titulo.length <= 60, `${id}: título de ${titulo.length}`);
+    assert.ok(desc.length >= 70, `${id}: descripción de ${desc.length}`);
+  }
+  assert.ok((await pagina('/llms.txt')).includes('Choluteca'));
 });
 
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
