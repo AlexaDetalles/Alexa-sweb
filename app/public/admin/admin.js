@@ -212,6 +212,7 @@ function pintarProductos() {
       !hay(p) && '<span class="etiqueta mal">Sin existencias</span>',
       p.cantidad !== null && p.cantidad > 0 && p.cantidad <= POCAS && '<span class="etiqueta aviso">Quedan ' + p.cantidad + '</span>',
       (p.tipo_stock === 'local1' || p.tipo_stock === 'local2') && `<span class="etiqueta ok">${TIPOS_STOCK[p.tipo_stock]}</span>`,
+      p.tipo_stock === 'local2' && E.local2Publico === false && '<span class="etiqueta aviso">🔒 Privado</span>',
       p.cotizar && '<span class="etiqueta">Por cotizar</span>',
       p.visible && !enPapelera && !catVisible(p.categoria_id) && '<span class="etiqueta aviso">Su categoría está oculta</span>',
     ].filter(Boolean).join('');
@@ -399,6 +400,11 @@ async function cargarContador() {
   try {
     const c = await api('GET', 'admin/finanzas/contador'), caja = $('#contador'), h = htmlContador(c);
     caja.hidden = !h; caja.innerHTML = h;
+    E.local2Publico = c.local2_publico;
+    const barra = $('#privacidad'); barra.hidden = false;
+    barra.classList.toggle('publico', c.local2_publico);
+    $('#privacidad-texto').textContent = c.local2_publico ? '🌐 El Stock local 2 se está mostrando en la tienda.' : '🔒 Stock local 2 PRIVADO: no sale en la tienda, ni en el catálogo, ni en Google. Solo lo ves tú aquí.';
+    $('#privacidad-boton').textContent = c.local2_publico ? 'Hacerlo privado' : 'Publicar en la tienda';
   } catch { /* sin contador */ }
 }
 
@@ -413,6 +419,11 @@ async function cargarAlertas() {
   } catch { /* sin aviso */ }
 }
 $('#banner-cobros-ver').addEventListener('click', () => ir('finanzas'));
+$('#privacidad-boton').addEventListener('click', async () => {
+  const publicar = !E.local2Publico;
+  if (publicar && !(await confirmar('Publicar el Stock local 2', 'Todos los productos de Stock local 2 que estén «Visibles» saldrán en la tienda y en Google. ¿Seguro que terminó el inventario privado?', 'Publicar'))) return;
+  try { await api('PUT', 'admin/finanzas/config', { mostrar_local2: publicar }); await cargar(); avisar(publicar ? 'Stock local 2 publicado en la tienda.' : 'Stock local 2 privado: ya no se ve en la tienda.'); } catch (e) { avisar(e.message, true); }
+});
 
 // --- lotes de inversión (solo administradora) ---------------------------------------------
 const pct = (n) => (n === null || n === undefined ? '—' : `${n.toLocaleString('es-HN')} %`);

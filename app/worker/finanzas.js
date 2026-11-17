@@ -116,10 +116,11 @@ export async function contadorStock(env) {
   const valorEnStock = dinero(enStock('local1').valor + enStock('local2').valor);
   const valorTotal = dinero(valorEnStock + vendidoLocal);
   const inversion = dinero(lotes.results[0].inversion + compras.results[0].n);
+  const publico = (await env.BD.prepare('SELECT mostrar_local2 FROM ajustes WHERE id = 1').first())?.mostrar_local2 === 1;
   const meta = lotes.results[0].n ? dinero(lotes.results[0].meta) : inversion > 0 ? Math.round(inversion * 1.8) : 0; // sin lote: +80 %
   const pct = (n, base) => (base > 0 ? Math.round((n / base) * 1000) / 10 : null);
   return {
-    local1: enStock('local1'), local2: enStock('local2'),
+    local1: enStock('local1'), local2: enStock('local2'), local2_publico: publico,
     valor_en_stock: valorEnStock, vendido: vendidoLocal, valor_total: valorTotal,
     inversion, meta,
     falta_cubrir: dinero(Math.max(0, inversion - valorTotal)),          // cuánto más en productos (a tus precios) para cubrir lo invertido

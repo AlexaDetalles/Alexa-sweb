@@ -38,7 +38,7 @@ export async function catalogo(env) {
       WHERE c.activa = 1 AND (p.id IS NULL OR p.activa = 1) ORDER BY c.orden, c.nombre`),
     env.BD.prepare(`SELECT p.id, p.nombre, p.categoria_id, p.descripcion, p.precio, p.cotizar, p.imagen_url, p.disponible, p.cantidad, p.tipo_stock
       FROM productos p JOIN categorias c ON c.id = p.categoria_id LEFT JOIN categorias pa ON pa.id = c.padre_id
-      WHERE p.borrado_en IS NULL AND p.visible = 1 AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1)
+      WHERE p.borrado_en IS NULL AND p.visible = 1 AND (p.tipo_stock <> 'local2' OR (SELECT mostrar_local2 FROM ajustes WHERE id = 1) = 1) AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1)
       ORDER BY p.orden, p.nombre`),
     env.BD.prepare('SELECT * FROM ajustes WHERE id = 1'),
   ]);
@@ -475,6 +475,10 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
   }
   if (recurso === 'finanzas' && id === 'config' && m === 'PUT') {
     exigirPermiso(s, 'finanzas');
+    if ('mostrar_local2' in d) { // publicar o esconder el stock local 2 de la tienda (la caché pública se borra sola al guardar)
+      await env.BD.prepare('UPDATE ajustes SET mostrar_local2 = ? WHERE id = 1').bind(d.mostrar_local2 === true || d.mostrar_local2 === 1 || d.mostrar_local2 === '1' ? 1 : 0).run();
+      return json({ ok: true });
+    }
     const pct = Number(String(d.credito_pct ?? '').replace(/,/g, ''));
     if (!Number.isFinite(pct) || pct < 0 || pct > 500) falla(400, 'Recargo del crédito: escribe un porcentaje de 0 a 500.');
     await env.BD.prepare('UPDATE ajustes SET credito_pct = ? WHERE id = 1').bind(Math.round(pct * 10) / 10).run();

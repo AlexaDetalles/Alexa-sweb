@@ -689,6 +689,35 @@ test('stock local 1 (sin inversión) y local 2 (con inversión): el contador sum
   for (const id of [A, B, L1.datos.id]) { await llamar('DELETE', `/api/admin/productos/${id}`); await llamar('DELETE', `/api/admin/productos/${id}?definitivo=1`); }
 });
 
+test('stock local 2 privado: no sale en la tienda, ni en la ficha, ni en el sitemap, hasta que se publica', async () => {
+  const crear = async (extra) => (await llamar('POST', '/api/admin/productos', { nombre: 'Privado prueba', categoria_id: 'CHM', precio: 700, visible: 1, disponible: 1, ...extra })).datos.id;
+  const privado = await crear({ nombre: 'Tenis privados', tipo_stock: 'local2', cantidad: 3 });
+  const publico = await crear({ nombre: 'Tenis públicos', tipo_stock: 'aparte' });
+  const enCatalogo = async (id) => (await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.productos.some((p) => p.id === id);
+  const ficha = async (id) => (await fetch(`${URL_BASE}/producto/${id}`)).status;
+  const sitemap = async () => (await (await fetch(`${URL_BASE}/sitemap.xml`)).text());
+  const pagina = async () => (await (await fetch(`${URL_BASE}/tenis/hombre`)).text());
+  // por defecto el stock local 2 es privado
+  assert.equal((await llamar('GET', '/api/admin/finanzas/contador')).datos.local2_publico, false);
+  assert.deepEqual([await enCatalogo(privado), await enCatalogo(publico)], [false, true]);
+  assert.deepEqual([await ficha(privado), await ficha(publico)], [404, 200]);
+  const sm = await sitemap();
+  assert.ok(!sm.includes(`/producto/${privado}<`) && sm.includes(`/producto/${publico}<`));
+  assert.ok(!(await pagina()).includes('Tenis privados') && (await pagina()).includes('Tenis públicos'));
+  // el panel sí lo ve
+  assert.ok((await admin()).productos.some((p) => p.id === privado));
+  // publicarlo
+  assert.equal((await llamar('PUT', '/api/admin/finanzas/config', { mostrar_local2: true })).estado, 200);
+  assert.equal((await llamar('GET', '/api/admin/finanzas/contador')).datos.local2_publico, true);
+  assert.deepEqual([await enCatalogo(privado), await ficha(privado)], [true, 200]);
+  assert.ok((await sitemap()).includes(`/producto/${privado}<`));
+  assert.ok((await pagina()).includes('Tenis privados'));
+  // y volver a esconderlo
+  assert.equal((await llamar('PUT', '/api/admin/finanzas/config', { mostrar_local2: false })).estado, 200);
+  assert.deepEqual([await enCatalogo(privado), await ficha(privado)], [false, 404]);
+  for (const id of [privado, publico]) { await llamar('DELETE', `/api/admin/productos/${id}`); await llamar('DELETE', `/api/admin/productos/${id}?definitivo=1`); }
+});
+
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
   const miCookie = cookie;
   const nueva = 'otra-clave-nueva-456';

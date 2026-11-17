@@ -303,3 +303,6 @@ progress.barra-pago::-moz-progress-bar { background: var(--ok); }
 .contador-cab { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
 .contador-linea { margin: 4px 0 0; font-size: 14px; }
 .contador .pos { color: var(--ok); } .contador .neg { color: var(--mal); }
+
+.privacidad { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 12px; background: #f6ebd5; border: 1px solid #e5cf9c; border-radius: 12px; padding: 10px 14px; margin: 0 0 12px; font-size: 14px; }
+.privacidad.publico { background: #e1f0e7; border-color: #b7d9c3; }
