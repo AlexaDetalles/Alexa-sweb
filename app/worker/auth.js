@@ -13,7 +13,7 @@ export const ROLES = {
   lectura: 'Supervisora (solo lectura)',
 };
 // Qué puede hacer cada rango. Lo aplica el servidor en cada llamada; el panel solo esconde lo que no corresponde.
-const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios', 'estadisticas'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: ['estadisticas'] };
+const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios', 'estadisticas', 'finanzas'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: ['estadisticas'] };
 export const puede = (s, permiso) => PERMISOS[s.rol]?.includes(permiso);
 export function exigirPermiso(s, permiso) {
   if (!puede(s, permiso)) falla(403, 'Tu rango no permite hacer este cambio.');

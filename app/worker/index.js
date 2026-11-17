@@ -7,6 +7,8 @@ import { sitemap, paginaProducto, conCatalogoEnHTML, paginaPersonalizador } from
 import { redireccion, CON_PRODUCTOS, RE_PERSONALIZADOR } from './rutas.js';
 import { sitio } from './correo.js';
 import { registrarVista } from './estadisticas.js';
+import { hojaCsv } from './finanzas.js';
+import { procesarPublicaciones } from './social.js';
 
 const CABECERAS = {
   'X-Content-Type-Options': 'nosniff',
@@ -44,6 +46,8 @@ async function api(req, env, ruta, ctx) {
   // Lecturas públicas: caché de 60 s en el borde (protege la base de abuso y de picos); el panel la borra al guardar.
   if (lectura && ruta === 'catalogo') return conCache('catalogo', () => catalogo(env));
   if (lectura && ruta.startsWith('regalos/')) return conCache(ruta, () => regalos(env, ruta.slice(8)));
+  // Hojas para la hoja de Google (IMPORTDATA): solo con la clave secreta en la dirección.
+  if (lectura && ruta.startsWith('finanzas/csv/')) return hojaCsv(env, ruta.slice(13), new URL(req.url).searchParams.get('clave'));
   // Medición de visitas (solo de quien aceptó en la píldora): anónima, sin IP ni cookies; las de más se descartan en silencio.
   if (req.method === 'POST' && ruta === 'vista') {
     if (!(await dentroDelLimite(req, env.LIMITE_VISTA, env))) return new Response(null, { status: 204 });
@@ -52,7 +56,7 @@ async function api(req, env, ruta, ctx) {
   if (req.method === 'POST' && /^auth\/(entrar|configurar|confirmar|recuperar|restablecer|invitacion-aceptar|huella\/opciones-entrar|huella\/entrar)$/.test(ruta) && !(await dentroDelLimite(req, env.LIMITE_AUTH, env))) falla(429, 'Demasiados intentos seguidos. Espera un minuto y vuelve a probar.');
   if (ruta.startsWith('auth/')) return rutasAuth(req, env, ruta.slice(5), await leerJson(req), ctx);
   if (ruta.startsWith('admin/')) {
-    const resp = await rutasAdmin(req, env, ruta.slice(6), ruta === 'admin/fotos' ? {} : await leerJson(req), ctx);
+    const resp = await rutasAdmin(req, env, ruta.slice(6), ruta === 'admin/fotos' || (ruta === 'admin/publicaciones' && req.method === 'POST') ? {} : await leerJson(req), ctx);
     if (!lectura) await purgarCache();
     return resp;
   }
@@ -92,7 +96,9 @@ export default {
   },
 
   // Cada lunes: respaldo en R2 y limpieza (ver wrangler.jsonc → triggers).
-  async scheduled(_evento, env, ctx) {
-    ctx.waitUntil(mantenimiento(env).then((r) => console.log('mantenimiento', r)));
+  async scheduled(evento, env, ctx) {
+    // Cada 5 minutos: publicaciones programadas en redes. Cada lunes: respaldo y limpieza.
+    if (evento.cron === '*/5 * * * *') ctx.waitUntil(procesarPublicaciones(env).then((r) => r.length && console.log('publicaciones', JSON.stringify(r))));
+    else ctx.waitUntil(mantenimiento(env).then((r) => console.log('mantenimiento', r)));
   },
 };

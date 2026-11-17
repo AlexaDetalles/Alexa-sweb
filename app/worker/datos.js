@@ -3,6 +3,9 @@ import { falla, json, fechaSql, diaHonduras, hayExistencias } from './util.js';
 import { exigirSesion, exigirPermiso, rutasUsuarios } from './auth.js';
 import * as V from './validacion.js';
 import { actividad, limpiarEstadisticas } from './estadisticas.js';
+import { crearMovimiento, anularMovimiento, resumen, enlacesHoja } from './finanzas.js';
+import { crearPublicacion, listarPublicaciones, reintentarPublicacion, cancelarPublicacion } from './social.js';
+import { sitio } from './correo.js';
 
 const ABIERTO = { 'Access-Control-Allow-Origin': '*' }; // lectura pública: cualquier página puede mostrar el catálogo
 
@@ -31,7 +34,7 @@ export async function catalogo(env) {
   const [cats, prods, aj] = await env.BD.batch([
     env.BD.prepare(`SELECT c.id, c.nombre, c.padre_id FROM categorias c LEFT JOIN categorias p ON p.id = c.padre_id
       WHERE c.activa = 1 AND (p.id IS NULL OR p.activa = 1) ORDER BY c.orden, c.nombre`),
-    env.BD.prepare(`SELECT p.id, p.nombre, p.categoria_id, p.descripcion, p.precio, p.cotizar, p.imagen_url, p.disponible, p.cantidad
+    env.BD.prepare(`SELECT p.id, p.nombre, p.categoria_id, p.descripcion, p.precio, p.cotizar, p.imagen_url, p.disponible, p.cantidad, p.tipo_stock
       FROM productos p JOIN categorias c ON c.id = p.categoria_id LEFT JOIN categorias pa ON pa.id = c.padre_id
       WHERE p.borrado_en IS NULL AND p.visible = 1 AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1)
       ORDER BY p.orden, p.nombre`),
@@ -103,7 +106,7 @@ export async function regalos(env, publico) {
 }
 
 // --- fotos --------------------------------------------------------------------------
-const RE_CLAVE_FOTO = /^productos\/[0-9a-f-]{36}-(600|1200)\.(webp|jpg)$/;
+const RE_CLAVE_FOTO = /^(productos\/[0-9a-f-]{36}-(600|1200)\.(webp|jpg)|social\/[0-9a-f-]{36}\.jpg)$/;
 const ascii = (b, de, a) => String.fromCharCode(...b.slice(de, a));
 // WebP (RIFF....WEBP) o JPEG (FF D8 FF): la firma se comprueba aquí; el panel nunca manda otra cosa.
 const tipoDeFoto = (b) => (b.length > 12 && ascii(b, 0, 4) === 'RIFF' && ascii(b, 8, 12) === 'WEBP' ? 'webp' : b.length > 12 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff ? 'jpg' : null);
@@ -246,7 +249,7 @@ async function duplicarProducto(env, id) {
   const orden = (await env.BD.prepare('SELECT coalesce(max(orden), 0) + 10 AS n FROM productos').first()).n;
   await insertar(env, 'productos', {
     id: nuevo, nombre: `${o.nombre} (copia)`.slice(0, 120), categoria_id: o.categoria_id, descripcion: o.descripcion, precio: o.precio,
-    cotizar: o.cotizar, imagen_url: o.imagen_url, disponible: o.disponible, cantidad: o.cantidad, visible: 0, orden,
+    cotizar: o.cotizar, imagen_url: o.imagen_url, disponible: o.disponible, cantidad: o.cantidad, costo: o.costo, tipo_stock: o.tipo_stock, visible: 0, orden,
   }).run();
   return json({ id: nuevo }, 201);
 }
@@ -382,6 +385,12 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
   if (recurso === 'usuarios' || recurso === 'invitaciones') return rutasUsuarios(req, env, [recurso, id], d, s, ctx);
   // Rangos: leer lo puede toda cuenta; cambiar el catálogo, solo administradora y encargada de catálogo; los ajustes, administradora y encargada de atención.
   if (m === 'GET' && recurso === 'actividad') { exigirPermiso(s, 'estadisticas'); return actividad(env); }
+  // Finanzas: ver los números (inversión, ganancia, costos) es solo de administradora; registrar compras y ventas lo puede quien lleva el catálogo.
+  if (m === 'GET' && recurso === 'finanzas') {
+    exigirPermiso(s, 'finanzas');
+    return id === 'enlaces' ? enlacesHoja(env, sitio(env)) : resumen(env);
+  }
+  if (m === 'GET' && recurso === 'publicaciones') return listarPublicaciones(env);
   if (m !== 'GET') exigirPermiso(s, recurso === 'ajustes' ? 'ajustes' : 'catalogo');
 
   if (m === 'GET' && recurso === 'datos') {
@@ -406,6 +415,15 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
   }
 
   if (recurso === 'fotos' && m === 'POST') return subirFoto(req, env);
+  if (recurso === 'movimientos') {
+    if (m === 'POST' && !id) return crearMovimiento(env, d, s);
+    if (m === 'DELETE' && id) return anularMovimiento(env, id);
+  }
+  if (recurso === 'publicaciones') {
+    if (m === 'POST' && !id) return crearPublicacion(req, env, s);
+    if (m === 'POST' && accion === 'reintentar') return reintentarPublicacion(env, id);
+    if (m === 'DELETE' && id) return cancelarPublicacion(env, id);
+  }
   if (recurso === 'orden' && m === 'POST') return ordenar(env, d);
   if (recurso === 'ajustes' && m === 'PUT') { await actualizar(env, 'ajustes', [['id', 1]], V.ajustes(d)); return json({ ok: true }); }
 
@@ -447,7 +465,7 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
 /** Respaldo en R2 (12 semanas), papelera de más de 30 días, sesiones viejas y fotos huérfanas. */
 export async function mantenimiento(env) {
   const datos = {};
-  for (const t of ['categorias', 'productos', 'pasos', 'regalo_config', 'opciones', 'ajustes']) datos[t] = (await env.BD.prepare(`SELECT * FROM ${t}`).all()).results;
+  for (const t of ['categorias', 'productos', 'pasos', 'regalo_config', 'opciones', 'ajustes', 'movimientos', 'publicaciones']) datos[t] = (await env.BD.prepare(`SELECT * FROM ${t}`).all()).results;
   await env.FOTOS.put(`respaldos/${diaHonduras()}.json`, JSON.stringify({ fecha: fechaSql(), datos }), { httpMetadata: { contentType: 'application/json' } });
   const limite = diaHonduras(Date.now() - 84 * 86400000);
   const viejos = (await env.FOTOS.list({ prefix: 'respaldos/' })).objects.filter((o) => o.key.slice(10, 20) < limite).map((o) => o.key);
@@ -461,6 +479,10 @@ export async function mantenimiento(env) {
   const huerfanas = (await env.FOTOS.list({ prefix: 'productos/' })).objects
     .filter((o) => Date.now() - o.uploaded.getTime() > 86400000 && !usadas.has(o.key.replace(/-(600|1200)\./, '-'))).map((o) => o.key);
   if (huerfanas.length) await env.FOTOS.delete(huerfanas);
+
+  // Imágenes de publicaciones en redes de más de 60 días (Meta ya las descargó).
+  const sociales = (await env.FOTOS.list({ prefix: 'social/' })).objects.filter((o) => Date.now() - o.uploaded.getTime() > 60 * 86400000).map((o) => o.key);
+  if (sociales.length) await env.FOTOS.delete(sociales);
 
   const ahora = fechaSql();
   await env.BD.batch([

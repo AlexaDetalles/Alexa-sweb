@@ -54,6 +54,11 @@ export function producto(d, crear = false) {
   if ('imagen_url' in d) r.imagen_url = fotoONula(d.imagen_url);
   if ('disponible' in d) r.disponible = booleano(d.disponible);
   if ('visible' in d) r.visible = booleano(d.visible);
+  if ('costo' in d) r.costo = numero(d.costo, 'Costo', { nulo: true });
+  if ('tipo_stock' in d) {
+    if (!['aparte', 'local', 'sin'].includes(d.tipo_stock)) falla(400, 'Tipo de stock: elige stock aparte, stock local o sin stock.');
+    r.tipo_stock = d.tipo_stock;
+  }
   if ('cantidad' in d) r.cantidad = d.cantidad === null || d.cantidad === '' ? null : entero(d.cantidad, 'Cantidad');
   if ('orden' in d) r.orden = entero(d.orden, 'Orden');
   return r;

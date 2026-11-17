@@ -12,6 +12,7 @@ import { RAIZ } from '../herramientas/comun.mjs';
 const PUERTO = 8791;
 let URL_BASE = process.env.API_URL || `http://localhost:${PUERTO}`;
 let servidor, cookie = '';
+const FINANZAS_TOKEN = 'token-de-prueba-finanzas';
 const CORREO = 'prueba@ejemplo.com', CLAVE = 'clave-de-prueba-123';
 
 const wrangler = (args, env = {}) => execFileSync(process.execPath, [join(RAIZ, 'node_modules/wrangler/bin/wrangler.js'), ...args], { cwd: RAIZ, env: { ...process.env, ...env }, stdio: 'pipe' });
@@ -31,7 +32,8 @@ before(async () => {
   wrangler(['d1', 'migrations', 'apply', 'BD', '--local', '--persist-to', estado]);
   execFileSync(process.execPath, [join(RAIZ, 'herramientas/semilla.mjs')], { cwd: RAIZ, env: { ...process.env, ...env }, stdio: 'pipe' });
   execFileSync(process.execPath, [join(RAIZ, 'herramientas/crear-usuario.mjs'), CORREO], { cwd: RAIZ, env: { ...process.env, ...env }, stdio: 'pipe' });
-  servidor = spawn(process.execPath, [join(RAIZ, 'node_modules/wrangler/bin/wrangler.js'), 'dev', '--local', '--port', String(PUERTO), '--local-upstream', `localhost:${PUERTO}`, '--persist-to', estado, '--var', 'DEV:1'], { cwd: RAIZ, stdio: 'ignore' });
+  const variables = ['DEV:1', `FINANZAS_TOKEN:${FINANZAS_TOKEN}`].flatMap((v) => ['--var', v]);
+  servidor = spawn(process.execPath, [join(RAIZ, 'node_modules/wrangler/bin/wrangler.js'), 'dev', '--local', '--port', String(PUERTO), '--local-upstream', `localhost:${PUERTO}`, '--persist-to', estado, ...variables], { cwd: RAIZ, stdio: 'ignore' });
   await esperarServidor();
 });
 after(() => { servidor?.kill(); });
@@ -483,6 +485,52 @@ test('cantidades: se agota solo al llegar a 0, avisa si quedan pocas y se puede 
   const copia = (await llamar('POST', `/api/admin/productos/${id}/duplicar`)).datos.id;
   assert.equal((await admin()).productos.find((x) => x.id === copia).cantidad, 7);
   for (const x of [id, copia]) await llamar('DELETE', `/api/admin/productos/${x}?definitivo=1`);
+});
+
+test('finanzas: stock local (compra = inversión), stock aparte (sin inversión) y sin stock', async () => {
+  const crear = async (extra) => (await llamar('POST', '/api/admin/productos', { nombre: 'Prueba finanzas', categoria_id: 'MP', visible: 1, disponible: 1, ...extra })).datos.id;
+  const local = await crear({ tipo_stock: 'local', costo: 100, precio: 150 });
+  const aparte = await crear({ tipo_stock: 'aparte', costo: 80, precio: 120 });
+  const sin = await crear({ tipo_stock: 'sin', costo: 50, precio: 90 });
+  const antes = (await llamar('GET', '/api/admin/finanzas')).datos;
+  const mov = (cuerpo) => llamar('POST', '/api/admin/movimientos', cuerpo);
+  // compra de stock local: suma unidades e inversión
+  assert.equal((await mov({ tipo: 'compra', producto_id: local, cantidad: 10 })).estado, 201);
+  assert.equal((await admin()).productos.find((p) => p.id === local).cantidad, 10);
+  // venta de 3: rebaja stock y deja ganancia
+  const v = await mov({ tipo: 'venta', producto_id: local, cantidad: 3 });
+  assert.equal(v.estado, 201);
+  assert.equal((await admin()).productos.find((p) => p.id === local).cantidad, 7);
+  assert.equal((await mov({ tipo: 'venta', producto_id: local, cantidad: 8 })).estado, 400, 'no se vende más de lo que hay');
+  // dropshipping: vende sin tocar cantidades y no se puede «comprar»
+  assert.equal((await mov({ tipo: 'venta', producto_id: aparte, cantidad: 2 })).estado, 201);
+  assert.equal((await mov({ tipo: 'compra', producto_id: aparte, cantidad: 1, costo: 80 })).estado, 400);
+  assert.equal((await mov({ tipo: 'venta', producto_id: sin, cantidad: 1 })).estado, 400, 'sin stock no se vende');
+  assert.equal((await mov({ tipo: 'venta', producto_id: local, cantidad: 0 })).estado, 400);
+  const r = (await llamar('GET', '/api/admin/finanzas')).datos;
+  const d = (campo) => Math.round((r.total[campo] - antes.total[campo]) * 100) / 100;
+  assert.deepEqual([d('invertido'), d('ingresos'), d('costo_vendido'), d('ganancia')], [1000, 450 + 240, 300 + 160, 230]);
+  assert.equal(r.por_tipo.find((x) => x.tipo_stock === 'aparte').invertido, 0, 'el dropshipping no es inversión');
+  assert.equal(r.capital_en_stock - antes.capital_en_stock, 700);
+  // «sin stock» se ve «No disponible» en la tienda aunque esté marcado «Hay»
+  assert.equal((await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.productos.find((p) => p.id === sin).available, false);
+  // anular una venta devuelve las unidades
+  assert.equal((await llamar('DELETE', `/api/admin/movimientos/${v.datos.id}`)).estado, 200);
+  assert.equal((await admin()).productos.find((p) => p.id === local).cantidad, 10);
+  assert.equal((await llamar('DELETE', `/api/admin/movimientos/${v.datos.id}`)).estado, 404, 'ya estaba anulado');
+  // hojas CSV para la hoja de Google: solo con la clave
+  assert.equal((await fetch(`${URL_BASE}/api/finanzas/csv/resumen`)).status, 404);
+  assert.equal((await fetch(`${URL_BASE}/api/finanzas/csv/resumen?clave=mala`)).status, 404);
+  for (const hoja of ['productos', 'movimientos', 'resumen']) {
+    const resp = await fetch(`${URL_BASE}/api/finanzas/csv/${hoja}?clave=${FINANZAS_TOKEN}`);
+    assert.equal(resp.status, 200, hoja);
+    assert.ok((await resp.text()).length > 40, hoja);
+  }
+  const prods = await (await fetch(`${URL_BASE}/api/finanzas/csv/productos?clave=${FINANZAS_TOKEN}`)).text();
+  assert.ok(prods.includes('Stock local') && prods.includes('Stock aparte') && prods.includes('Sin stock'));
+  assert.ok((await llamar('GET', '/api/admin/finanzas/enlaces')).datos.enlaces.resumen.includes('/api/finanzas/csv/resumen?clave='));
+  assert.equal((await llamar('GET', '/api/admin/finanzas', undefined, { conSesion: false })).estado, 401);
+  for (const id of [local, aparte, sin]) { await llamar('DELETE', `/api/admin/productos/${id}`); await llamar('DELETE', `/api/admin/productos/${id}?definitivo=1`); }
 });
 
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
