@@ -150,6 +150,11 @@
       </div>
     </header>
 
+    <div class="banner banner-cobros" id="banner-cobros" hidden>
+      <span id="banner-cobros-texto"></span>
+      <span class="banner-botones"><button type="button" class="boton chico" id="banner-cobros-ver">Ver cobros</button></span>
+    </div>
+
     <div class="banner" id="banner-huella" hidden>
       <span>¿Quieres entrar con tu huella o Face ID la próxima vez?</span>
       <span class="banner-botones"><button type="button" class="boton chico" id="banner-activar">Activar</button><button type="button" class="boton suave chico" id="banner-luego">Ahora no</button></span>
@@ -394,6 +399,36 @@
     </form>
   </dialog>
 
+  <!-- Abono a una deuda -->
+  <dialog id="dlg-abono" class="chico" aria-labelledby="dlg-abono-t">
+    <form id="form-abono" novalidate>
+      <div class="dlg-top"><h2 id="dlg-abono-t">Abono</h2><button type="button" class="icono" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
+      <div class="dlg-cuerpo">
+        <p id="abono-detalle" class="suave"></p>
+        <label class="campo">Cuánto abona (L)<input name="monto" inputmode="decimal" autocomplete="off"></label>
+        <label class="campo">Nota <small>(opcional)</small><input name="nota" maxlength="200" autocomplete="off"></label>
+        <p class="error" id="error-abono" role="alert" hidden></p>
+      </div>
+      <div class="dlg-pie"><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cancelar</button><button type="submit" class="boton" id="abono-guardar">Registrar abono</button></div>
+    </form>
+  </dialog>
+
+  <!-- Gasto suelto -->
+  <dialog id="dlg-gasto" class="chico" aria-labelledby="dlg-gasto-t">
+    <form id="form-gasto" novalidate>
+      <div class="dlg-top"><h2 id="dlg-gasto-t">Agregar gasto</h2><button type="button" class="icono" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
+      <div class="dlg-cuerpo">
+        <label class="campo">Concepto<input name="concepto" maxlength="80" placeholder="Ej. Pasaje a Tegucigalpa" autocomplete="off"></label>
+        <div class="rejilla">
+          <label class="campo">Tipo<select name="categoria"><option value="bus">Bus</option><option value="envio">Envío</option><option value="empaque">Empaque</option><option value="comision">Comisión</option><option value="otro">Otro</option></select></label>
+          <label class="campo">Monto (L)<input name="monto" inputmode="decimal" autocomplete="off"></label>
+        </div>
+        <p class="error" id="error-gasto" role="alert" hidden></p>
+      </div>
+      <div class="dlg-pie"><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cancelar</button><button type="submit" class="boton" id="gasto-guardar">Guardar</button></div>
+    </form>
+  </dialog>
+
   <!-- Lote de inversión -->
   <dialog id="dlg-lote" class="chico" aria-labelledby="dlg-lote-t">
     <form id="form-lote" novalidate>
@@ -423,6 +458,27 @@
           <label class="campo"><span id="mov-precio-t">Precio de venta (L)</span><input name="precio" inputmode="decimal" autocomplete="off"></label>
         </div>
         <label class="campo">Nota <small>(opcional)</small><input name="nota" maxlength="200" autocomplete="off"></label>
+        <div id="mov-venta-extra" hidden>
+          <label class="campo" data-requiere="finanzas">Forma de pago<select name="pago"><option value="contado">Al contado</option><option value="credito">A crédito (con deuda)</option></select></label>
+          <div id="mov-credito" class="mov-credito" hidden>
+            <label class="campo">Cliente <small>(quién se lleva la deuda)</small><input name="cliente" maxlength="80" autocomplete="off"></label>
+            <label class="campo">WhatsApp <small>(opcional, para recordarle el pago)</small><input name="telefono" inputmode="tel" autocomplete="off" placeholder="9999 8888"></label>
+            <div class="rejilla">
+              <label class="campo">Número de pagos<input name="cuotas" inputmode="numeric" value="2" autocomplete="off"></label>
+              <label class="campo">Monto de cada pago (L)<input name="cuota" inputmode="decimal" autocomplete="off"></label>
+            </div>
+            <div class="rejilla">
+              <label class="campo">Abona hoy (L)<input name="abono" inputmode="decimal" autocomplete="off"></label>
+              <label class="campo">Cada cuántos días paga<input name="intervalo" inputmode="numeric" value="15" autocomplete="off"></label>
+            </div>
+            <p class="suave" id="mov-credito-info"></p>
+          </div>
+          <div class="rejilla" data-requiere="finanzas">
+            <label class="campo">Bus o envío (L)<input name="g_bus" inputmode="decimal" autocomplete="off"></label>
+            <label class="campo">Otro gasto (L)<input name="g_otro" inputmode="decimal" autocomplete="off"></label>
+          </div>
+          <label class="campo" data-requiere="finanzas">¿Qué fue el otro gasto? <small>(opcional)</small><input name="g_concepto" maxlength="80" autocomplete="off"></label>
+        </div>
         <p class="suave" id="mov-total"></p>
         <p class="error" id="error-mov" role="alert" hidden></p>
       </div>

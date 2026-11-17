@@ -1,5 +1,5 @@
 /**
- * Mantiene la hoja de Google al día con el panel (Productos, Movimientos y Resumen), cada minuto.
+ * Mantiene la hoja de Google al día con el panel (Resumen, Productos, Movimientos, Gastos y Deudas), cada minuto.
  * Es la forma más segura de tenerla «en vivo»: la hoja pide los datos al sitio con la clave secreta y los escribe.
  *
  * Instalación (una sola vez, 2 minutos):
@@ -11,7 +11,7 @@
  *  Listo: desde ahí se actualiza sola cada minuto.
  */
 const BASE = 'https://alexashop.cc/api/finanzas/csv/';
-const PESTANAS = [['resumen', 'Resumen'], ['productos', 'Productos'], ['movimientos', 'Movimientos']];
+const PESTANAS = [['resumen', 'Resumen'], ['productos', 'Productos'], ['movimientos', 'Movimientos'], ['gastos', 'Gastos'], ['creditos', 'Deudas']];
 
 function actualizar() {
   const clave = PropertiesService.getScriptProperties().getProperty('FINANZAS_TOKEN');

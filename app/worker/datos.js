@@ -419,7 +419,7 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
   }
   if (m === 'GET' && recurso === 'creditos') {
     exigirPermiso(s, 'finanzas');
-    return id === 'alertas' ? json(await resumenCobros(env)) : listarCreditos(env, new URL(req.url).searchParams.get('todos') === '1');
+    return id === 'alertas' ? json({ ...(await resumenCobros(env)), credito_pct: (await env.BD.prepare('SELECT credito_pct FROM ajustes WHERE id = 1').first())?.credito_pct ?? 20 }) : listarCreditos(env, new URL(req.url).searchParams.get('todos') === '1');
   }
   if (m === 'GET' && recurso === 'publicaciones') return listarPublicaciones(env);
   if (recurso === 'lotes') { // lotes de inversión: costos y ganancias, solo administradora

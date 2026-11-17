@@ -3,6 +3,7 @@
 import { dibujarInstagram, nombreArchivo, PALETAS } from '/admin/instagram.js';
 import { armarDescripcion, aISO } from '/admin/social.js';
 import { estimarEnLote } from '/admin/lotes.js';
+import { cuotaSugerida, resumenCredito, enlaceRecordatorio } from '/admin/creditos.js';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -102,6 +103,7 @@ async function mostrarPanel(yo) {
   $('#vista-entrar').hidden = true; $('#vista-panel').hidden = false;
   aplicarSesion(yo);
   await cargar();
+  cargarAlertas();
   mostrarAvisoHuella();
   ir(location.hash.slice(1) || 'productos');
 }
@@ -305,39 +307,89 @@ $('#lista-inventario').addEventListener('change', (ev) => {
 
 // --- compras y ventas (alimentan Finanzas y la hoja de Google) -----------------------------
 const fechaHN = (sql) => { const t = Date.parse(`${String(sql).replace(' ', 'T')}Z`); return Number.isNaN(t) ? esc(sql) : new Date(t).toLocaleString('es-HN', { timeZone: 'America/Tegucigalpa', dateStyle: 'short', timeStyle: 'short' }); };
+const diaCorto = (d) => (d ? `${d.slice(8, 10)}/${d.slice(5, 7)}/${d.slice(2, 4)}` : '—');
 const fm = () => $('#form-mov');
+const puedeFinanzas = () => !!PERMISOS[E.yo?.rol]?.includes('finanzas');
 function abrirMov(p, tipo) {
-  E.mov = { p, tipo };
+  E.mov = { p, tipo }; E.cuotaManual = false;
   const f = fm(); f.reset();
   $('#dlg-mov-t').textContent = tipo === 'venta' ? 'Vendí' : 'Compré stock';
-  $('#mov-precio-t').textContent = tipo === 'venta' ? 'Precio de venta por unidad (L)' : 'Costo por unidad (L)';
+  $('#mov-precio-t').textContent = tipo === 'venta' ? 'Precio de venta al contado por unidad (L)' : 'Costo por unidad (L)';
   const tope = tipo === 'venta' && p.tipo_stock === 'local' && p.cantidad !== null ? ` · quedan ${p.cantidad}` : '';
   $('#mov-producto').textContent = `${p.nombre} (${p.id}) · ${TIPOS_STOCK[p.tipo_stock]}${tope}`;
   f.cantidad.value = 1;
   f.precio.value = (tipo === 'venta' ? p.precio : p.costo) ?? '';
+  f.cuotas.value = 2; f.intervalo.value = 15;
+  $('#mov-venta-extra').hidden = tipo !== 'venta'; $('#mov-credito').hidden = true;
   mostrarError('#error-mov'); totalMov();
   $('#dlg-mov').showModal();
+}
+/** Con crédito, el pago de cada cuota se sugiere con el recargo (la dueña puede cambiarlo: cualquier valor que deje el total por encima del contado). */
+function datosCredito() {
+  const f = fm(), contado = (Number(String(f.precio.value).replace(/,/g, '')) || 0) * (Number(f.cantidad.value) || 0);
+  return { contado, cuotas: Number(f.cuotas.value), cuota: Number(String(f.cuota.value).replace(/,/g, '')), abono: Number(String(f.abono.value).replace(/,/g, '')) || 0 };
 }
 function totalMov() {
   const f = fm(), n = Number(f.cantidad.value), x = Number(String(f.precio.value).replace(/,/g, ''));
   const { p, tipo } = E.mov ?? {};
+  const credito = tipo === 'venta' && f.pago.value === 'credito';
+  $('#mov-credito').hidden = !credito;
+  if (credito) {
+    const d = datosCredito();
+    if (!E.cuotaManual) { const s = cuotaSugerida(d.contado, d.cuotas, E.creditoPct ?? 20); f.cuota.value = s ?? ''; d.cuota = s ?? NaN; }
+    const r = resumenCredito(d), info = $('#mov-credito-info');
+    info.classList.toggle('mal', r.listo && !r.ok);
+    info.textContent = !r.listo ? 'Elige el número de pagos y el monto de cada uno.'
+      : !r.ok ? `El crédito no puede ser igual o mejor que el contado (${dinero(d.contado)}): ${d.cuotas} pagos de ${dinero(d.cuota)} son ${dinero(r.total)}.`
+      : `Contado ${dinero(d.contado)} → crédito ${d.cuotas} × ${dinero(d.cuota)} = ${dinero(r.total)} (+${r.recargoPct} %). ${d.abono > 0 ? `Después del abono debe ${dinero(r.saldo)}.` : `Debe ${dinero(r.total)}.`}`;
+  }
   if (!p || !(n >= 1) || !Number.isFinite(x) || f.precio.value.trim() === '') { $('#mov-total').textContent = ''; return; }
-  const ganancia = tipo === 'venta' && p.costo !== null && p.costo !== undefined ? ` · ganancia ${dinero(n * (x - p.costo))}` : '';
-  $('#mov-total').textContent = `Total ${dinero(n * x)}${ganancia}`;
+  const gastos = (Number(String(f.g_bus.value).replace(/,/g, '')) || 0) + (Number(String(f.g_otro.value).replace(/,/g, '')) || 0);
+  const ganancia = tipo === 'venta' && p.costo !== null && p.costo !== undefined ? ` · ganancia ${dinero(n * (x - p.costo) - gastos)}${gastos ? ' (ya sin gastos)' : ''}` : '';
+  $('#mov-total').textContent = credito ? '' : `Total ${dinero(n * x)}${ganancia}`;
 }
-fm().addEventListener('input', totalMov);
+fm().addEventListener('input', (ev) => { if (ev.target.name === 'cuota') E.cuotaManual = true; if (['cuotas', 'precio', 'cantidad'].includes(ev.target.name)) E.cuotaManual = false; totalMov(); });
+fm().addEventListener('change', (ev) => { if (ev.target.name === 'pago') { E.cuotaManual = false; totalMov(); } });
 fm().addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const { p, tipo } = E.mov, f = fm(), b = $('#mov-guardar');
   if (!/^\d{1,6}$/.test(f.cantidad.value.trim()) || Number(f.cantidad.value) < 1) return mostrarError('#error-mov', 'La cantidad debe ser un número entero de 1 en adelante.');
   if (f.precio.value.trim() === '') return mostrarError('#error-mov', tipo === 'venta' ? 'Escribe a cuánto vendiste cada unidad.' : 'Escribe cuánto te costó cada unidad.');
+  const cuerpo = { tipo, producto_id: p.id, cantidad: Number(f.cantidad.value), [tipo === 'venta' ? 'precio' : 'costo']: f.precio.value.trim(), nota: f.nota.value };
+  if (tipo === 'venta' && puedeFinanzas()) {
+    const gastos = [];
+    if (f.g_bus.value.trim()) gastos.push({ categoria: 'bus', monto: f.g_bus.value.trim() });
+    if (f.g_otro.value.trim()) gastos.push({ categoria: 'otro', concepto: f.g_concepto.value.trim(), monto: f.g_otro.value.trim() });
+    if (gastos.length) cuerpo.gastos = gastos;
+    if (f.pago.value === 'credito') {
+      const d = datosCredito(), r = resumenCredito(d);
+      if (!f.cliente.value.trim()) return mostrarError('#error-mov', 'Escribe el nombre de quién se lleva la deuda.');
+      if (!r.listo) return mostrarError('#error-mov', 'Elige el número de pagos y el monto de cada uno.');
+      if (!r.ok) return mostrarError('#error-mov', `El crédito no puede ser igual o mejor que el contado (${dinero(d.contado)}).`);
+      if (!r.abonoValido) return mostrarError('#error-mov', 'El abono no puede ser mayor que el total del crédito.');
+      cuerpo.credito = { cliente: f.cliente.value.trim(), telefono: f.telefono.value.trim(), cuotas: d.cuotas, cuota: f.cuota.value.trim(), abono: f.abono.value.trim(), intervalo_dias: Number(f.intervalo.value) || 15 };
+    }
+  }
   b.disabled = true; mostrarError('#error-mov');
   try {
-    await api('POST', 'admin/movimientos', { tipo, producto_id: p.id, cantidad: Number(f.cantidad.value), [tipo === 'venta' ? 'precio' : 'costo']: f.precio.value.trim(), nota: f.nota.value });
-    $('#dlg-mov').close(); await cargar(); avisar(tipo === 'venta' ? 'Venta registrada.' : 'Compra registrada: ya cuenta como inversión.');
+    const r = await api('POST', 'admin/movimientos', cuerpo);
+    $('#dlg-mov').close(); await cargar(); cargarAlertas();
+    avisar(tipo === 'compra' ? 'Compra registrada: ya cuenta como inversión.' : cuerpo.credito ? `Venta a crédito registrada: ${cuerpo.credito.cliente} debe ${dinero(r.total - (Number(String(cuerpo.credito.abono).replace(/,/g, '')) || 0))}.` : 'Venta registrada.');
   } catch (e) { mostrarError('#error-mov', e.message); }
   b.disabled = false;
 });
+
+// --- avisos de cobro: banner del panel ---------------------------------------------------------
+async function cargarAlertas() {
+  if (!puedeFinanzas()) return;
+  try {
+    const a = await api('GET', 'admin/creditos/alertas');
+    E.creditoPct = a.credito_pct; E.cobros = a;
+    const b = $('#banner-cobros'); b.hidden = !a.vencidos;
+    if (a.vencidos) $('#banner-cobros-texto').textContent = `💰 Tienes ${a.vencidos} cobro${a.vencidos === 1 ? '' : 's'} pendiente${a.vencidos === 1 ? '' : 's'} (${dinero(a.monto_vencido)}). Recuérdales el pago.`;
+  } catch { /* sin aviso */ }
+}
+$('#banner-cobros-ver').addEventListener('click', () => ir('finanzas'));
 
 // --- lotes de inversión (solo administradora) ---------------------------------------------
 const pct = (n) => (n === null || n === undefined ? '—' : `${n.toLocaleString('es-HN')} %`);
@@ -406,13 +458,23 @@ $('#lotes-contenido').addEventListener('change', async (ev) => {
 });
 
 // --- finanzas (solo administradora) --------------------------------------------------------
-const TABLA_FIN = (titulo, filas) => `<h2 class="fin-t">${esc(titulo)}</h2><div class="tabla-caja"><table class="tabla"><thead><tr><th></th><th>Invertido</th><th>Vendido</th><th>Costo vendido</th><th>Ganancia</th><th>Unid.</th></tr></thead><tbody>${filas.map((r) => `<tr><th scope="row">${esc(r[0])}</th><td>${dinero(r[1].invertido)}</td><td>${dinero(r[1].ingresos)}</td><td>${dinero(r[1].costo_vendido)}</td><td><b>${dinero(r[1].ganancia)}</b></td><td>${r[1].unidades_vendidas}</td></tr>`).join('') || '<tr><td colspan="6" class="suave">Todavía no hay ventas.</td></tr>'}</tbody></table></div>`;
+const TABLA_FIN = (titulo, filas) => `<h2 class="fin-t">${esc(titulo)}</h2><div class="tabla-caja"><table class="tabla"><thead><tr><th></th><th>Invertido</th><th>Vendido</th><th>Costo vendido</th><th>Ganancia</th><th>Gastos</th><th>Neta</th><th>Unid.</th></tr></thead><tbody>${filas.map((r) => `<tr><th scope="row">${esc(r[0])}</th><td>${dinero(r[1].invertido)}</td><td>${dinero(r[1].ingresos)}</td><td>${dinero(r[1].costo_vendido)}</td><td><b>${dinero(r[1].ganancia)}</b></td><td>${r[1].neta === undefined ? '' : dinero(r[1].gastos)}</td><td>${r[1].neta === undefined ? '' : `<b>${dinero(r[1].neta)}</b>`}</td><td>${r[1].unidades_vendidas}</td></tr>`).join('') || '<tr><td colspan="8" class="suave">Todavía no hay ventas.</td></tr>'}</tbody></table></div>`;
+const FILA_CREDITO = (c) => {
+  const pct = Math.min(100, Math.round((c.abonado / c.total) * 100));
+  const wa = enlaceRecordatorio(c, dinero);
+  const estado = c.estado === 'pagado' ? '<span class="etiqueta ok">Pagado</span>' : c.vencido ? `<span class="etiqueta mal">${c.dias === 0 ? 'Vence hoy' : `Vencido hace ${-c.dias} día${c.dias === -1 ? '' : 's'}`} · ${dinero(c.monto_vencido)}</span>` : `<span class="etiqueta ok">Al día</span>`;
+  return `<li class="fila sin-foto-miniatura"><div class="fila-texto"><div class="fila-nombre">${esc(c.cliente)} · ${esc(c.producto_nombre)}${c.cantidad > 1 ? ` ×${c.cantidad}` : ''}</div>
+    <div class="fila-meta">${estado}<span>${c.pagadas}/${c.cuotas} pagos de ${dinero(c.cuota_monto)}</span>${c.proximo_vencimiento ? `<span>próximo ${diaCorto(c.proximo_vencimiento)}</span>` : ''}<span class="precio">Debe ${dinero(c.saldo)}</span><span>de ${dinero(c.total)} (contado ${dinero(c.precio_contado)})</span></div>
+    <progress class="barra-pago" max="100" value="${pct}" aria-label="Pagado ${pct} %"></progress>
+    <details><summary class="suave">Abonos (${c.abonos.filter((a) => !a.anulado).length})</summary><ul class="abonos-lista">${c.abonos.map((a) => `<li class="${a.anulado ? 'anulado' : ''}"><span>${fechaHN(a.fecha)} · ${dinero(a.monto)}${a.nota ? ` · ${esc(a.nota)}` : ''}</span>${a.anulado ? '' : `<button type="button" class="boton suave peligro chico" data-abono-anular="${a.id}">Anular</button>`}</li>`).join('') || '<li class="suave">Sin abonos todavía.</li>'}</ul></details></div>
+    <div class="fila-acciones">${c.estado === 'activo' ? `<button type="button" class="boton chico" data-abonar="${c.id}">Abonar</button>` : ''}${wa && c.estado === 'activo' ? `<a class="boton suave chico" href="${esc(wa)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ''}<button type="button" class="boton suave peligro chico" data-credito-anular="${c.id}">Anular</button></div></li>`;
+};
 async function cargarFinanzas() {
   const cont = $('#fin-contenido');
   let r;
   try { r = await api('GET', 'admin/finanzas'); } catch (e) { cont.innerHTML = `<p class="error">${esc(e.message)}</p>`; return; }
   if (E.vista !== 'finanzas') return;
-  const t = r.total;
+  const t = r.total; E.cobrosLista = r.creditos;
   const enlaces = await api('GET', 'admin/finanzas/enlaces').catch(() => ({ configurado: false, enlaces: {} }));
   if (E.vista !== 'finanzas') return;
   const hoja = r.hoja_url ? `<a class="boton" href="${esc(r.hoja_url)}" target="_blank" rel="noopener noreferrer">Abrir la hoja de Google</a>` : '<p class="suave">La hoja de Google todavía no está conectada.</p>';
@@ -420,13 +482,22 @@ async function cargarFinanzas() {
     <div class="fin-tarjetas">
       <div class="fin-tarjeta"><span>Invertido</span><b>${dinero(t.invertido)}</b><small>en stock local comprado</small></div>
       <div class="fin-tarjeta"><span>Vendido</span><b>${dinero(t.ingresos)}</b><small>${t.unidades_vendidas} unidades</small></div>
-      <div class="fin-tarjeta ${t.ganancia < 0 ? 'neg' : 'pos'}"><span>Ganado</span><b>${dinero(t.ganancia)}</b><small>vendido − lo que costó</small></div>
+      <div class="fin-tarjeta ${t.ganancia < 0 ? 'neg' : 'pos'}"><span>Ganancia</span><b>${dinero(t.ganancia)}</b><small>vendido − lo que costó</small></div>
+      <div class="fin-tarjeta"><span>Gastos</span><b>${dinero(t.gastos)}</b><small>bus, envío, empaque…</small></div>
+      <div class="fin-tarjeta ${t.neta < 0 ? 'neg' : 'pos'}"><span>Ganancia neta</span><b>${dinero(t.neta)}</b><small>ganancia − gastos</small></div>
+      <div class="fin-tarjeta ${r.cobros.vencidos ? 'neg' : ''}"><span>Por cobrar</span><b>${dinero(r.cobros.por_cobrar)}</b><small>${r.cobros.activos} deuda${r.cobros.activos === 1 ? '' : 's'}${r.cobros.vencidos ? ` · ${r.cobros.vencidos} vencida${r.cobros.vencidos === 1 ? '' : 's'}` : ''}</small></div>
       <div class="fin-tarjeta"><span>Capital en stock local</span><b>${dinero(r.capital_en_stock)}</b><small>${r.unidades_en_stock} unidades${r.retorno_local !== null ? ` · retorno ${r.retorno_local} %` : ''}</small></div>
     </div>
     ${r.sin_costo.length ? `<p class="nota">Hay productos sin costo (${r.sin_costo.map((x) => `${x.n} de ${esc(TIPOS_STOCK[x.tipo_stock])}`).join(', ')}). Sin costo no se puede calcular la ganancia: ponlo al editar el producto.</p>` : ''}
+    <h2 class="fin-t">Por cobrar (deudas)</h2>
+    <p class="suave">Ventas a crédito. Recargo sugerido: <input class="inv-input" id="credito-pct" inputmode="decimal" value="${r.credito_pct}" aria-label="Recargo del crédito en porcentaje"> % sobre el precio de contado. El crédito siempre tiene que costar más que el contado.</p>
+    <ul class="lista" id="fin-creditos">${r.creditos.map((c) => FILA_CREDITO(c)).join('') || '<li class="vacio">No hay deudas pendientes. Para vender a crédito: Inventario → Vendí → «A crédito».</li>'}</ul>
     ${TABLA_FIN('Por periodo', [['Últimos 7 días', r.semana], ['Últimos 30 días', r.mes], ['Todo el tiempo', r.total]])}
     ${TABLA_FIN('Por tipo de stock', r.por_tipo.map((x) => [x.nombre, x]))}
     ${TABLA_FIN('Por categoría', r.por_categoria.map((x) => [x.categoria, x]))}
+    <h2 class="fin-t">Gastos <button type="button" class="boton chico" id="nuevo-gasto">+ Agregar gasto</button></h2>
+    <p class="suave">${r.gastos_por_categoria.map((g) => `${esc(g.nombre)} ${dinero(g.monto)}`).join(' · ') || 'Todavía no hay gastos. Los de cada venta (bus, envío…) se anotan al registrar «Vendí».'}</p>
+    <ul class="lista">${r.gastos_recientes.map((g) => `<li class="fila sin-foto-miniatura ${g.anulado ? 'apagada' : ''}"><div class="fila-texto"><div class="fila-nombre">${esc(g.concepto)}</div><div class="fila-meta"><span>${fechaHN(g.fecha)}</span><span class="etiqueta">${esc(g.nombre_categoria)}</span><span class="precio">${dinero(g.monto)}</span>${g.movimiento_id ? '<span>de una venta</span>' : ''}${g.anulado ? '<span class="etiqueta mal">Anulado</span>' : ''}</div></div>${g.anulado || g.movimiento_id ? '' : `<div class="fila-acciones"><button type="button" class="boton suave peligro chico" data-gasto-anular="${g.id}">Anular</button></div>`}</li>`).join('')}</ul>
     <h2 class="fin-t">Movimientos recientes</h2>
     <ul class="lista" id="fin-recientes">${r.recientes.map((m) => `<li class="fila sin-foto-miniatura ${m.anulado ? 'apagada' : ''}"><div class="fila-texto"><div class="fila-nombre">${m.tipo === 'venta' ? 'Venta' : 'Compra'} · ${esc(m.producto_nombre)}</div><div class="fila-meta"><span>${fechaHN(m.fecha)}</span><span>${m.cantidad} × ${dinero(m.tipo === 'venta' ? m.precio_unit : m.costo_unit)}</span><span class="precio">${dinero(m.total)}</span><span class="etiqueta">${esc(TIPOS_STOCK[m.tipo_stock])}</span>${m.anulado ? '<span class="etiqueta mal">Anulado</span>' : ''}${m.nota ? `<span>${esc(m.nota)}</span>` : ''}</div></div>${m.anulado ? '' : `<div class="fila-acciones"><button type="button" class="boton suave peligro chico" data-anular="${m.id}">Anular</button></div>`}</li>`).join('') || '<li class="vacio">Aún no hay movimientos. Registra una venta o una compra desde la pestaña Inventario.</li>'}</ul>
     <h2 class="fin-t">Hoja de Google</h2>
@@ -437,7 +508,42 @@ async function cargarFinanzas() {
       <p class="suave">No los compartas: quien tenga estos enlaces ve tus costos y ganancias.</p>
     </details>`;
 }
+const fa = () => $('#form-abono'), fg = () => $('#form-gasto');
+function abrirAbono(c) {
+  E.abonando = c; fa().reset();
+  $('#dlg-abono-t').textContent = `Abono de ${c.cliente}`;
+  $('#abono-detalle').textContent = `${c.producto_nombre} · debe ${dinero(c.saldo)} de ${dinero(c.total)}${c.vencido ? ` · ya debería haber pagado ${dinero(c.monto_vencido)}` : ''}`;
+  fa().monto.value = Math.min(c.saldo, c.monto_vencido > 0 ? c.monto_vencido : c.cuota_monto);
+  mostrarError('#error-abono'); $('#dlg-abono').showModal();
+}
+fa().addEventListener('submit', async (ev) => {
+  ev.preventDefault(); const c = E.abonando, b = $('#abono-guardar'); b.disabled = true; mostrarError('#error-abono');
+  try {
+    const r = await api('POST', `admin/creditos/${c.id}/abonos`, { monto: fa().monto.value.trim(), nota: fa().nota.value });
+    $('#dlg-abono').close(); await cargar(); cargarAlertas();
+    avisar(r.pagado ? `🎉 ¡${c.cliente} terminó de pagar! Ya no debe nada.` : `Abono registrado. ${c.cliente} debe ${dinero(r.saldo)}.`);
+  } catch (e) { mostrarError('#error-abono', e.message); }
+  b.disabled = false;
+});
+fg().addEventListener('submit', async (ev) => {
+  ev.preventDefault(); const f = fg(), b = $('#gasto-guardar'); b.disabled = true; mostrarError('#error-gasto');
+  try { await api('POST', 'admin/gastos', { concepto: f.concepto.value, categoria: f.categoria.value, monto: f.monto.value.trim() }); $('#dlg-gasto').close(); await cargar(); avisar('Gasto agregado.'); }
+  catch (e) { mostrarError('#error-gasto', e.message); }
+  b.disabled = false;
+});
+$('#fin-contenido').addEventListener('change', async (ev) => {
+  if (ev.target.id !== 'credito-pct') return;
+  try { await api('PUT', 'admin/finanzas/config', { credito_pct: ev.target.value.trim() }); E.creditoPct = Number(ev.target.value); avisar('Recargo guardado.'); } catch (e) { avisar(e.message, true); await cargar(); }
+});
 $('#fin-contenido').addEventListener('click', async (ev) => {
+  const g = (a) => ev.target.closest(`[${a}]`)?.getAttribute(a);
+  try {
+    if (ev.target.closest('#nuevo-gasto')) { fg().reset(); mostrarError('#error-gasto'); return void $('#dlg-gasto').showModal(); }
+    if (g('data-abonar')) return abrirAbono(E.cobrosLista.find((c) => String(c.id) === g('data-abonar')));
+    if (g('data-abono-anular')) { if (await confirmar('Anular abono', 'El abono deja de contar y la deuda vuelve a subir.', 'Anular abono')) { await api('DELETE', `admin/abonos/${g('data-abono-anular')}`); await cargar(); cargarAlertas(); } return; }
+    if (g('data-credito-anular')) { if (await confirmar('Anular deuda', 'Se anula la venta a crédito y el producto vuelve a tu inventario. Solo se puede si no tiene abonos.', 'Anular deuda')) { await api('DELETE', `admin/creditos/${g('data-credito-anular')}`); await cargar(); cargarAlertas(); } return; }
+    if (g('data-gasto-anular')) { if (await confirmar('Anular gasto', 'Deja de restarse de la ganancia.', 'Anular gasto')) { await api('DELETE', `admin/gastos/${g('data-gasto-anular')}`); await cargar(); } return; }
+  } catch (e) { avisar(e.message, true); }
   const b = ev.target.closest('[data-anular]'); if (!b) return;
   if (!(await confirmar('Anular movimiento', 'Se marca como anulado y las unidades vuelven a su lugar. No cuenta en los totales.', 'Anular'))) return;
   try { await api('DELETE', `admin/movimientos/${b.dataset.anular}`); await cargar(); avisar('Movimiento anulado.'); } catch (e) { avisar(e.message, true); }
