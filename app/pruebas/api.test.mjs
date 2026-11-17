@@ -645,7 +645,7 @@ test('gastos, crédito y abonos: el crédito cuesta más que el contado, se avis
   assert.equal((await llamar('PUT', '/api/admin/finanzas/config', { credito_pct: 900 })).estado, 400);
   await llamar('PUT', '/api/admin/finanzas/config', { credito_pct: 20 });
   // hojas
-  for (const hoja of ['gastos', 'creditos', 'lotes']) assert.equal((await fetch(`${URL_BASE}/api/finanzas/csv/${hoja}?clave=${FINANZAS_TOKEN}`)).status, 200, hoja);
+  for (const hoja of ['gastos', 'creditos', 'lotes', 'local1', 'local2']) assert.equal((await fetch(`${URL_BASE}/api/finanzas/csv/${hoja}?clave=${FINANZAS_TOKEN}`)).status, 200, hoja);
   assert.equal((await llamar('GET', '/api/admin/creditos', undefined, { conSesion: false })).estado, 401);
   await llamar('DELETE', `/api/admin/productos/${producto}`); await llamar('DELETE', `/api/admin/productos/${producto}?definitivo=1`);
 });
@@ -664,6 +664,16 @@ test('stock local 1 (sin inversión) y local 2 (con inversión): el contador sum
   assert.equal((await admin()).productos.find((p) => p.id === L1.datos.id).costo, 0);
   assert.equal((await crear({ nombre: 'x', tipo_stock: 'local1', lote_id: lote, precio: 1 })).estado, 400, 'el lote es solo de stock local 2');
   assert.equal((await llamar('POST', '/api/admin/movimientos', { tipo: 'compra', producto_id: L1.datos.id, cantidad: 1, costo: 5 })).estado, 400, 'local 1 no tiene compras');
+  // hojas propias: stock local 2 (privado por defecto) y stock local 1
+  const hoja = async (h) => (await (await fetch(`${URL_BASE}/api/finanzas/csv/${h}?clave=${FINANZAS_TOKEN}`)).text()).split('\n');
+  const l2 = (await hoja('local2')).find((f) => f.includes('New Balance'));
+  assert.ok(l2 && l2.includes('Privado') && l2.includes('1200') && l2.includes('Drop') === false || l2.includes('Contador'), 'local 2: producto con su lote y «Privado»');
+  const colsL2 = l2.split(',');
+  assert.equal(colsL2[4], '20'); // en stock
+  assert.equal(Number(colsL2[8]) > 0, true); // costo repartido del lote
+  const l1 = (await hoja('local1')).find((f) => f.includes('Lo que ya tenía'));
+  assert.ok(l1 && l1.includes('Visible') && l1.split(',')[8] === '0', 'local 1: costo 0 y visible');
+  assert.ok(!(await hoja('local2')).some((f) => f.includes('Lo que ya tenía')), 'cada hoja solo tiene lo suyo');
   let c = await cont();
   const d = (campo) => Math.round((c[campo] - antes[campo]) * 100) / 100;
   assert.deepEqual([d('valor_en_stock'), c.local1.valor - antes.local1.valor, c.local2.valor - antes.local2.valor], [43000, 3000, 40000]);

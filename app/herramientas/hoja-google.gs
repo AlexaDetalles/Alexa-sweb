@@ -12,7 +12,7 @@
  *  Listo: desde ahí se actualiza sola cada minuto.
  */
 const BASE = 'https://alexashop.cc/api/finanzas/csv/';
-const PESTANAS = [['productos', 'Productos'], ['movimientos', 'Movimientos'], ['gastos', 'Gastos'], ['creditos', 'Deudas'], ['lotes', 'Lotes']];
+const PESTANAS = [['local2', 'Stock local 2'], ['local1', 'Stock local 1'], ['productos', 'Productos'], ['movimientos', 'Movimientos'], ['gastos', 'Gastos'], ['creditos', 'Deudas'], ['lotes', 'Lotes']];
 
 function actualizar() {
   const clave = PropertiesService.getScriptProperties().getProperty('FINANZAS_TOKEN');

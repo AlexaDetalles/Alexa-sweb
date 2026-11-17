@@ -250,7 +250,28 @@ async function hojaLotes(env) {
   return csv([['Nº', 'Lote', 'Inversión (L)', 'Meta de ventas (L)', 'Valor a tus precios (L)', 'Ganancia estimada (L)', 'Margen estimado (%)', 'Falta para cubrir la inversión (L)', 'Falta para la meta (L)', 'Vendido de verdad (L)', 'Ganancia real (L)', 'Unidades', 'Completo'],
     ...lotes.map((l) => [l.id, l.nombre, l.inversion, l.meta, l.ventas_estimadas, l.ganancia_estimada, l.margen_estimado ?? '', l.falta_cubrir, l.falta_para_meta, l.vendido.ingresos, l.vendido.ganancia, l.unidades, l.completo ? 'Sí' : 'No'])]);
 }
-const HOJAS = { productos: hojaProductos, movimientos: hojaMovimientos, resumen: hojaResumen, gastos: hojaGastos, creditos: hojaCreditos, lotes: hojaLotes };
+/** Hoja propia de un tipo de stock local (local1 / local2): cada producto con su costo, ganancia y lo vendido. */
+const hojaLocal = (tipo) => async (env) => {
+  const [{ results }, aj] = await Promise.all([
+    env.BD.prepare(`SELECT p.id, p.nombre, coalesce(c.nombre, '') AS categoria, coalesce(l.nombre, '') AS lote, p.cantidad, p.referencia, p.precio, p.cotizar, p.costo, p.visible,
+        coalesce((SELECT sum(m.cantidad) FROM movimientos m WHERE m.producto_id = p.id AND m.tipo = 'venta' AND m.anulado = 0), 0) AS vendidas,
+        coalesce((SELECT sum(m.cantidad * m.precio_unit) FROM movimientos m WHERE m.producto_id = p.id AND m.tipo = 'venta' AND m.anulado = 0), 0) AS vendido
+      FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id LEFT JOIN lotes l ON l.id = p.lote_id
+      WHERE p.borrado_en IS NULL AND p.tipo_stock = ? ORDER BY p.orden, p.nombre`).bind(tipo).all(),
+    env.BD.prepare('SELECT mostrar_local2 FROM ajustes WHERE id = 1').first(),
+  ]);
+  const publico = aj?.mostrar_local2 === 1;
+  return csv([['Referencia', 'Producto', 'Categoría', 'Lote', 'En stock', 'Vendidas', 'Precio de etiqueta (L)', 'Tu precio (L)', 'Costo por unidad (L)', 'Ganancia por unidad (L)', 'Margen (%)',
+      'Valor en stock a tu precio (L)', 'Costo del stock (L)', 'Ganancia si vendes el stock (L)', 'Vendido (L)', 'Ganancia real (L)', 'En la tienda'],
+    ...results.map((p) => {
+      const cant = p.cantidad ?? 1, costo = p.costo ?? 0, precio = p.cotizar ? null : p.precio;
+      const tienda = !p.visible ? 'Oculto' : tipo === 'local2' && !publico ? 'Privado' : 'Visible';
+      return [p.id, p.nombre, p.categoria, p.lote, p.cantidad ?? '', p.vendidas, p.referencia ?? '', precio ?? 'Por cotizar', costo, precio === null ? '' : dinero(precio - costo),
+        precio ? Math.round(((precio - costo) / precio) * 1000) / 10 : '', precio === null ? '' : dinero(cant * precio), dinero(cant * costo), precio === null ? '' : dinero(cant * (precio - costo)),
+        dinero(p.vendido), dinero(p.vendido - p.vendidas * costo), tienda];
+    })]);
+};
+const HOJAS = { productos: hojaProductos, local2: hojaLocal('local2'), local1: hojaLocal('local1'), movimientos: hojaMovimientos, resumen: hojaResumen, gastos: hojaGastos, creditos: hojaCreditos, lotes: hojaLotes };
 
 /** GET /api/finanzas/csv/<hoja>?clave=…  Solo con la clave secreta FINANZAS_TOKEN; sin ella la ruta ni existe. */
 export async function hojaCsv(env, hoja, clave) {

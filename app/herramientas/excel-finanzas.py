@@ -25,6 +25,8 @@ if not TOKEN:
 VINO, VINO_CLARO, CREMA, ORO = '7A2E3A', 'F3E6E4', 'FBF7F2', 'C9A24B'
 MONEDA = '"L" #,##0.00'
 DATOS = [  # pestaña, hoja CSV, columnas de dinero, columnas de enteros, anchos
+    ('Stock local 2', 'local2', 'GHIJLMNOP', 'EF', [13, 38, 20, 22, 9, 9, 14, 13, 14, 14, 10, 18, 15, 18, 13, 14, 12]),
+    ('Stock local 1', 'local1', 'GHIJLMNOP', 'EF', [13, 38, 20, 22, 9, 9, 14, 13, 14, 14, 10, 18, 15, 18, 13, 14, 12]),
     ('Productos', 'productos', 'EFGIMN', 'H', [13, 40, 20, 15, 12, 12, 12, 10, 16, 9, 7, 22, 16, 18]),
     ('Movimientos', 'movimientos', 'HIJK', 'G', [7, 17, 10, 13, 38, 15, 10, 15, 14, 14, 14, 24, 9]),
     ('Gastos', 'gastos', 'E', '', [7, 17, 32, 12, 13, 9, 24, 9]),
@@ -85,6 +87,15 @@ deudas.conditional_formatting.add('N2:N5000', CellIsRule(operator='equal', formu
 mov.conditional_formatting.add('A2:M5000', FormulaRule(formula=['$M2="Sí"'], font=Font(color='999999', strike=True)))
 wb['Gastos'].conditional_formatting.add('A2:H5000', FormulaRule(formula=['$H2="Sí"'], font=Font(color='999999', strike=True)))
 lotes.conditional_formatting.add('H2:H500', CellIsRule(operator='equal', formula=['0'], fill=verde))
+ambar = PatternFill('solid', bgColor='F6EBD5', fgColor='F6EBD5')
+for hoja_local in ('Stock local 1', 'Stock local 2'):
+    wl = wb[hoja_local]
+    wl.conditional_formatting.add('Q2:Q5000', CellIsRule(operator='equal', formula=['"Privado"'], fill=ambar, font=Font(bold=True, color='8A6A12')))
+    wl.conditional_formatting.add('Q2:Q5000', CellIsRule(operator='equal', formula=['"Visible"'], fill=verde))
+    wl.conditional_formatting.add('E2:E5000', CellIsRule(operator='equal', formula=['0'], font=Font(bold=True, color='9B2C2C')))
+    for fila_k in wl.iter_rows(min_row=2, min_col=11, max_col=11):
+        for c in fila_k:
+            c.number_format = '0.0'
 
 # ---------------- PANEL (todo fórmulas) ----------------
 P, M, G, D, L = "Productos", "Movimientos", "Gastos", "Deudas", "Lotes"
@@ -144,6 +155,24 @@ linea('subida', 'Subida de precios necesaria para la meta', f"=IF(AND({refs['tot
 linea('ganancia_todo', 'Ganancia si vendes todo', f"={refs['total_local']}-{refs['inversion']}", 'Valor total − inversión', fuerte=True)
 linea('margen_todo', 'Margen si vendes todo', f"=IFERROR({refs['ganancia_todo']}/{refs['inversion']},0)", formato='0.0%')
 linea('falta_recuperar', 'Falta por VENDER para recuperar la inversión', f"=MAX(0,{refs['inversion']}-{refs['vend_local']})", 'Lo ya vendido del stock local frente a lo invertido')
+espacio()
+def bloque_local(titulo, hoja, completo):
+    seccion(titulo)
+    h = f"'{hoja}'"
+    rg = lambda col: f"{h}!${col}$2:${col}${R}"
+    linea('p_' + hoja, 'Productos', f'=COUNTA({rg("A")})', formato='0')
+    linea('u_' + hoja, 'Unidades en stock', f'=SUM({rg("E")})', formato='#,##0')
+    linea('v_' + hoja, 'Valor en stock a tus precios', f'=SUM({rg("L")})')
+    if completo:
+        linea('c_' + hoja, 'Costo repartido del stock', f'=SUM({rg("M")})', 'La inversión repartida según el precio de cada producto')
+        linea('g_' + hoja, 'Ganancia si vendes el stock', f'=SUM({rg("N")})', fuerte=True)
+        linea('m_' + hoja, 'Margen', f"=IFERROR({refs['g_' + hoja]}/{refs['v_' + hoja]},0)", formato='0.0%')
+    linea('vd_' + hoja, 'Ya vendido', f'=SUM({rg("O")})')
+    linea('gr_' + hoja, 'Ganancia real de lo vendido', f'=SUM({rg("P")})')
+    linea('pr_' + hoja, 'Productos privados (no salen en la tienda)', f'=COUNTIF({rg("Q")},"Privado")', formato='0')
+bloque_local('STOCK LOCAL 2 (CON INVERSIÓN)', 'Stock local 2', True)
+espacio()
+bloque_local('STOCK LOCAL 1 (SIN INVERSIÓN)', 'Stock local 1', True)
 espacio()
 seccion('VENTAS Y GANANCIA')
 linea('vendido', 'Vendido', '=' + sm('J', ('C', '"Venta"'), ('M', '"<>Sí"')), 'Las ventas a crédito cuentan por el total del crédito')
