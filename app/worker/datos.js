@@ -3,7 +3,7 @@ import { falla, json, fechaSql, diaHonduras, hayExistencias } from './util.js';
 import { exigirSesion, exigirPermiso, rutasUsuarios } from './auth.js';
 import * as V from './validacion.js';
 import { actividad, limpiarEstadisticas } from './estadisticas.js';
-import { crearMovimiento, anularMovimiento, resumen, enlacesHoja } from './finanzas.js';
+import { crearMovimiento, anularMovimiento, resumen, enlacesHoja, contadorStock } from './finanzas.js';
 import { crearGasto, anularGasto, listarCreditos, resumenCobros, abonar, anularAbono } from './creditos.js';
 import { crearPublicacion, listarPublicaciones, reintentarPublicacion, cancelarPublicacion } from './social.js';
 import { sitio } from './correo.js';
@@ -227,6 +227,7 @@ async function crearProducto(env, d) {
   await revisarCategoria(env, p.categoria_id);
   const id = p.id || await referenciaLibre(env, p.categoria_id);
   const orden = p.orden ?? ((await env.BD.prepare('SELECT coalesce(max(orden), 0) + 10 AS n FROM productos').first()).n);
+  if (p.tipo_stock === 'local1') p.costo = 0; // sin inversión: toda la venta es ganancia
   if (p.lote_id) {
     await revisarLote(env, p.lote_id, p.tipo_stock ?? 'aparte');
     p.lote_cantidad ??= p.cantidad ?? 1;
@@ -243,7 +244,7 @@ async function crearProducto(env, d) {
 /** Un producto de un lote tiene que ser «Stock local» (es lo que se compró) y el lote tiene que existir. */
 async function revisarLote(env, loteId, tipoStock) {
   if (!(await env.BD.prepare('SELECT 1 FROM lotes WHERE id = ?').bind(loteId).first())) falla(400, 'Ese lote ya no existe.');
-  if (tipoStock !== 'local') falla(400, 'Los productos de un lote deben ser «Stock local».');
+  if (tipoStock !== 'local2') falla(400, 'Los productos de un lote deben ser «Stock local 2» (los que se compraron con inversión).');
 }
 
 async function cambiarProducto(env, id, d) {
@@ -251,7 +252,10 @@ async function cambiarProducto(env, id, d) {
   if ('categoria_id' in p) await revisarCategoria(env, p.categoria_id);
   const antes = await env.BD.prepare('SELECT imagen_url, lote_id, lote_cantidad, cantidad, tipo_stock FROM productos WHERE id = ?').bind(id).first();
   if (!antes) falla(404, 'El producto ya no existe.');
-  const loteNuevo = 'lote_id' in p ? p.lote_id : antes.lote_id;
+  let loteNuevo = 'lote_id' in p ? p.lote_id : antes.lote_id;
+  const tipoFinal = p.tipo_stock ?? antes.tipo_stock;
+  if (tipoFinal === 'local1') p.costo = 0;
+  if (loteNuevo && tipoFinal !== 'local2' && !('lote_id' in p && p.lote_id)) { p.lote_id = null; loteNuevo = null; } // al dejar de ser «local 2» sale del lote
   if (loteNuevo) {
     await revisarLote(env, loteNuevo, p.tipo_stock ?? antes.tipo_stock);
     if (antes.lote_cantidad === null && !('lote_cantidad' in p)) { // entra al lote: sus unidades actuales son las compradas
@@ -415,7 +419,7 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
   // Finanzas: ver los números (inversión, ganancia, costos) es solo de administradora; registrar compras y ventas lo puede quien lleva el catálogo.
   if (m === 'GET' && recurso === 'finanzas') {
     exigirPermiso(s, 'finanzas');
-    return id === 'enlaces' ? enlacesHoja(env, sitio(env)) : resumen(env);
+    return id === 'enlaces' ? enlacesHoja(env, sitio(env)) : id === 'contador' ? json(await contadorStock(env)) : resumen(env);
   }
   if (m === 'GET' && recurso === 'creditos') {
     exigirPermiso(s, 'finanzas');

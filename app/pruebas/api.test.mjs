@@ -489,7 +489,7 @@ test('cantidades: se agota solo al llegar a 0, avisa si quedan pocas y se puede 
 
 test('finanzas: stock local (compra = inversión), stock aparte (sin inversión) y sin stock', async () => {
   const crear = async (extra) => (await llamar('POST', '/api/admin/productos', { nombre: 'Prueba finanzas', categoria_id: 'MP', visible: 1, disponible: 1, ...extra })).datos.id;
-  const local = await crear({ tipo_stock: 'local', costo: 100, precio: 150 });
+  const local = await crear({ tipo_stock: 'local2', costo: 100, precio: 150 });
   const aparte = await crear({ tipo_stock: 'aparte', costo: 80, precio: 120 });
   const sin = await crear({ tipo_stock: 'sin', costo: 50, precio: 90 });
   const antes = (await llamar('GET', '/api/admin/finanzas')).datos;
@@ -527,7 +527,7 @@ test('finanzas: stock local (compra = inversión), stock aparte (sin inversión)
     assert.ok((await resp.text()).length > 40, hoja);
   }
   const prods = await (await fetch(`${URL_BASE}/api/finanzas/csv/productos?clave=${FINANZAS_TOKEN}`)).text();
-  assert.ok(prods.includes('Stock local') && prods.includes('Stock aparte') && prods.includes('Sin stock'));
+  assert.ok(prods.includes('Stock local 2') && prods.includes('Stock aparte') && prods.includes('Sin stock'));
   assert.ok((await llamar('GET', '/api/admin/finanzas/enlaces')).datos.enlaces.resumen.includes('/api/finanzas/csv/resumen?clave='));
   assert.equal((await llamar('GET', '/api/admin/finanzas', undefined, { conSesion: false })).estado, 401);
   for (const id of [local, aparte, sin]) { await llamar('DELETE', `/api/admin/productos/${id}`); await llamar('DELETE', `/api/admin/productos/${id}?definitivo=1`); }
@@ -541,7 +541,7 @@ test('lotes: la inversión se reparte por precio de etiqueta, el precio lo pones
   assert.equal((await llamar('GET', `/api/admin/lotes/${sinMeta.datos.id}`)).datos.meta, 1800);
   await llamar('DELETE', `/api/admin/lotes/${sinMeta.datos.id}`);
   const lote = (await llamar('POST', '/api/admin/lotes', { nombre: 'Drop de prueba', inversion: 45000, meta: 80000 })).datos.id;
-  const crear = async (extra) => (await llamar('POST', '/api/admin/productos', { categoria_id: 'RPM', visible: 1, disponible: 1, tipo_stock: 'local', lote_id: lote, ...extra }));
+  const crear = async (extra) => (await llamar('POST', '/api/admin/productos', { categoria_id: 'RPM', visible: 1, disponible: 1, tipo_stock: 'local2', lote_id: lote, ...extra }));
   assert.equal((await crear({ nombre: 'No local', precio: 1, tipo_stock: 'aparte' })).estado, 400, 'un lote solo lleva stock local');
   const A = (await crear({ nombre: 'Tenis lote', precio: 800, referencia: 800, cantidad: 50 })).datos.id;
   const B = (await crear({ nombre: 'Camiseta lote', precio: 400, referencia: 400, cantidad: 100 })).datos.id;
@@ -583,7 +583,7 @@ test('lotes: la inversión se reparte por precio de etiqueta, el precio lo pones
 test('gastos, crédito y abonos: el crédito cuesta más que el contado, se avisa al pagar y todo entra a finanzas', async () => {
   const mov = (cuerpo) => llamar('POST', '/api/admin/movimientos', cuerpo);
   const fin = async () => (await llamar('GET', '/api/admin/finanzas')).datos;
-  const producto = (await llamar('POST', '/api/admin/productos', { nombre: 'Tenis a crédito', categoria_id: 'CHM', precio: 1000, costo: 500, tipo_stock: 'local', cantidad: 5, visible: 1, disponible: 1 })).datos.id;
+  const producto = (await llamar('POST', '/api/admin/productos', { nombre: 'Tenis a crédito', categoria_id: 'CHM', precio: 1000, costo: 500, tipo_stock: 'local2', cantidad: 5, visible: 1, disponible: 1 })).datos.id;
   const antes = await fin();
   const credito = (extra = {}) => ({ tipo: 'venta', producto_id: producto, cantidad: 1, credito: { cliente: 'Ana Pérez', telefono: '9999 8888', cuotas: 2, cuota: 600, ...extra } });
   // reglas: igual o mejor que el contado no se acepta, y la venta no se queda a medias
@@ -648,6 +648,45 @@ test('gastos, crédito y abonos: el crédito cuesta más que el contado, se avis
   for (const hoja of ['gastos', 'creditos']) assert.equal((await fetch(`${URL_BASE}/api/finanzas/csv/${hoja}?clave=${FINANZAS_TOKEN}`)).status, 200, hoja);
   assert.equal((await llamar('GET', '/api/admin/creditos', undefined, { conSesion: false })).estado, 401);
   await llamar('DELETE', `/api/admin/productos/${producto}`); await llamar('DELETE', `/api/admin/productos/${producto}?definitivo=1`);
+});
+
+test('stock local 1 (sin inversión) y local 2 (con inversión): el contador suma lo cargado y dice cuánto falta', async () => {
+  const cont = async () => (await llamar('GET', '/api/admin/finanzas/contador')).datos;
+  const antes = await cont();
+  const lote = (await llamar('POST', '/api/admin/lotes', { nombre: 'Contador', inversion: 45000, meta: 80000 })).datos.id;
+  const crear = (extra) => llamar('POST', '/api/admin/productos', { categoria_id: 'RPM', visible: 1, disponible: 1, ...extra });
+  // los productos solo con precio (sin saber el costo): el costo se reparte del lote
+  const A = (await crear({ nombre: 'New Balance', tipo_stock: 'local2', lote_id: lote, precio: 1200, cantidad: 20 })).datos.id;    // 24,000
+  const B = (await crear({ nombre: 'Camiseta', tipo_stock: 'local2', lote_id: lote, precio: 400, cantidad: 40 })).datos.id;        // 16,000
+  // stock local 1: sin inversión, su costo siempre es 0 aunque se escriba otro
+  const L1 = await crear({ nombre: 'Lo que ya tenía', tipo_stock: 'local1', precio: 300, costo: 999, cantidad: 10 });            // 3,000
+  assert.equal(L1.estado, 201);
+  assert.equal((await admin()).productos.find((p) => p.id === L1.datos.id).costo, 0);
+  assert.equal((await crear({ nombre: 'x', tipo_stock: 'local1', lote_id: lote, precio: 1 })).estado, 400, 'el lote es solo de stock local 2');
+  assert.equal((await llamar('POST', '/api/admin/movimientos', { tipo: 'compra', producto_id: L1.datos.id, cantidad: 1, costo: 5 })).estado, 400, 'local 1 no tiene compras');
+  let c = await cont();
+  const d = (campo) => Math.round((c[campo] - antes[campo]) * 100) / 100;
+  assert.deepEqual([d('valor_en_stock'), c.local1.valor - antes.local1.valor, c.local2.valor - antes.local2.valor], [43000, 3000, 40000]);
+  assert.equal(d('inversion'), 45000);
+  assert.ok(c.falta_cubrir >= 0 && c.falta_meta !== null && c.subida_pct >= 0);
+  // al vender una unidad de local 1 toda la venta es ganancia y el contador sigue sumando lo vendido
+  const venta = await llamar('POST', '/api/admin/movimientos', { tipo: 'venta', producto_id: L1.datos.id, cantidad: 2 });
+  assert.equal(venta.estado, 201);
+  const mov = (await llamar('GET', '/api/admin/finanzas')).datos.recientes.find((m) => m.id === venta.datos.id);
+  assert.deepEqual([mov.costo_unit, mov.tipo_stock], [0, 'local1']);
+  const despues = await cont();
+  assert.equal(Math.round((despues.valor_total - c.valor_total) * 100) / 100, 0, 'vender no cambia lo que vale lo cargado');
+  assert.equal(Math.round((despues.vendido - c.vendido) * 100) / 100, 600);
+  assert.equal(despues.falta_recuperar, Math.max(0, Math.round((despues.inversion - despues.vendido) * 100) / 100));
+  // un producto del lote que pasa a local 1 sale del lote
+  await llamar('PUT', `/api/admin/productos/${B}`, { tipo_stock: 'local1' });
+  const lotes = (await llamar('GET', `/api/admin/lotes/${lote}`)).datos;
+  assert.deepEqual(lotes.filas.map((f) => f.id), [A]);
+  assert.equal((await admin()).productos.find((p) => p.id === B).lote_id, null);
+  // el lote muestra cuánto subir si no llegas a la meta
+  assert.ok(lotes.subida_pct > 0 && lotes.falta_cubrir >= 0);
+  await llamar('DELETE', `/api/admin/lotes/${lote}`);
+  for (const id of [A, B, L1.datos.id]) { await llamar('DELETE', `/api/admin/productos/${id}`); await llamar('DELETE', `/api/admin/productos/${id}?definitivo=1`); }
 });
 
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {

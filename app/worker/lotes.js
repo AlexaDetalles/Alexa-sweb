@@ -42,6 +42,8 @@ export function calcularLote(lote, productos) {
     margen_estimado: lote.inversion > 0 ? Math.round(((ventas - lote.inversion) / lote.inversion) * 1000) / 10 : null,
     margen_meta: lote.inversion > 0 ? Math.round(((lote.meta - lote.inversion) / lote.inversion) * 1000) / 10 : null,
     falta_para_meta: redondeo(Math.max(0, lote.meta - ventas)),
+    falta_cubrir: redondeo(Math.max(0, lote.inversion - ventas)),   // cuánto más en productos (a tus precios) para cubrir lo invertido
+    subida_pct: ventas > 0 && ventas < lote.meta ? Math.round((lote.meta / ventas - 1) * 1000) / 10 : 0, // cuánto tendrían que subir tus precios para llegar a la meta
   };
 }
 
@@ -64,7 +66,8 @@ export async function detalleLote(env, id) {
   const { results } = await env.BD.prepare(PRODUCTOS_DEL_LOTE).bind(lote.id).all();
   const vendido = await env.BD.prepare(`SELECT coalesce(sum(m.cantidad * m.precio_unit), 0) AS ingresos, coalesce(sum(m.cantidad * (m.precio_unit - m.costo_unit)), 0) AS ganancia, coalesce(sum(m.cantidad), 0) AS unidades
     FROM movimientos m JOIN productos p ON p.id = m.producto_id WHERE m.tipo = 'venta' AND m.anulado = 0 AND p.lote_id = ?`).bind(lote.id).first();
-  return { ...lote, completo: !!lote.completo, ...calcularLote(lote, results), vendido: { ingresos: redondeo(vendido.ingresos), ganancia: redondeo(vendido.ganancia), unidades: vendido.unidades } };
+  const ingresos = redondeo(vendido.ingresos);
+  return { ...lote, completo: !!lote.completo, ...calcularLote(lote, results), vendido: { ingresos, ganancia: redondeo(vendido.ganancia), unidades: vendido.unidades }, falta_recuperar: redondeo(Math.max(0, lote.inversion - ingresos)) };
 }
 
 export async function listarLotes(env) {

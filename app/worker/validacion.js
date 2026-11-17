@@ -62,7 +62,7 @@ export function producto(d, crear = false) {
   }
   if ('costo' in d) r.costo = numero(d.costo, 'Costo', { nulo: true });
   if ('tipo_stock' in d) {
-    if (!['aparte', 'local', 'sin'].includes(d.tipo_stock)) falla(400, 'Tipo de stock: elige stock aparte, stock local o sin stock.');
+    if (!['aparte', 'local1', 'local2', 'sin'].includes(d.tipo_stock)) falla(400, 'Tipo de stock: elige stock aparte, stock local 1, stock local 2 o sin stock.');
     r.tipo_stock = d.tipo_stock;
   }
   if ('cantidad' in d) r.cantidad = d.cantidad === null || d.cantidad === '' ? null : entero(d.cantidad, 'Cantidad');

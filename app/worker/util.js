@@ -65,3 +65,7 @@ export const diaHonduras = (ms = Date.now()) => new Date(ms - 6 * 3600 * 1000).t
 
 /** Un producto se puede pedir si está marcado «Hay» y, cuando se lleva el control, le quedan unidades. */
 export const hayExistencias = (p) => !!p.disponible && p.tipo_stock !== 'sin' && (p.cantidad === null || p.cantidad === undefined || p.cantidad > 0);
+
+/** Tipos de stock: aparte = dropshipping; local1 = lo tienes y no tiene inversión (costo 0); local2 = comprado con inversión (lote); sin = sin stock. */
+export const TIPOS_STOCK = { aparte: 'Stock aparte', local1: 'Stock local 1', local2: 'Stock local 2', sin: 'Sin stock' };
+export const esLocal = (t) => t === 'local1' || t === 'local2';
