@@ -16,13 +16,14 @@ const precio = (raw) => { const n = Number(String(raw).replace(/,/g, '')); retur
 
 // Categorías: la tienda las tenía escritas en el código (GROUPS); ahora son filas editables desde el panel.
 const CATEGORIAS = [
-  ['PERFUMES', 'Perfumes', null, 10, 1], ['ACCESORIOS', 'Accesorios', null, 20, 1], ['REGALOS', 'Regalos prearmados', null, 30, 1], ['CALZADO', 'Calzado', null, 40, 0],
+  ['PERFUMES', 'Perfumes', null, 10, 1], ['ACCESORIOS', 'Accesorios', null, 20, 1], ['REGALOS', 'Regalos prearmados', null, 30, 1], ['CALZADO', 'Tenis', null, 40, 1], ['ROPA', 'Ropa', null, 35, 1],
   ['HP', 'Perfumes para él', 'PERFUMES', 11, 1], ['MP', 'Perfumes para ella', 'PERFUMES', 12, 1],
   ['PHP', 'Premium para él', 'PERFUMES', 13, 1], ['PMP', 'Premium para ella', 'PERFUMES', 14, 1],
   ['JYA', 'Joyería', 'ACCESORIOS', 21, 1], ['RLA', 'Relojes', 'ACCESORIOS', 22, 1], ['CTA', 'Carteras', 'ACCESORIOS', 23, 1],
   ['PAG', 'Regalos para ella', 'REGALOS', 31, 1], ['PAGH', 'Regalos para él', 'REGALOS', 32, 1],
-  // Calzado estaba en la hoja pero la tienda no lo mostraba: se importa oculto, para activarlo cuando quieras.
-  ['CHM', 'Calzado para él', 'CALZADO', 41, 0], ['CMM', 'Calzado para ella', 'CALZADO', 42, 0],
+  // Calzado pasó a llamarse Tenis y ya es visible; Ropa es una colección nueva (se llena desde el panel).
+  ['CHM', 'Tenis para él', 'CALZADO', 41, 1], ['CMM', 'Tenis para ella', 'CALZADO', 42, 1],
+  ['RPM', 'Ropa para ella', 'ROPA', 36, 1], ['RPH', 'Ropa para él', 'ROPA', 37, 1],
 ];
 const ids = new Set(CATEGORIAS.map((c) => c[0]));
 

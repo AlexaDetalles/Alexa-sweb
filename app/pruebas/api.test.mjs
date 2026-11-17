@@ -58,8 +58,11 @@ test('catálogo público: lo migrado de la hoja, sin lo oculto', async () => {
   assert.equal(estado, 200);
   assert.ok(datos.productos.length >= 100);
   assert.ok(datos.categorias.some((c) => c.id === 'HP' && c.padre_id === 'PERFUMES'));
-  assert.ok(!datos.categorias.some((c) => ['CHM', 'CMM', 'CALZADO'].includes(c.id)), 'el calzado se importó oculto');
-  assert.ok(!datos.productos.some((p) => ['CHM', 'CMM'].includes(p.group)));
+  // Tenis (antes «Calzado») y Ropa son colecciones visibles; nacen sin productos y se llenan desde el panel.
+  const nombre = (id) => datos.categorias.find((c) => c.id === id)?.nombre;
+  assert.deepEqual(['CALZADO', 'CHM', 'CMM', 'ROPA', 'RPM', 'RPH'].map(nombre), ['Tenis', 'Tenis para él', 'Tenis para ella', 'Ropa', 'Ropa para ella', 'Ropa para él']);
+  assert.ok(datos.categorias.some((c) => c.id === 'RPM' && c.padre_id === 'ROPA'));
+  assert.ok(!datos.productos.some((p) => ['CHM', 'CMM', 'RPM', 'RPH'].includes(p.group)));
   assert.equal(datos.asesoras.length, 2);
   const regalo = datos.productos.find((p) => p.id === 'REG-EL-CAFE');
   assert.deepEqual([regalo.quote, regalo.cents], [true, null]);
@@ -433,6 +436,24 @@ test('SEO: el catálogo sale con productos en el HTML y robots deja leer la API 
     assert.ok(desc.length >= 70, `${id}: descripción de ${desc.length}`);
   }
   assert.ok((await pagina('/llms.txt')).includes('Choluteca'));
+});
+
+test('Ropa y Tenis: páginas con su categoría, en el sitemap y producto nuevo visible en su colección', async () => {
+  for (const [ruta, grupo] of [['/ropa/mujer', 'RPM'], ['/ropa/hombre', 'RPH'], ['/tenis/mujer', 'CMM'], ['/tenis/hombre', 'CHM']]) {
+    const r = await fetch(`${URL_BASE}${ruta}`);
+    assert.equal(r.status, 200, ruta);
+    assert.ok((await r.text()).includes(`<body data-groups="${grupo}">`), ruta);
+  }
+  for (const ruta of ['/ropa', '/tenis']) assert.equal((await fetch(`${URL_BASE}${ruta}`)).status, 200, ruta);
+  const sm = await (await fetch(`${URL_BASE}/sitemap.xml`)).text();
+  for (const ruta of ['/ropa', '/ropa/mujer', '/tenis/hombre']) assert.ok(sm.includes(`https://alexashop.cc${ruta}<`), `sitemap sin ${ruta}`);
+  const { estado, datos } = await llamar('POST', '/api/admin/productos', { nombre: 'Jeans negro talla 28', categoria_id: 'RPM', precio: 450, descripcion: 'Prueba', disponible: 1, visible: 1 });
+  assert.equal(estado, 201);
+  assert.equal(datos.id, 'RPM-01');
+  const pagina = await (await fetch(`${URL_BASE}/ropa/mujer`)).text();
+  assert.ok(pagina.includes('Jeans negro talla 28'));
+  assert.ok((await (await fetch(`${URL_BASE}/sitemap.xml`)).text()).includes('/producto/RPM-01<'));
+  await llamar('DELETE', `/api/admin/productos/RPM-01?definitivo=1`);
 });
 
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {

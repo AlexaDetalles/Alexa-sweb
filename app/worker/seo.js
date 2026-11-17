@@ -12,13 +12,15 @@ const recortar = (t, n) => { const s = String(t ?? '').replace(/\s+/g, ' ').trim
 const PAGINA_DE = {
   HP: '/perfumes/hombre', MP: '/perfumes/mujer', PHP: '/perfumes/premium-hombre', PMP: '/perfumes/premium-mujer',
   JYA: '/accesorios/joyeria', RLA: '/accesorios/relojes', CTA: '/accesorios/carteras',
+  RPM: '/ropa/mujer', RPH: '/ropa/hombre', CMM: '/tenis/mujer', CHM: '/tenis/hombre',
   PAG: '/regalos/prearmados/ella', PAGH: '/regalos/prearmados/el',
 };
 const paginaDe = (id) => PAGINA_DE[id] || `/catalogo?categoria=${encodeURIComponent(id)}`;
 
 // Fecha de la última revisión de las páginas fijas (se actualiza cuando cambian sus textos).
-const REVISION_PAGINAS = '2026-11-15';
+const REVISION_PAGINAS = '2026-11-17';
 const ESTATICAS = ['/', '/catalogo', '/perfumes', '/perfumes/hombre', '/perfumes/mujer', '/perfumes/premium', '/perfumes/premium-hombre', '/perfumes/premium-mujer',
+  '/ropa', '/ropa/mujer', '/ropa/hombre', '/tenis', '/tenis/mujer', '/tenis/hombre',
   '/accesorios', '/accesorios/joyeria', '/accesorios/relojes', '/accesorios/carteras', '/regalos', '/regalos/personalizar', '/regalos/personalizar/ella', '/regalos/personalizar/el',
   '/regalos/prearmados', '/regalos/prearmados/ella', '/regalos/prearmados/el', '/contacto', '/condiciones', '/privacidad', '/terminos'];
 

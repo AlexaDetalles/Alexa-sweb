@@ -33,6 +33,7 @@ export function redireccion(ruta) {
 /** Páginas que dejan los productos escritos en el HTML (ver seo.js). */
 export const CON_PRODUCTOS = new Set([
   '/catalogo', '/perfumes', '/perfumes/hombre', '/perfumes/mujer', '/perfumes/premium', '/perfumes/premium-hombre', '/perfumes/premium-mujer',
+  '/ropa', '/ropa/mujer', '/ropa/hombre', '/tenis', '/tenis/mujer', '/tenis/hombre',
   '/accesorios', '/accesorios/joyeria', '/accesorios/relojes', '/accesorios/carteras', '/regalos/prearmados/ella', '/regalos/prearmados/el',
 ]);
 
