@@ -2,7 +2,20 @@
 // Todo ocurre en el navegador con <canvas>: la foto no sale a ningún servicio. Mismo estilo que el carrusel «New Drop»:
 // rojo con degradado, grano de película en toda la lámina y moteado en las letras.
 const ANCHO = 1080, ALTO = 1350, ESCALA = 2;
-const ROJO = ['#ff5a68', '#e63946', '#8b0a14', '#2f0307'];
+/**
+ * Paletas de la lámina. fondo: 4 tonos del degradado (de arriba-izquierda a abajo-derecha); brillo: luz arriba a la izquierda;
+ * texto: degradado de las letras; trazo: contorno del precio; marco: borde de la foto; pildora/pildoraTexto: etiqueta de talla;
+ * suave: textos pequeños; vineta: oscurecimiento de los bordes (0 a 1).
+ */
+export const PALETAS = [
+  { id: 'rojo', nombre: 'Rojo Alexa', fondo: ['#e63946', '#c1121f', '#8b0a14', '#2f0307'], brillo: 'rgba(255,90,104,.85)', luz: 'rgba(255,120,110,.55)', texto: ['#fff', '#fff', '#ffc9c2'], trazo: '#fff', marco: '#f6f2ea', pildora: '#050505', pildoraTexto: '#fff', suave: 'rgba(255,255,255,.8)', vineta: 0.6 },
+  { id: 'dorado', nombre: 'Negro y dorado', fondo: ['#2a2418', '#15120b', '#0a0905', '#030302'], brillo: 'rgba(212,175,55,.5)', luz: 'rgba(212,175,55,.5)', texto: ['#fff3c4', '#e9c75a', '#a8801c'], trazo: '#d4af37', marco: '#efe6cf', pildora: '#d4af37', pildoraTexto: '#0a0905', suave: 'rgba(233,199,90,.85)', vineta: 0.55 },
+  { id: 'rosa', nombre: 'Rosa', fondo: ['#ff8fb1', '#e0457b', '#9c2158', '#3b0a1f'], brillo: 'rgba(255,190,214,.8)', luz: 'rgba(255,160,200,.5)', texto: ['#fff', '#fff', '#ffd6e6'], trazo: '#fff', marco: '#fff7f9', pildora: '#fff', pildoraTexto: '#9c2158', suave: 'rgba(255,255,255,.85)', vineta: 0.45 },
+  { id: 'azul', nombre: 'Azul noche', fondo: ['#4f7cff', '#1f3490', '#0d1850', '#03050f'], brillo: 'rgba(120,160,255,.7)', luz: 'rgba(130,170,255,.5)', texto: ['#fff', '#e6efff', '#a9c4ff'], trazo: '#cfe0ff', marco: '#f2f5fc', pildora: '#fff', pildoraTexto: '#0d1850', suave: 'rgba(214,228,255,.85)', vineta: 0.55 },
+  { id: 'verde', nombre: 'Esmeralda', fondo: ['#2fd08a', '#0f7a4f', '#064430', '#021a12'], brillo: 'rgba(120,255,190,.6)', luz: 'rgba(120,255,190,.45)', texto: ['#fff', '#eafff4', '#aef0cf'], trazo: '#d6ffe9', marco: '#f3faf6', pildora: '#050505', pildoraTexto: '#aef0cf', suave: 'rgba(220,255,238,.85)', vineta: 0.5 },
+  { id: 'crema', nombre: 'Crema', fondo: ['#fbf5ea', '#eddcc0', '#d3b88c', '#b8956a'], brillo: 'rgba(255,255,255,.9)', luz: 'rgba(255,255,255,.0)', texto: ['#7a0b17', '#b11226', '#3a0a0e'], trazo: '#8b0a14', marco: '#ffffff', pildora: '#2a0d0a', pildoraTexto: '#fbf5ea', suave: 'rgba(58,10,14,.75)', vineta: 0.22 },
+];
+export const paletaPorId = (id) => PALETAS.find((p) => p.id === id) || PALETAS[0];
 
 let fuentes = null;
 /** Carga una sola vez las letras de la tienda (están en /assets/fonts; el panel solo permite fuentes propias). */
@@ -64,19 +77,19 @@ function cargarFoto(url) {
 }
 
 /** Texto con degradado blanco→rosado, resplandor suave y moteado de grano (como la tinta de un cartel). */
-function letras(ctx, linea, x, y, tam, familia, { relleno = true } = {}) {
+function letras(ctx, linea, x, y, tam, familia, pal, { relleno = true } = {}) {
   const w = ctx.canvas.width / ESCALA, h = ctx.canvas.height / ESCALA;
   const capa = document.createElement('canvas'); capa.width = w * ESCALA; capa.height = h * ESCALA;
   const c = capa.getContext('2d'); c.scale(ESCALA, ESCALA);
   c.font = `${tam}px ${familia}`; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
   const g = c.createLinearGradient(0, y - tam * 0.8, 0, y);
-  g.addColorStop(0, '#fff'); g.addColorStop(0.45, '#fff'); g.addColorStop(1, '#ffc9c2');
-  c.fillStyle = relleno ? g : 'transparent'; c.strokeStyle = '#fff'; c.lineWidth = relleno ? 0 : 4;
+  g.addColorStop(0, pal.texto[0]); g.addColorStop(0.45, pal.texto[1]); g.addColorStop(1, pal.texto[2]);
+  c.fillStyle = relleno ? g : 'transparent'; c.strokeStyle = pal.trazo; c.lineWidth = relleno ? 0 : 4;
   c.fillText(linea, x, y); if (!relleno) c.strokeText(linea, x, y);
   c.globalCompositeOperation = 'destination-out';
   c.fillStyle = c.createPattern(motas(), 'repeat'); c.setTransform(1, 0, 0, 1, 0, 0); c.fillRect(0, 0, capa.width, capa.height);
   ctx.save();
-  ctx.shadowColor = 'rgba(255,120,110,.55)'; ctx.shadowBlur = 22;
+  ctx.shadowColor = pal.luz; ctx.shadowBlur = 22;
   ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(capa, 0, 0);
   ctx.restore();
 }
@@ -85,7 +98,8 @@ function letras(ctx, linea, x, y, tam, familia, { relleno = true } = {}) {
  * Dibuja la lámina en `canvas`. datos: { fotoUrl, nombre, precio, cotizar, talla }.
  * El canvas queda en 2160×2700; en pantalla se muestra pequeño con CSS.
  */
-export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotizar, talla }) {
+export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotizar, talla, paleta }) {
+  const pal = paletaPorId(paleta);
   await cargarFuentes();
   const foto = await cargarFoto(fotoUrl);
   canvas.width = ANCHO * ESCALA; canvas.height = ALTO * ESCALA;
@@ -94,14 +108,14 @@ export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotiza
 
   // fondo: degradado rojo con brillo arriba a la izquierda y fondo oscuro abajo a la derecha
   let g = ctx.createLinearGradient(ANCHO * 0.2, 0, ANCHO * 0.8, ALTO);
-  g.addColorStop(0, ROJO[1]); g.addColorStop(0.4, '#c1121f'); g.addColorStop(0.75, ROJO[2]); g.addColorStop(1, ROJO[3]);
+  g.addColorStop(0, pal.fondo[0]); g.addColorStop(0.4, pal.fondo[1]); g.addColorStop(0.75, pal.fondo[2]); g.addColorStop(1, pal.fondo[3]);
   ctx.fillStyle = g; ctx.fillRect(0, 0, ANCHO, ALTO);
   g = ctx.createRadialGradient(ANCHO * 0.2, ALTO * 0.08, 0, ANCHO * 0.2, ALTO * 0.08, ANCHO * 0.9);
-  g.addColorStop(0, 'rgba(255,90,104,.85)'); g.addColorStop(1, 'rgba(255,90,104,0)');
+  g.addColorStop(0, pal.brillo); g.addColorStop(1, pal.brillo.replace(/[\d.]+\)$/, '0)'));
   ctx.fillStyle = g; ctx.fillRect(0, 0, ANCHO, ALTO);
 
   // etiqueta superior
-  ctx.fillStyle = 'rgba(255,255,255,.92)'; ctx.font = '700 26px AlexaGrotesk, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillStyle = pal.suave; ctx.font = '700 26px AlexaGrotesk, sans-serif'; ctx.textAlign = 'center';
   ctx.letterSpacing = '12px'; ctx.fillText('NEW IN', ANCHO / 2 + 6, 92); ctx.letterSpacing = '0px';
 
   // foto con marco blanco, un poco girada
@@ -109,7 +123,7 @@ export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotiza
   ctx.save();
   ctx.translate(cx, cy); ctx.rotate((-2.2 * Math.PI) / 180);
   ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 60; ctx.shadowOffsetY = 30;
-  ctx.fillStyle = '#f6f2ea'; ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
+  ctx.fillStyle = pal.marco; ctx.fillRect(-cw / 2, -ch / 2, cw, ch);
   ctx.shadowColor = 'transparent';
   const m = 14, iw = cw - m * 2, ih = ch - m * 2;
   ctx.beginPath(); ctx.rect(-iw / 2, -ih / 2, iw, ih); ctx.clip();
@@ -133,21 +147,21 @@ export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotiza
   const zonaTop = 130 + ch + 20, zonaBase = ALTO - 90;
   let y = zonaTop + Math.max(0, (zonaBase - zonaTop - alto) / 2);
   const fam = 'AlexaAnton, Impact, sans-serif';
-  for (const l of lineas) { y += tam * 0.98; letras(ctx, l, ANCHO / 2, y - tam * 0.08, tam, fam); }
-  if (precioTxt) { y += 34 + tamPrecio * 0.82; letras(ctx, precioTxt, ANCHO / 2, y, tamPrecio, fam, { relleno: false }); }
+  for (const l of lineas) { y += tam * 0.98; letras(ctx, l, ANCHO / 2, y - tam * 0.08, tam, fam, pal); }
+  if (precioTxt) { y += 34 + tamPrecio * 0.82; letras(ctx, precioTxt, ANCHO / 2, y, tamPrecio, fam, pal, { relleno: false }); }
   if (tallaTxt) {
     y += 34;
     ctx.font = '700 32px AlexaGrotesk, sans-serif'; ctx.letterSpacing = '6px';
     const t = `TALLA ${tallaTxt}`, w = ctx.measureText(t).width + 76;
-    ctx.fillStyle = '#050505'; ctx.beginPath(); ctx.roundRect(ANCHO / 2 - w / 2, y, w, 64, 32); ctx.fill();
-    ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(t, ANCHO / 2 + 3, y + 34); ctx.textBaseline = 'alphabetic'; ctx.letterSpacing = '0px';
+    ctx.fillStyle = pal.pildora; ctx.beginPath(); ctx.roundRect(ANCHO / 2 - w / 2, y, w, 64, 32); ctx.fill();
+    ctx.fillStyle = pal.pildoraTexto; ctx.textBaseline = 'middle'; ctx.fillText(t, ANCHO / 2 + 3, y + 34); ctx.textBaseline = 'alphabetic'; ctx.letterSpacing = '0px';
   }
-  ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.font = '700 24px AlexaGrotesk, sans-serif'; ctx.letterSpacing = '8px';
+  ctx.fillStyle = pal.suave; ctx.font = '700 24px AlexaGrotesk, sans-serif'; ctx.letterSpacing = '8px';
   ctx.fillText('TIENDAS ALEXA · @TIENDASALEXA_', ANCHO / 2 + 4, ALTO - 44); ctx.letterSpacing = '0px';
 
   // viñeta y grano de película sobre todo
   g = ctx.createRadialGradient(ANCHO / 2, ALTO / 2, ANCHO * 0.45, ANCHO / 2, ALTO / 2, ANCHO * 0.95);
-  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,.6)');
+  g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${pal.vineta})`);
   ctx.fillStyle = g; ctx.fillRect(0, 0, ANCHO, ALTO);
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = 0.4;
   ctx.fillStyle = ctx.createPattern(grano(), 'repeat'); ctx.fillRect(0, 0, canvas.width, canvas.height);

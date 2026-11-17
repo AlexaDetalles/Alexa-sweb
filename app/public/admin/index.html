@@ -133,6 +133,7 @@
       <div class="barra-marca"><strong>lexa</strong><span>Panel</span></div>
       <nav class="pestanas" id="pestanas" aria-label="Secciones">
         <button type="button" data-ir="productos" aria-current="page">Productos</button>
+        <button type="button" data-ir="inventario" data-requiere="catalogo">Inventario</button>
         <button type="button" data-ir="categorias">Categorías</button>
         <button type="button" data-ir="regalos">Regalos</button>
         <button type="button" data-ir="estadisticas" data-requiere="estadisticas">Estadísticas</button>
@@ -166,6 +167,21 @@
         <p class="nota" id="nota-papelera" hidden>Lo que borras se queda aquí 30 días. Puedes restaurarlo o eliminarlo para siempre.</p>
         <ul class="lista" id="lista-productos"><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li><li class="fila sk-fila" aria-hidden="true"><span class="mini sk"></span><div class="fila-texto"><div class="sk sk-l1"></div><div class="sk sk-l2"></div></div></li></ul>
         <p class="vacio" id="sin-productos" hidden>No hay productos con ese filtro.</p>
+      </section>
+
+      <!-- Inventario: cantidades en existencia -->
+      <section id="sec-inventario" aria-labelledby="t-inventario" hidden>
+        <div class="cabecera">
+          <div><h1 id="t-inventario">Inventario</h1><p id="inv-resumen" class="suave"></p></div>
+        </div>
+        <p class="nota">Escribe cuántas unidades tienes de cada producto. Al llegar a 0 la tienda lo marca «No disponible» sola, y cuando quedan 5 o menos avisa «Últimas unidades». Sin cantidad, el producto sigue con el simple «Hay / Agotado».</p>
+        <div class="herramientas">
+          <label class="campo buscar">Buscar<input type="search" id="inv-buscar" placeholder="Nombre o referencia…" autocomplete="off"></label>
+          <label class="campo">Categoría<select id="inv-categoria"></select></label>
+        </div>
+        <div class="chips" id="inv-chips" role="group" aria-label="Filtrar inventario"></div>
+        <ul class="lista" id="lista-inventario"></ul>
+        <p class="vacio" id="inv-vacio" hidden>No hay productos con ese filtro.</p>
       </section>
 
       <!-- Categorías -->
@@ -294,6 +310,7 @@
           <label class="campo">Precio (L)<input name="precio" inputmode="decimal" placeholder="0.00" autocomplete="off"></label>
           <label class="campo">Referencia<input name="referencia" maxlength="80" placeholder="Se crea sola, ej. HP-22" autocomplete="off"></label>
         </div>
+        <label class="campo">Cantidad en existencia <small>(opcional)</small><input name="cantidad" inputmode="numeric" placeholder="Vacío = sin control de cantidad" autocomplete="off"></label>
         <label class="casilla"><input type="checkbox" name="cotizar"><span>Por cotizar <small>(no tiene precio fijo; se confirma por WhatsApp)</small></span></label>
         <label class="campo">Descripción<textarea name="descripcion" rows="4" maxlength="1200"></textarea></label>
         <div class="interruptores">
@@ -319,6 +336,7 @@
     <div class="dlg-top"><h2 id="dlg-instagram-t">Imagen para Instagram</h2><button type="button" class="icono" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
     <div class="dlg-cuerpo">
       <canvas id="ig-lienzo" class="ig-lienzo" aria-label="Vista previa de la imagen para Instagram"></canvas>
+      <div class="campo"><span>Paleta de colores</span><div class="ig-paletas" id="ig-paletas" role="radiogroup" aria-label="Paleta de colores"></div></div>
       <label class="campo">Talla <small>(opcional)</small><input id="ig-talla" maxlength="14" placeholder="Ej. M, 28 o 9.5" autocomplete="off"></label>
       <p class="suave">Usa la foto, el nombre y el precio que tienes en el producto (aunque aún no lo hayas guardado). Sale lista para publicar: 4:5, 2160×2700.</p>
       <p class="error" id="error-instagram" role="alert" hidden></p>

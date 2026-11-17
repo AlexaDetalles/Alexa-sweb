@@ -1,6 +1,6 @@
 // Panel de administración de Alexa Detalles: productos, categorías, regalos personalizados y ajustes.
 // Sin librerías. Todo lo que viene de la base de datos pasa por esc() antes de llegar al HTML.
-import { dibujarInstagram, nombreArchivo } from '/admin/instagram.js';
+import { dibujarInstagram, nombreArchivo, PALETAS } from '/admin/instagram.js';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -9,7 +9,7 @@ const ico = (id) => `<svg class="ico" aria-hidden="true"><use href="#i-${id}"/><
 const fold = (v) => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios', 'estadisticas'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: ['estadisticas'] };
-const E = { yo: null, usuarios: [], invitaciones: [], roles: {}, cats: [], prods: [], papelera: [], ops: [], pasos: [], regaloCfg: [], ajustes: {}, vista: 'productos', texto: '', cat: '', filtro: 'todos', publico: 'mujer', foto: null, editando: null, opcion: null, categoria: null };
+const E = { invFiltro: 'todos', invTexto: '', invCat: '', yo: null, usuarios: [], invitaciones: [], roles: {}, cats: [], prods: [], papelera: [], ops: [], pasos: [], regaloCfg: [], ajustes: {}, vista: 'productos', texto: '', cat: '', filtro: 'todos', publico: 'mujer', foto: null, editando: null, opcion: null, categoria: null };
 
 // --- avisos, confirmación y llamadas a la API ------------------------------------------
 function avisar(texto, mal = false) {
@@ -159,10 +159,10 @@ async function cargar() {
   Object.assign(E, { cats: d.categorias, prods: d.productos, papelera: d.papelera, ops: d.opciones, pasos: d.pasos, regaloCfg: d.regalo_config, ajustes: d.ajustes });
   pintar();
 }
-const VISTAS = ['productos', 'categorias', 'regalos', 'estadisticas', 'ajustes'];
+const VISTAS = ['productos', 'inventario', 'categorias', 'regalos', 'estadisticas', 'ajustes'];
 function ir(vista) {
   if (vista === 'usuarios') vista = 'ajustes'; // los usuarios viven dentro de Ajustes
-  if (!VISTAS.includes(vista) || (vista === 'estadisticas' && !PERMISOS[E.yo?.rol]?.includes('estadisticas'))) vista = 'productos';
+  if (!VISTAS.includes(vista) || (vista === 'estadisticas' && !PERMISOS[E.yo?.rol]?.includes('estadisticas')) || (vista === 'inventario' && !PERMISOS[E.yo?.rol]?.includes('catalogo'))) vista = 'productos';
   E.vista = vista;
   history.replaceState(null, '', `#${vista}`);
   for (const s of VISTAS) $(`#sec-${s}`).hidden = s !== vista;
@@ -172,6 +172,7 @@ function ir(vista) {
 $('#pestanas').addEventListener('click', (ev) => { const b = ev.target.closest('[data-ir]'); if (b) ir(b.dataset.ir); });
 function pintar() {
   if (E.vista === 'productos') pintarProductos();
+  else if (E.vista === 'inventario') pintarInventario();
   else if (E.vista === 'categorias') pintarCategorias();
   else if (E.vista === 'regalos') pintarRegalos();
   else if (E.vista === 'estadisticas') pintarEstadisticas();
@@ -180,7 +181,10 @@ function pintar() {
 
 // --- productos -------------------------------------------------------------------------
 const miniatura = (p) => (p.imagen_url ? `<img src="${esc(p.imagen_url.startsWith('/fotos/') ? p.imagen_url.replace('-1200.', '-600.') : p.imagen_url)}" alt="" loading="lazy">` : ico('foto'));
-const FILTROS = [['todos', 'Todos', () => true], ['visibles', 'Visibles', (p) => p.visible], ['ocultos', 'Ocultos', (p) => !p.visible], ['agotados', 'Sin existencias', (p) => !p.disponible], ['sinfoto', 'Sin foto', (p) => !p.imagen_url]];
+/** Un producto se vende si está en «Hay» y, cuando se cuenta, le queda alguna unidad. */
+const hay = (p) => p.disponible && (p.cantidad === null || p.cantidad === undefined || p.cantidad > 0);
+const POCAS = 5;
+const FILTROS = [['todos', 'Todos', () => true], ['visibles', 'Visibles', (p) => p.visible], ['ocultos', 'Ocultos', (p) => !p.visible], ['agotados', 'Sin existencias', (p) => !hay(p)], ['sinfoto', 'Sin foto', (p) => !p.imagen_url]];
 function productosFiltrados() {
   if (E.filtro === 'papelera') return E.papelera;
   const t = fold(E.texto.trim()), f = FILTROS.find((x) => x[0] === E.filtro)?.[2] ?? (() => true);
@@ -197,7 +201,8 @@ function pintarProductos() {
   $('#lista-productos').innerHTML = lista.map((p, i) => {
     const etiquetas = [
       !p.visible && '<span class="etiqueta aviso">Oculto</span>',
-      !p.disponible && '<span class="etiqueta mal">Sin existencias</span>',
+      !hay(p) && '<span class="etiqueta mal">Sin existencias</span>',
+      p.cantidad !== null && p.cantidad > 0 && p.cantidad <= POCAS && '<span class="etiqueta aviso">Quedan ' + p.cantidad + '</span>',
       p.cotizar && '<span class="etiqueta">Por cotizar</span>',
       p.visible && !enPapelera && !catVisible(p.categoria_id) && '<span class="etiqueta aviso">Su categoría está oculta</span>',
     ].filter(Boolean).join('');
@@ -236,6 +241,58 @@ $('#lista-productos').addEventListener('click', async (ev) => {
   }
 });
 
+// --- inventario: cantidades en existencia -------------------------------------------------
+const INV_FILTROS = [['todos', 'Todos', () => true], ['control', 'Con cantidad', (p) => p.cantidad !== null], ['sin', 'Sin control', (p) => p.cantidad === null], ['pocas', 'Quedan pocas', (p) => p.cantidad !== null && p.cantidad > 0 && p.cantidad <= POCAS], ['cero', 'Agotados (0)', (p) => p.cantidad === 0]];
+function inventarioFiltrado() {
+  const t = fold(E.invTexto.trim()), f = INV_FILTROS.find((x) => x[0] === E.invFiltro)?.[2] ?? (() => true);
+  return E.prods.filter((p) => f(p) && (!E.invCat || dentroDe(p.categoria_id, E.invCat)) && (!t || fold(`${p.nombre} ${p.id}`).includes(t)));
+}
+function pintarInventario() {
+  const lista = inventarioFiltrado(), controlados = E.prods.filter((p) => p.cantidad !== null);
+  $('#inv-resumen').textContent = `${controlados.length} de ${E.prods.length} con cantidad · ${controlados.reduce((s, p) => s + p.cantidad, 0).toLocaleString('es-HN')} unidades en total`;
+  $('#inv-chips').innerHTML = INV_FILTROS.map(([k, t, f]) => `<button type="button" class="chip" data-invfiltro="${k}" aria-pressed="${E.invFiltro === k}">${t}<b>${E.prods.filter(f).length}</b></button>`).join('');
+  $('#inv-categoria').innerHTML = opcionesCat(E.invCat, { vacia: 'Todas las categorías' });
+  $('#lista-inventario').innerHTML = lista.map((p) => {
+    const etiqueta = p.cantidad === null ? '<span class="etiqueta">Sin control</span>'
+      : p.cantidad === 0 ? '<span class="etiqueta mal">Agotado</span>'
+      : p.cantidad <= POCAS ? '<span class="etiqueta aviso">Quedan pocas</span>' : '';
+    const controles = p.cantidad === null
+      ? `<button type="button" class="boton suave chico" data-inv="controlar" data-id="${esc(p.id)}">Contar unidades</button>`
+      : `<button type="button" class="icono" data-inv="menos" data-id="${esc(p.id)}" aria-label="Quitar una unidad: ${esc(p.nombre)}" ${p.cantidad === 0 ? 'disabled' : ''}>−</button><input class="inv-input" type="number" inputmode="numeric" min="0" max="100000" step="1" value="${p.cantidad}" data-inv-input data-id="${esc(p.id)}" aria-label="Cantidad de ${esc(p.nombre)}"><button type="button" class="icono" data-inv="mas" data-id="${esc(p.id)}" aria-label="Agregar una unidad: ${esc(p.nombre)}">+</button><button type="button" class="boton suave chico" data-inv="dejar" data-id="${esc(p.id)}" title="Dejar de contar las unidades de este producto">Sin control</button>`;
+    return `<li class="fila ${p.visible ? '' : 'apagada'}"><span class="mini">${miniatura(p)}</span><div class="fila-texto"><div class="fila-nombre">${esc(p.nombre)}</div><div class="fila-meta"><span>${esc(p.id)}</span><span>${esc(nombreCat(p.categoria_id))}</span>${etiqueta}${p.visible ? '' : '<span class="etiqueta aviso">Oculto</span>'}</div></div><div class="fila-acciones inv-cant">${controles}</div></li>`;
+  }).join('');
+  $('#inv-vacio').hidden = lista.length > 0;
+}
+$('#inv-buscar').addEventListener('input', (ev) => { E.invTexto = ev.target.value; pintarInventario(); });
+$('#inv-categoria').addEventListener('change', (ev) => { E.invCat = ev.target.value; pintarInventario(); });
+$('#inv-chips').addEventListener('click', (ev) => { const b = ev.target.closest('[data-invfiltro]'); if (b) { E.invFiltro = b.dataset.invfiltro; pintarInventario(); } });
+/** Guarda la cantidad de un producto sin recargar toda la lista (así no se pierde el lugar ni el foco). */
+async function fijarCantidad(id, valor, foco) {
+  const p = E.prods.find((x) => x.id === id); if (!p) return;
+  try {
+    await api('PUT', `admin/productos/${encodeURIComponent(id)}`, { cantidad: valor });
+    p.cantidad = valor;
+  } catch (e) { avisar(e.message, true); }
+  pintarInventario();
+  if (foco) $(`#lista-inventario [${foco}][data-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+}
+$('#lista-inventario').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-inv]'); if (!b) return;
+  const p = E.prods.find((x) => x.id === b.dataset.id); if (!p) return;
+  switch (b.dataset.inv) {
+    case 'menos': return void fijarCantidad(p.id, Math.max(0, p.cantidad - 1), 'data-inv="menos"');
+    case 'mas': return void fijarCantidad(p.id, Math.min(100000, p.cantidad + 1), 'data-inv="mas"');
+    case 'controlar': return void fijarCantidad(p.id, 0, 'data-inv-input');
+    case 'dejar': return void fijarCantidad(p.id, null);
+  }
+});
+$('#lista-inventario').addEventListener('change', (ev) => {
+  const i = ev.target.closest('[data-inv-input]'); if (!i) return;
+  const n = Number(i.value);
+  if (i.value.trim() === '' || !Number.isInteger(n) || n < 0 || n > 100000) { avisar('Escribe un número entero de 0 en adelante.', true); return pintarInventario(); }
+  fijarCantidad(i.dataset.id, n, 'data-inv-input');
+});
+
 // Editor de producto y foto
 const fp = () => $('#form-producto');
 function pintarFoto() {
@@ -256,6 +313,7 @@ function abrirProducto(p, categoria = E.cat) {
   f.descripcion.value = p?.descripcion ?? '';
   f.visible.checked = p ? p.visible : true;
   f.disponible.checked = p ? p.disponible : true;
+  f.cantidad.value = p?.cantidad ?? '';
   f.precio.disabled = f.cotizar.checked;
   $('#producto-borrar').hidden = !p; $('#producto-duplicar').hidden = !p;
   $('#foto-estado').textContent = '';
@@ -268,7 +326,19 @@ $('#foto-subir').addEventListener('click', () => $('#foto-archivo').click());
 $('#foto-quitar').addEventListener('click', () => { E.foto = null; pintarFoto(); });
 
 // Imagen para Instagram: usa lo que hay ahora en el formulario (foto, nombre, precio) y una talla opcional.
-const datosInstagram = () => { const f = fp(); return { fotoUrl: E.foto, nombre: f.nombre.value, precio: f.precio.value, cotizar: f.cotizar.checked, talla: $('#ig-talla').value }; };
+let igPaleta = 'rojo';
+try { igPaleta = PALETAS.some((p) => p.id === localStorage.getItem('alexa_ig_paleta')) ? localStorage.getItem('alexa_ig_paleta') : 'rojo'; } catch { /* sin almacenamiento: se queda el rojo */ }
+const datosInstagram = () => { const f = fp(); return { fotoUrl: E.foto, nombre: f.nombre.value, precio: f.precio.value, cotizar: f.cotizar.checked, talla: $('#ig-talla').value, paleta: igPaleta }; };
+function pintarPaletas() {
+  $('#ig-paletas').innerHTML = PALETAS.map((p) => `<button type="button" class="ig-paleta" role="radio" data-paleta="${p.id}" aria-checked="${p.id === igPaleta}" title="${esc(p.nombre)}"><span class="ig-muestra"></span><small>${esc(p.nombre)}</small></button>`).join('');
+  // el color se pone desde JS: la política de seguridad del panel no permite style="" escrito en el HTML
+  $$('#ig-paletas .ig-paleta').forEach((b, i) => { b.querySelector('.ig-muestra').style.background = `linear-gradient(135deg, ${PALETAS[i].fondo.join(', ')})`; });
+}
+$('#ig-paletas').addEventListener('click', (ev) => {
+  const b = ev.target.closest('[data-paleta]'); if (!b) return;
+  igPaleta = b.dataset.paleta; try { localStorage.setItem('alexa_ig_paleta', igPaleta); } catch { /* da igual */ }
+  pintarPaletas(); pintarInstagram();
+});
 let igPintando = 0;
 async function pintarInstagram() {
   const turno = ++igPintando; mostrarError('#error-instagram');
@@ -278,7 +348,7 @@ $('#producto-instagram').addEventListener('click', () => {
   if (!fp().nombre.value.trim()) return mostrarError('#error-producto', 'Escribe el nombre del producto para crear la imagen.');
   mostrarError('#error-producto');
   $('#ig-talla').value = ''; $('#ig-compartir').hidden = !(navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] }));
-  $('#dlg-instagram').showModal(); pintarInstagram();
+  pintarPaletas(); $('#dlg-instagram').showModal(); pintarInstagram();
 });
 let igTemporizador; $('#ig-talla').addEventListener('input', () => { clearTimeout(igTemporizador); igTemporizador = setTimeout(pintarInstagram, 250); });
 const igArchivo = () => new Promise((res) => $('#ig-lienzo').toBlob(res, 'image/png'));
@@ -331,7 +401,8 @@ $('#foto-archivo').addEventListener('change', async (ev) => {
 fp().addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const f = fp(), b = $('#producto-guardar');
-  const cuerpo = { nombre: f.nombre.value, categoria_id: f.categoria_id.value, precio: f.precio.value, cotizar: f.cotizar.checked, descripcion: f.descripcion.value, visible: f.visible.checked, disponible: f.disponible.checked, imagen_url: E.foto };
+  const cuerpo = { nombre: f.nombre.value, categoria_id: f.categoria_id.value, precio: f.precio.value, cotizar: f.cotizar.checked, descripcion: f.descripcion.value, visible: f.visible.checked, disponible: f.disponible.checked, imagen_url: E.foto, cantidad: f.cantidad.value.trim() };
+  if (cuerpo.cantidad !== '' && !/^\d{1,6}$/.test(cuerpo.cantidad)) return mostrarError('#error-producto', 'La cantidad debe ser un número entero (o déjala vacía).');
   if (!cuerpo.nombre.trim()) return mostrarError('#error-producto', 'Escribe el nombre.');
   if (!cuerpo.categoria_id) return mostrarError('#error-producto', 'Elige una categoría.');
   if (!cuerpo.cotizar && cuerpo.precio.trim() === '') return mostrarError('#error-producto', 'Escribe el precio o marca «Por cotizar».');

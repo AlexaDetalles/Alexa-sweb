@@ -456,6 +456,35 @@ test('Ropa y Tenis: páginas con su categoría, en el sitemap y producto nuevo v
   await llamar('DELETE', `/api/admin/productos/RPM-01?definitivo=1`);
 });
 
+test('cantidades: se agota solo al llegar a 0, avisa si quedan pocas y se puede dejar de contar', async () => {
+  const pub = async (id) => (await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.productos.find((p) => p.id === id);
+  const { estado, datos } = await llamar('POST', '/api/admin/productos', { nombre: 'Tenis con cantidad', categoria_id: 'CMM', precio: 900, visible: 1, disponible: 1, cantidad: '3' });
+  assert.equal(estado, 201);
+  const id = datos.id;
+  let p = await pub(id);
+  assert.deepEqual([p.available, p.stock], [true, 3]);
+  assert.equal((await admin()).productos.find((x) => x.id === id).cantidad, 3);
+  // la ficha y la página de la colección muestran «Últimas 3 unidades»
+  assert.ok((await (await fetch(`${URL_BASE}/tenis/mujer`)).text()).includes('Últimas 3 unidades'));
+  // a 0 se agota sola aunque siga marcado «Hay»
+  assert.equal((await llamar('PUT', `/api/admin/productos/${id}`, { cantidad: 0 })).estado, 200);
+  p = await pub(id);
+  assert.deepEqual([p.available, p.stock], [false, 0]);
+  const ficha = await (await fetch(`${URL_BASE}/producto/${id}`)).text();
+  assert.ok(ficha.includes('OutOfStock') && !ficha.includes('schema.org/InStock'));
+  // valores no válidos
+  for (const malo of [-1, 1.5, 'abc', 1000000]) assert.equal((await llamar('PUT', `/api/admin/productos/${id}`, { cantidad: malo })).estado, 400, `cantidad ${malo}`);
+  // vacío = sin control: vuelve a depender solo de «Hay»
+  assert.equal((await llamar('PUT', `/api/admin/productos/${id}`, { cantidad: '' })).estado, 200);
+  p = await pub(id);
+  assert.deepEqual([p.available, p.stock], [true, null]);
+  // duplicar conserva la cantidad
+  await llamar('PUT', `/api/admin/productos/${id}`, { cantidad: 7 });
+  const copia = (await llamar('POST', `/api/admin/productos/${id}/duplicar`)).datos.id;
+  assert.equal((await admin()).productos.find((x) => x.id === copia).cantidad, 7);
+  for (const x of [id, copia]) await llamar('DELETE', `/api/admin/productos/${x}?definitivo=1`);
+});
+
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
   const miCookie = cookie;
   const nueva = 'otra-clave-nueva-456';

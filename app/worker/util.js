@@ -62,3 +62,6 @@ export const borrarCookie = (nombre) => cookie(nombre, '', 0);
 export const fechaSql = (ms = Date.now()) => new Date(ms).toISOString().replace('T', ' ').slice(0, 19);
 // Día en Honduras (UTC-6, sin horario de verano), para la actividad web.
 export const diaHonduras = (ms = Date.now()) => new Date(ms - 6 * 3600 * 1000).toISOString().slice(0, 10);
+
+/** Un producto se puede pedir si está marcado «Hay» y, cuando se lleva el control, le quedan unidades. */
+export const hayExistencias = (p) => !!p.disponible && (p.cantidad === null || p.cantidad === undefined || p.cantidad > 0);

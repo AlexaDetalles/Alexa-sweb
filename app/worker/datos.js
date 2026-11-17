@@ -1,5 +1,5 @@
 // Datos de la tienda: lectura pública, escritura del panel, fotos en R2 y mantenimiento semanal.
-import { falla, json, fechaSql, diaHonduras } from './util.js';
+import { falla, json, fechaSql, diaHonduras, hayExistencias } from './util.js';
 import { exigirSesion, exigirPermiso, rutasUsuarios } from './auth.js';
 import * as V from './validacion.js';
 import { actividad, limpiarEstadisticas } from './estadisticas.js';
@@ -31,7 +31,7 @@ export async function catalogo(env) {
   const [cats, prods, aj] = await env.BD.batch([
     env.BD.prepare(`SELECT c.id, c.nombre, c.padre_id FROM categorias c LEFT JOIN categorias p ON p.id = c.padre_id
       WHERE c.activa = 1 AND (p.id IS NULL OR p.activa = 1) ORDER BY c.orden, c.nombre`),
-    env.BD.prepare(`SELECT p.id, p.nombre, p.categoria_id, p.descripcion, p.precio, p.cotizar, p.imagen_url, p.disponible
+    env.BD.prepare(`SELECT p.id, p.nombre, p.categoria_id, p.descripcion, p.precio, p.cotizar, p.imagen_url, p.disponible, p.cantidad
       FROM productos p JOIN categorias c ON c.id = p.categoria_id LEFT JOIN categorias pa ON pa.id = c.padre_id
       WHERE p.borrado_en IS NULL AND p.visible = 1 AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1)
       ORDER BY p.orden, p.nombre`),
@@ -42,7 +42,7 @@ export async function catalogo(env) {
     categorias: cats.results,
     productos: prods.results.map((p) => ({
       id: p.id, name: p.nombre, group: p.categoria_id, description: p.descripcion,
-      cents: p.cotizar ? null : dinero(p.precio), quote: !!p.cotizar, available: !!p.disponible,
+      cents: p.cotizar ? null : dinero(p.precio), quote: !!p.cotizar, available: hayExistencias(p), stock: p.cantidad ?? null,
       img: p.imagen_url || '/assets/images/no-photo.svg', thumb: miniatura(p.imagen_url) || '/assets/images/no-photo.svg',
     })),
     asesoras: [
@@ -246,7 +246,7 @@ async function duplicarProducto(env, id) {
   const orden = (await env.BD.prepare('SELECT coalesce(max(orden), 0) + 10 AS n FROM productos').first()).n;
   await insertar(env, 'productos', {
     id: nuevo, nombre: `${o.nombre} (copia)`.slice(0, 120), categoria_id: o.categoria_id, descripcion: o.descripcion, precio: o.precio,
-    cotizar: o.cotizar, imagen_url: o.imagen_url, disponible: o.disponible, visible: 0, orden,
+    cotizar: o.cotizar, imagen_url: o.imagen_url, disponible: o.disponible, cantidad: o.cantidad, visible: 0, orden,
   }).run();
   return json({ id: nuevo }, 201);
 }

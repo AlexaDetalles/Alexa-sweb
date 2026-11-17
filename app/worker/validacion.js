@@ -54,6 +54,7 @@ export function producto(d, crear = false) {
   if ('imagen_url' in d) r.imagen_url = fotoONula(d.imagen_url);
   if ('disponible' in d) r.disponible = booleano(d.disponible);
   if ('visible' in d) r.visible = booleano(d.visible);
+  if ('cantidad' in d) r.cantidad = d.cantidad === null || d.cantidad === '' ? null : entero(d.cantidad, 'Cantidad');
   if ('orden' in d) r.orden = entero(d.orden, 'Orden');
   return r;
 }

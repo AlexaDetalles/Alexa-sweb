@@ -1,6 +1,7 @@
 // SEO: sitemap.xml dinámico y una ficha con dirección propia por producto (/producto/<referencia>),
 // con título, descripción, Open Graph y datos estructurados (Product + BreadcrumbList) para buscadores.
 import { sitio } from './correo.js';
+import { hayExistencias } from './util.js';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // JSON dentro de <script type="application/ld+json">: se escapa "<" para que un nombre con "</script>" no rompa la página.
@@ -62,7 +63,7 @@ export async function paginaProducto(req, env, id) {
     {
       '@context': 'https://schema.org', '@type': 'Product', name: p.nombre, sku: p.id, description: recortar(p.descripcion || p.nombre, 500), image: [img], url: canonical,
       category: p.cat_nombre,
-      ...(p.cotizar ? {} : { offers: { '@type': 'Offer', url: canonical, priceCurrency: 'HNL', price: Number(p.precio).toFixed(2), availability: p.disponible ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', itemCondition: 'https://schema.org/NewCondition', seller: { '@type': 'Store', name: 'Alexa Detalles & Obsequios', url: base } } }),
+      ...(p.cotizar ? {} : { offers: { '@type': 'Offer', url: canonical, priceCurrency: 'HNL', price: Number(p.precio).toFixed(2), availability: hayExistencias(p) ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock', itemCondition: 'https://schema.org/NewCondition', seller: { '@type': 'Store', name: 'Alexa Detalles & Obsequios', url: base } } }),
     },
     {
       '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
@@ -79,7 +80,7 @@ export async function paginaProducto(req, env, id) {
     TITULO: esc(titulo), DESC: esc(descripcion), URL: esc(canonical), IMG: esc(img), IMG_REL: esc(imgRel), JSONLD: jsonLd(ld),
     CAT_NOMBRE: esc(p.cat_nombre), CAT_URL: esc(catUrl), NOMBRE: esc(p.nombre), PRECIO: esc(precio), ID: esc(p.id),
     DESCRIPCION: esc(p.descripcion || 'Te ayudamos a confirmar presentación, medidas y detalles de este artículo por WhatsApp.'), RELACIONADOS: rel,
-    DISPONIBILIDAD: p.disponible ? 'Disponible para consultar' : 'Actualmente no disponible',
+    DISPONIBILIDAD: hayExistencias(p) ? 'Disponible para consultar' : 'Actualmente no disponible',
   };
   const html = plantilla.replace(/%%([A-Z_]+)%%/g, (_, k) => (k in valores ? valores[k] : ''));
   return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'public, max-age=0, must-revalidate' } });
@@ -93,10 +94,12 @@ export async function paginaProducto(req, env, id) {
 const NOMBRE_FOTO = '/assets/images/no-photo.svg';
 const miniaturaDe = (u) => (u ? (u.startsWith('/fotos/') ? u.replace('-1200.', '-600.') : u) : NOMBRE_FOTO);
 
+/** «Últimas unidades» cuando se lleva el control y quedan pocas (5 o menos). */
+const ultimas = (p) => (Number.isInteger(p.stock) && p.stock > 0 && p.stock <= 5 ? (p.stock === 1 ? 'Última unidad' : `Últimas ${p.stock} unidades`) : '');
 export function tarjetaHTML(p, nombresGrupo) {
   const id = encodeURIComponent(p.id);
   const precio = p.quote ? 'Cotizar por WhatsApp' : lempiras(p.cents / 100);
-  const etiqueta = p.quote ? '<span class="availability">Por encargo · imagen ilustrativa</span>' : !p.available ? '<span class="availability">No disponible</span>' : '';
+  const etiqueta = p.quote ? '<span class="availability">Por encargo · imagen ilustrativa</span>' : !p.available ? '<span class="availability">No disponible</span>' : ultimas(p) ? `<span class="availability">${ultimas(p)}</span>` : '';
   return `<article class="product-card"><button class="product-image" type="button" data-product="${esc(p.id)}" aria-label="Ver detalles de ${esc(p.name)}"><img src="${esc(p.thumb || p.img)}" alt="${esc(p.name)}" width="400" height="480" loading="lazy" decoding="async">${etiqueta}</button><p class="product-group">${esc(nombresGrupo[p.group] || '')}</p><h2><a class="product-name-button" href="/producto/${id}" data-product="${esc(p.id)}">${esc(p.name)}</a></h2><p class="price">${esc(precio)}</p><div class="add-slot" data-slot="${esc(p.id)}"></div></article>`;
 }
 
