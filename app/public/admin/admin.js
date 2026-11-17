@@ -345,6 +345,8 @@ async function cargarFinanzas() {
   try { r = await api('GET', 'admin/finanzas'); } catch (e) { cont.innerHTML = `<p class="error">${esc(e.message)}</p>`; return; }
   if (E.vista !== 'finanzas') return;
   const t = r.total;
+  const enlaces = await api('GET', 'admin/finanzas/enlaces').catch(() => ({ configurado: false, enlaces: {} }));
+  if (E.vista !== 'finanzas') return;
   const hoja = r.hoja_url ? `<a class="boton" href="${esc(r.hoja_url)}" target="_blank" rel="noopener noreferrer">Abrir la hoja de Google</a>` : '<p class="suave">La hoja de Google todavía no está conectada.</p>';
   cont.innerHTML = `
     <div class="fin-tarjetas">
@@ -361,7 +363,11 @@ async function cargarFinanzas() {
     <ul class="lista" id="fin-recientes">${r.recientes.map((m) => `<li class="fila sin-foto-miniatura ${m.anulado ? 'apagada' : ''}"><div class="fila-texto"><div class="fila-nombre">${m.tipo === 'venta' ? 'Venta' : 'Compra'} · ${esc(m.producto_nombre)}</div><div class="fila-meta"><span>${fechaHN(m.fecha)}</span><span>${m.cantidad} × ${dinero(m.tipo === 'venta' ? m.precio_unit : m.costo_unit)}</span><span class="precio">${dinero(m.total)}</span><span class="etiqueta">${esc(TIPOS_STOCK[m.tipo_stock])}</span>${m.anulado ? '<span class="etiqueta mal">Anulado</span>' : ''}${m.nota ? `<span>${esc(m.nota)}</span>` : ''}</div></div>${m.anulado ? '' : `<div class="fila-acciones"><button type="button" class="boton suave peligro chico" data-anular="${m.id}">Anular</button></div>`}</li>`).join('') || '<li class="vacio">Aún no hay movimientos. Registra una venta o una compra desde la pestaña Inventario.</li>'}</ul>
     <h2 class="fin-t">Hoja de Google</h2>
     <p class="suave">Se actualiza sola con estos mismos datos (Productos, Movimientos y Resumen).</p>
-    <div class="fin-hoja">${hoja}</div>`;
+    <div class="fin-hoja">${hoja}</div>
+    <details class="fin-enlaces"><summary>Enlaces secretos de las hojas (para recrearla o conectar el script)</summary>
+      ${enlaces.configurado ? Object.entries(enlaces.enlaces).map(([k, u]) => `<p><b>${esc(k)}</b><br><code>=IMPORTDATA("${esc(u)}")</code></p>`).join('') : '<p class="suave">Falta el secreto FINANZAS_TOKEN en el Worker.</p>'}
+      <p class="suave">No los compartas: quien tenga estos enlaces ve tus costos y ganancias.</p>
+    </details>`;
 }
 $('#fin-contenido').addEventListener('click', async (ev) => {
   const b = ev.target.closest('[data-anular]'); if (!b) return;
