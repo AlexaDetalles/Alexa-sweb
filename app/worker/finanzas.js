@@ -1,6 +1,8 @@
 // Finanzas del negocio: libro de compras y ventas, resumen (inversión, ventas, ganancia) y las hojas CSV que alimentan la hoja de Google.
 import { falla, json, fechaSql, iguales } from './util.js';
 import { detalleLote } from './lotes.js';
+import { puede } from './auth.js';
+import { validarGasto, validarCredito, registrarCredito, resumenCobros, datosCreditos, CATEGORIAS_GASTO } from './creditos.js';
 
 const TIPOS_STOCK = { aparte: 'Stock aparte', local: 'Stock local', sin: 'Sin stock' };
 const num = (v, campo, { max = 1000000, nulo = false } = {}) => {
@@ -21,7 +23,7 @@ const dinero = (n) => Math.round((n || 0) * 100) / 100;
  * Compra (solo stock local): suma unidades y cuenta como inversión.
  * Venta: stock local rebaja la cantidad si se está contando; stock aparte (dropshipping) no toca cantidades; sin stock no se puede vender.
  */
-export async function crearMovimiento(env, d, sesion) {
+export async function crearMovimiento(env, d, sesion, ctx) {
   const tipo = d.tipo;
   if (!['compra', 'venta'].includes(tipo)) falla(400, 'Elige si es una compra o una venta.');
   const p = await env.BD.prepare('SELECT id, nombre, categoria_id, precio, cotizar, costo, cantidad, tipo_stock FROM productos WHERE id = ? AND borrado_en IS NULL').bind(String(d.producto_id ?? '')).first();
@@ -29,7 +31,12 @@ export async function crearMovimiento(env, d, sesion) {
   const n = entero(d.cantidad, 'Cantidad');
   const nota = String(d.nota ?? '').trim().slice(0, 200);
   const sentencias = [];
-  let precio = null, costo;
+  let precio = null, costo, contado = null;
+  // Gastos de la venta (bus, envío…) y venta a crédito: solo administradora, porque tocan las finanzas.
+  const gastos = (Array.isArray(d.gastos) ? d.gastos : []).filter((g) => g && String(g.monto ?? '').trim() !== '' && Number(String(g.monto).replace(/,/g, '')) !== 0).slice(0, 6).map(validarGasto);
+  if ((d.credito || gastos.length) && !puede(sesion, 'finanzas')) falla(403, 'Tu rango no permite registrar gastos ni ventas a crédito.');
+  if (d.credito && tipo !== 'venta') falla(400, 'El crédito es solo para ventas.');
+  if (d.credito && !String(d.credito.cliente ?? '').trim()) falla(400, 'Escribe el nombre de quién se lleva la deuda.');
   if (tipo === 'compra') {
     if (p.tipo_stock !== 'local') falla(400, 'Solo se registran compras de productos con «Stock local». Cambia el tipo de stock del producto primero.');
     costo = num(d.costo ?? p.costo, 'Costo', { nulo: true });
@@ -39,6 +46,12 @@ export async function crearMovimiento(env, d, sesion) {
     if (p.tipo_stock === 'sin') falla(400, 'Este producto está «Sin stock»: cambia su tipo de stock antes de registrar una venta.');
     precio = num(d.precio ?? p.precio, 'Precio', { nulo: true });
     if (precio === null) falla(400, 'Escribe a cuánto vendiste cada unidad.');
+    if (d.credito) {
+      // Al crédito se vende por más que al contado (cuotas × pago > contado): la venta se anota por el total del crédito.
+      contado = Math.round(precio * n * 100) / 100;
+      const total = validarCredito({ contado, cuotas: Number(d.credito.cuotas), cuota: num(d.credito.cuota, 'Pago', { nulo: true }) });
+      precio = total / n;
+    }
     costo = num(d.costo ?? p.costo ?? 0, 'Costo');
     if (p.tipo_stock === 'local' && p.cantidad !== null) {
       if (p.cantidad < n) falla(400, p.cantidad === 0 ? 'No quedan unidades de este producto.' : `Solo quedan ${p.cantidad} unidad${p.cantidad === 1 ? '' : 'es'}.`);
@@ -48,14 +61,25 @@ export async function crearMovimiento(env, d, sesion) {
   sentencias.push(env.BD.prepare(`INSERT INTO movimientos (fecha, tipo, producto_id, producto_nombre, tipo_stock, categoria_id, cantidad, precio_unit, costo_unit, nota, usuario)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`).bind(fechaSql(), tipo, p.id, p.nombre, p.tipo_stock, p.categoria_id, n, precio, costo, nota, sesion?.correo ?? ''));
   const r = await env.BD.batch(sentencias);
-  return json({ id: r.at(-1).meta.last_row_id }, 201);
+  const id = r.at(-1).meta.last_row_id;
+  if (gastos.length) await env.BD.batch(gastos.map((g) => env.BD.prepare('INSERT INTO gastos (fecha, concepto, categoria, monto, nota, usuario, movimiento_id) VALUES (?, ?, ?, ?, ?, ?, ?)').bind(fechaSql(), g.concepto, g.categoria, g.monto, g.nota, sesion?.correo ?? '', id)));
+  if (d.credito) {
+    try { const c = await registrarCredito(env, { movimientoId: id, producto: p, cantidad: n, contado, credito: d.credito, sesion, ctx }); return json({ id, credito_id: c.id, total: c.total }, 201); }
+    catch (e) { await anularMovimiento(env, id); throw e; } // si el crédito no se pudo guardar, la venta no se queda a medias
+  }
+  return json({ id }, 201);
 }
 
 /** Anular un movimiento (por error de dedo): lo marca anulado y devuelve las unidades a su lugar. */
 export async function anularMovimiento(env, id) {
   const m = await env.BD.prepare('SELECT * FROM movimientos WHERE id = ? AND anulado = 0').bind(Number(id)).first();
   if (!m) falla(404, 'Ese movimiento ya no existe o ya estaba anulado.');
-  const sentencias = [env.BD.prepare('UPDATE movimientos SET anulado = 1 WHERE id = ?').bind(m.id)];
+  const sentencias = [env.BD.prepare('UPDATE movimientos SET anulado = 1 WHERE id = ?').bind(m.id), env.BD.prepare('UPDATE gastos SET anulado = 1 WHERE movimiento_id = ?').bind(m.id)];
+  if (m.credito_id) {
+    const ab = await env.BD.prepare('SELECT count(*) AS n FROM abonos WHERE credito_id = ? AND anulado = 0').bind(m.credito_id).first();
+    if (ab.n) falla(400, 'Esta venta a crédito ya tiene abonos: anula primero los abonos.');
+    sentencias.push(env.BD.prepare("UPDATE creditos SET estado = 'anulado' WHERE id = ?").bind(m.credito_id));
+  }
   const p = await env.BD.prepare('SELECT cantidad, tipo_stock FROM productos WHERE id = ?').bind(m.producto_id).first();
   if (p && m.tipo_stock === 'local' && p.cantidad !== null) {
     if (m.tipo === 'venta') sentencias.unshift(env.BD.prepare('UPDATE productos SET cantidad = cantidad + ? WHERE id = ?').bind(m.cantidad, m.producto_id));
@@ -76,7 +100,7 @@ const conGanancia = (r) => ({ ...r, invertido: dinero(r.invertido), ingresos: di
 
 export async function resumen(env) {
   const hace = (dias) => fechaSql(Date.now() - dias * 86400000);
-  const [total, semana, mes, porTipo, porCat, stock, sinCosto, recientes, aj, lotesBD] = await env.BD.batch([
+  const [total, semana, mes, porTipo, porCat, stock, sinCosto, recientes, aj, lotesBD, gTotal, gSemana, gMes, gCat, gRecientes, cfg] = await env.BD.batch([
     env.BD.prepare(`SELECT ${SUMAS} FROM movimientos WHERE anulado = 0`),
     env.BD.prepare(`SELECT ${SUMAS} FROM movimientos WHERE anulado = 0 AND fecha >= ?`).bind(hace(7)),
     env.BD.prepare(`SELECT ${SUMAS} FROM movimientos WHERE anulado = 0 AND fecha >= ?`).bind(hace(30)),
@@ -88,7 +112,17 @@ export async function resumen(env) {
     env.BD.prepare(`SELECT * FROM movimientos ORDER BY id DESC LIMIT 40`),
     env.BD.prepare('SELECT hoja_url FROM ajustes WHERE id = 1'),
     env.BD.prepare('SELECT id FROM lotes ORDER BY id DESC'),
+    env.BD.prepare('SELECT coalesce(sum(monto), 0) AS n FROM gastos WHERE anulado = 0'),
+    env.BD.prepare('SELECT coalesce(sum(monto), 0) AS n FROM gastos WHERE anulado = 0 AND fecha >= ?').bind(hace(7)),
+    env.BD.prepare('SELECT coalesce(sum(monto), 0) AS n FROM gastos WHERE anulado = 0 AND fecha >= ?').bind(hace(30)),
+    env.BD.prepare('SELECT categoria, coalesce(sum(monto), 0) AS monto FROM gastos WHERE anulado = 0 GROUP BY categoria ORDER BY 2 DESC'),
+    env.BD.prepare('SELECT * FROM gastos ORDER BY id DESC LIMIT 40'),
+    env.BD.prepare('SELECT credito_pct FROM ajustes WHERE id = 1'),
   ]);
+  const cobros = await resumenCobros(env);
+  const creditos = await datosCreditos(env, false);
+  // Neta = ganancia de las ventas − los gastos (bus, envío…). El recargo del crédito ya va dentro del precio de venta.
+  const conNeta = (r, g) => ({ ...r, gastos: dinero(g), neta: dinero(r.ganancia - g) });
   // La inversión de los lotes (compra grande con costo por producto desconocido) también cuenta como invertido, en stock local.
   const lotes = [];
   for (const { id } of lotesBD.results) lotes.push(await detalleLote(env, id));
@@ -99,9 +133,12 @@ export async function resumen(env) {
   const capitalEnStock = dinero(enStock.reduce((s, p) => s + (p.costo ?? 0) * p.cantidad, 0));
   const local = conGanancia(sumarLotes(porTipo.results.find((x) => x.tipo_stock === 'local') ?? { tipo_stock: 'local', invertido: 0, ingresos: 0, costo_vendido: 0, unidades_vendidas: 0 }, 'local'));
   return json({
-    total: t,
-    semana: conGanancia(semana.results[0]),
-    mes: conGanancia(mes.results[0]),
+    total: conNeta(t, gTotal.results[0].n),
+    semana: conNeta(conGanancia(semana.results[0]), gSemana.results[0].n),
+    mes: conNeta(conGanancia(mes.results[0]), gMes.results[0].n),
+    cobros, creditos, credito_pct: cfg.results[0]?.credito_pct ?? 20,
+    gastos_por_categoria: gCat.results.map((g) => ({ categoria: g.categoria, nombre: CATEGORIAS_GASTO[g.categoria], monto: dinero(g.monto) })),
+    gastos_recientes: gRecientes.results.map((g) => ({ ...g, anulado: !!g.anulado, nombre_categoria: CATEGORIAS_GASTO[g.categoria] })),
     // Retorno de lo invertido en stock local: ganancia de esas ventas entre lo invertido.
     retorno_local: t.invertido > 0 ? Math.round((local.ganancia / t.invertido) * 1000) / 10 : null,
     capital_en_stock: capitalEnStock,
@@ -146,6 +183,8 @@ async function hojaResumen(env) {
     ['Resumen', 'Invertido (L)', 'Vendido (L)', 'Costo de lo vendido (L)', 'Ganancia (L)', 'Unidades vendidas'],
     fila('Todo el tiempo', r.total), fila('Últimos 7 días', r.semana), fila('Últimos 30 días', r.mes),
     [],
+    ['Gastos totales (L)', r.total.gastos], ['Ganancia neta (L) (ganancia − gastos)', r.total.neta], ['Por cobrar de créditos (L)', r.cobros.por_cobrar], ['Créditos vencidos', r.cobros.vencidos],
+    [],
     ['Capital en stock local (L)', r.capital_en_stock], ['Unidades en stock local', r.unidades_en_stock], ['Retorno sobre lo invertido (%)', r.retorno_local ?? ''],
     [],
     ['Por tipo de stock', 'Invertido (L)', 'Vendido (L)', 'Costo de lo vendido (L)', 'Ganancia (L)', 'Unidades vendidas'],
@@ -158,7 +197,17 @@ async function hojaResumen(env) {
     ...r.por_categoria.map((x) => fila(x.categoria, x)),
   ]);
 }
-const HOJAS = { productos: hojaProductos, movimientos: hojaMovimientos, resumen: hojaResumen };
+async function hojaGastos(env) {
+  const { results } = await env.BD.prepare('SELECT * FROM gastos ORDER BY id DESC').all();
+  return csv([['Nº', 'Fecha', 'Concepto', 'Categoría', 'Monto (L)', 'Venta Nº', 'Nota', 'Anulado'],
+    ...results.map((g) => [g.id, hondu(g.fecha), g.concepto, CATEGORIAS_GASTO[g.categoria], g.monto, g.movimiento_id ?? '', g.nota, g.anulado ? 'Sí' : ''])]);
+}
+async function hojaCreditos(env) {
+  const lista = await datosCreditos(env, true);
+  return csv([['Nº', 'Fecha', 'Cliente', 'Teléfono', 'Producto', 'Contado (L)', 'Pagos', 'Pago (L)', 'Total crédito (L)', 'Abonado (L)', 'Saldo (L)', 'Próximo pago', 'Vencido (L)', 'Estado'],
+    ...lista.map((c) => [c.id, hondu(c.fecha), c.cliente, c.telefono, c.producto_nombre, c.precio_contado, c.cuotas, c.cuota_monto, c.total, c.abonado, c.saldo, c.proximo_vencimiento ?? '', c.monto_vencido, c.estado === 'pagado' ? 'Pagado' : c.vencido ? 'Vencido' : 'Al día'])]);
+}
+const HOJAS = { productos: hojaProductos, movimientos: hojaMovimientos, resumen: hojaResumen, gastos: hojaGastos, creditos: hojaCreditos };
 
 /** GET /api/finanzas/csv/<hoja>?clave=…  Solo con la clave secreta FINANZAS_TOKEN; sin ella la ruta ni existe. */
 export async function hojaCsv(env, hoja, clave) {

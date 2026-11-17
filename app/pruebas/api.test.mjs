@@ -580,6 +580,76 @@ test('lotes: la inversión se reparte por precio de etiqueta, el precio lo pones
   for (const id of [A, B]) { await llamar('DELETE', `/api/admin/productos/${id}`); await llamar('DELETE', `/api/admin/productos/${id}?definitivo=1`); }
 });
 
+test('gastos, crédito y abonos: el crédito cuesta más que el contado, se avisa al pagar y todo entra a finanzas', async () => {
+  const mov = (cuerpo) => llamar('POST', '/api/admin/movimientos', cuerpo);
+  const fin = async () => (await llamar('GET', '/api/admin/finanzas')).datos;
+  const producto = (await llamar('POST', '/api/admin/productos', { nombre: 'Tenis a crédito', categoria_id: 'CHM', precio: 1000, costo: 500, tipo_stock: 'local', cantidad: 5, visible: 1, disponible: 1 })).datos.id;
+  const antes = await fin();
+  const credito = (extra = {}) => ({ tipo: 'venta', producto_id: producto, cantidad: 1, credito: { cliente: 'Ana Pérez', telefono: '9999 8888', cuotas: 2, cuota: 600, ...extra } });
+  // reglas: igual o mejor que el contado no se acepta, y la venta no se queda a medias
+  for (const cuota of [500, 400]) assert.equal((await mov(credito({ cuota }))).estado, 400, `2 × ${cuota}`);
+  assert.equal((await mov(credito({ cliente: '' }))).estado, 400, 'falta quién se lleva la deuda');
+  assert.equal((await mov(credito({ cuotas: 1, cuota: 2000 }))).estado, 400);
+  assert.equal((await admin()).productos.find((p) => p.id === producto).cantidad, 5, 'las ventas rechazadas no mueven el stock');
+  // 2 pagos de 600 con 600 de abono inicial: debe 600
+  const v = await mov(credito({ abono: 600 }));
+  assert.equal(v.estado, 201);
+  assert.equal(v.datos.total, 1200);
+  assert.equal((await admin()).productos.find((p) => p.id === producto).cantidad, 4);
+  let creditos = (await llamar('GET', '/api/admin/creditos')).datos.creditos;
+  const c = creditos.find((x) => x.id === v.datos.credito_id);
+  assert.deepEqual([c.cliente, c.telefono, c.total, c.abonado, c.saldo, c.pagadas, c.estado], ['Ana Pérez', '99998888', 1200, 600, 600, 1, 'activo']);
+  let r = await fin();
+  assert.equal(Math.round((r.total.ingresos - antes.total.ingresos) * 100) / 100, 1200, 'la venta a crédito se anota por el total del crédito');
+  assert.equal(Math.round((r.total.ganancia - antes.total.ganancia) * 100) / 100, 700, '1,200 − 500 de costo');
+  assert.equal(r.cobros.por_cobrar - antes.cobros.por_cobrar, 600);
+  // abonar de más no se puede; abonar lo que falta la marca pagada y avisa
+  assert.equal((await llamar('POST', `/api/admin/creditos/${c.id}/abonos`, { monto: 700 })).estado, 400);
+  assert.equal((await llamar('POST', `/api/admin/creditos/${c.id}/abonos`, { monto: 0 })).estado, 400);
+  const parcial = await llamar('POST', `/api/admin/creditos/${c.id}/abonos`, { monto: 200 });
+  assert.deepEqual([parcial.datos.pagado, parcial.datos.saldo], [false, 400]);
+  const ultimo = await llamar('POST', `/api/admin/creditos/${c.id}/abonos`, { monto: 400, nota: 'Último pago' });
+  assert.deepEqual([ultimo.datos.pagado, ultimo.datos.saldo], [true, 0]);
+  creditos = (await llamar('GET', '/api/admin/creditos?todos=1')).datos.creditos;
+  assert.equal(creditos.find((x) => x.id === c.id).estado, 'pagado');
+  assert.equal((await fin()).cobros.por_cobrar, antes.cobros.por_cobrar);
+  // un abono anulado reabre la deuda
+  const ab = creditos.find((x) => x.id === c.id).abonos.find((a) => a.nota === 'Último pago');
+  assert.equal((await llamar('DELETE', `/api/admin/abonos/${ab.id}`)).estado, 200);
+  assert.equal((await llamar('GET', '/api/admin/creditos')).datos.creditos.find((x) => x.id === c.id).saldo, 400);
+  // con abonos no se puede anular el crédito; sin ellos sí, y el producto vuelve
+  assert.equal((await llamar('DELETE', `/api/admin/creditos/${c.id}`)).estado, 400);
+  const abonos = (await llamar('GET', '/api/admin/creditos')).datos.creditos.find((x) => x.id === c.id).abonos.filter((a) => !a.anulado);
+  for (const a of abonos) await llamar('DELETE', `/api/admin/abonos/${a.id}`);
+  assert.equal((await llamar('DELETE', `/api/admin/creditos/${c.id}`)).estado, 200);
+  assert.equal((await admin()).productos.find((p) => p.id === producto).cantidad, 5, 'anular el crédito devuelve la unidad');
+  // gastos de una venta al contado (bus y bolsa) restan de la ganancia; anular la venta los anula
+  const base = await fin();
+  const contado = await mov({ tipo: 'venta', producto_id: producto, cantidad: 1, gastos: [{ categoria: 'bus', monto: 50 }, { concepto: 'Bolsa', categoria: 'empaque', monto: 20 }, { monto: '' }] });
+  assert.equal(contado.estado, 201);
+  r = await fin();
+  assert.equal(r.total.gastos - base.total.gastos, 70);
+  assert.equal(Math.round((r.total.neta - base.total.neta) * 100) / 100, 430, '1,000 − 500 − 70');
+  assert.deepEqual(r.gastos_por_categoria.map((g) => g.categoria).sort(), ['bus', 'empaque']);
+  await llamar('DELETE', `/api/admin/movimientos/${contado.datos.id}`);
+  assert.equal((await fin()).total.gastos, base.total.gastos, 'sin la venta no hay gastos');
+  // gasto suelto
+  const g = await llamar('POST', '/api/admin/gastos', { concepto: 'Pasaje a Tegucigalpa', categoria: 'bus', monto: 300 });
+  assert.equal(g.estado, 201);
+  assert.equal((await fin()).total.gastos - base.total.gastos, 300);
+  assert.equal((await llamar('POST', '/api/admin/gastos', { concepto: 'x', monto: 0 })).estado, 400);
+  assert.equal((await llamar('DELETE', `/api/admin/gastos/${g.datos.id}`)).estado, 200);
+  // recargo sugerido
+  assert.equal((await llamar('PUT', '/api/admin/finanzas/config', { credito_pct: 25 })).estado, 200);
+  assert.equal((await fin()).credito_pct, 25);
+  assert.equal((await llamar('PUT', '/api/admin/finanzas/config', { credito_pct: 900 })).estado, 400);
+  await llamar('PUT', '/api/admin/finanzas/config', { credito_pct: 20 });
+  // hojas
+  for (const hoja of ['gastos', 'creditos']) assert.equal((await fetch(`${URL_BASE}/api/finanzas/csv/${hoja}?clave=${FINANZAS_TOKEN}`)).status, 200, hoja);
+  assert.equal((await llamar('GET', '/api/admin/creditos', undefined, { conSesion: false })).estado, 401);
+  await llamar('DELETE', `/api/admin/productos/${producto}`); await llamar('DELETE', `/api/admin/productos/${producto}?definitivo=1`);
+});
+
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
   const miCookie = cookie;
   const nueva = 'otra-clave-nueva-456';

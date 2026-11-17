@@ -4,6 +4,7 @@ import { exigirSesion, exigirPermiso, rutasUsuarios } from './auth.js';
 import * as V from './validacion.js';
 import { actividad, limpiarEstadisticas } from './estadisticas.js';
 import { crearMovimiento, anularMovimiento, resumen, enlacesHoja } from './finanzas.js';
+import { crearGasto, anularGasto, listarCreditos, resumenCobros, abonar, anularAbono } from './creditos.js';
 import { crearPublicacion, listarPublicaciones, reintentarPublicacion, cancelarPublicacion } from './social.js';
 import { sitio } from './correo.js';
 import { listarLotes, verLote, crearLote, cambiarLote, borrarLote, aplicarSugeridos, recalcularLote } from './lotes.js';
@@ -416,6 +417,10 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
     exigirPermiso(s, 'finanzas');
     return id === 'enlaces' ? enlacesHoja(env, sitio(env)) : resumen(env);
   }
+  if (m === 'GET' && recurso === 'creditos') {
+    exigirPermiso(s, 'finanzas');
+    return id === 'alertas' ? json(await resumenCobros(env)) : listarCreditos(env, new URL(req.url).searchParams.get('todos') === '1');
+  }
   if (m === 'GET' && recurso === 'publicaciones') return listarPublicaciones(env);
   if (recurso === 'lotes') { // lotes de inversión: costos y ganancias, solo administradora
     exigirPermiso(s, 'finanzas');
@@ -450,8 +455,26 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
 
   if (recurso === 'fotos' && m === 'POST') return subirFoto(req, env);
   if (recurso === 'movimientos') {
-    if (m === 'POST' && !id) return crearMovimiento(env, d, s);
+    if (m === 'POST' && !id) return crearMovimiento(env, d, s, ctx);
     if (m === 'DELETE' && id) return anularMovimiento(env, id);
+  }
+  if (['gastos', 'abonos', 'creditos'].includes(recurso)) { // lo que sale, lo que se debe y lo que se abona: solo administradora
+    exigirPermiso(s, 'finanzas');
+    if (recurso === 'gastos') { if (m === 'POST' && !id) return crearGasto(env, d, s); if (m === 'DELETE' && id) return anularGasto(env, id); }
+    if (recurso === 'abonos' && m === 'DELETE' && id) return anularAbono(env, id);
+    if (recurso === 'creditos' && m === 'POST' && accion === 'abonos') return abonar(env, id, d, s, ctx);
+    if (recurso === 'creditos' && m === 'DELETE' && id) { // anular el crédito = anular su venta (devuelve las unidades)
+      const c = await env.BD.prepare("SELECT movimiento_id FROM creditos WHERE id = ? AND estado <> 'anulado'").bind(Number(id)).first();
+      if (!c) falla(404, 'Esa deuda ya no existe.');
+      return anularMovimiento(env, c.movimiento_id);
+    }
+  }
+  if (recurso === 'finanzas' && id === 'config' && m === 'PUT') {
+    exigirPermiso(s, 'finanzas');
+    const pct = Number(String(d.credito_pct ?? '').replace(/,/g, ''));
+    if (!Number.isFinite(pct) || pct < 0 || pct > 500) falla(400, 'Recargo del crédito: escribe un porcentaje de 0 a 500.');
+    await env.BD.prepare('UPDATE ajustes SET credito_pct = ? WHERE id = 1').bind(Math.round(pct * 10) / 10).run();
+    return json({ ok: true });
   }
   if (recurso === 'publicaciones') {
     if (m === 'POST' && !id) return crearPublicacion(req, env, s);

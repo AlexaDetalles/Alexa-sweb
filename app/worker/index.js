@@ -9,6 +9,7 @@ import { sitio } from './correo.js';
 import { registrarVista } from './estadisticas.js';
 import { hojaCsv } from './finanzas.js';
 import { procesarPublicaciones } from './social.js';
+import { recordatoriosDeCobro } from './creditos.js';
 
 const CABECERAS = {
   'X-Content-Type-Options': 'nosniff',
@@ -99,6 +100,7 @@ export default {
   async scheduled(evento, env, ctx) {
     // Cada 5 minutos: publicaciones programadas en redes. Cada lunes: respaldo y limpieza.
     if (evento.cron === '*/5 * * * *') ctx.waitUntil(procesarPublicaciones(env).then((r) => r.length && console.log('publicaciones', JSON.stringify(r))));
+    else if (evento.cron === '0 14 * * *') ctx.waitUntil(recordatoriosDeCobro(env).then((r) => console.log('cobros', JSON.stringify(r))));
     else ctx.waitUntil(mantenimiento(env).then((r) => console.log('mantenimiento', r)));
   },
 };
