@@ -135,6 +135,7 @@
         <button type="button" data-ir="productos" aria-current="page">Productos</button>
         <button type="button" data-ir="inventario" data-requiere="catalogo">Inventario</button>
         <button type="button" data-ir="categorias">Categorías</button>
+        <button type="button" data-ir="lotes" data-requiere="finanzas">Lotes</button>
         <button type="button" data-ir="finanzas" data-requiere="finanzas">Finanzas</button>
         <button type="button" data-ir="redes" data-requiere="catalogo">Redes</button>
         <button type="button" data-ir="regalos">Regalos</button>
@@ -184,6 +185,15 @@
         <div class="chips" id="inv-chips" role="group" aria-label="Filtrar inventario"></div>
         <ul class="lista" id="lista-inventario"></ul>
         <p class="vacio" id="inv-vacio" hidden>No hay productos con ese filtro.</p>
+      </section>
+
+      <!-- Lotes de inversión (solo administradora) -->
+      <section id="sec-lotes" aria-labelledby="t-lotes" hidden>
+        <div class="cabecera">
+          <div><h1 id="t-lotes">Lotes</h1><p class="suave">Una compra grande (por ejemplo L 45,000 por todo el catálogo) cuyo costo por producto no conoces. La inversión se reparte según el precio de etiqueta de cada producto y tú pones el precio que quieras.</p></div>
+          <button type="button" class="boton" id="nuevo-lote"><svg class="ico"><use href="#i-mas"/></svg>Nuevo lote</button>
+        </div>
+        <div id="lotes-contenido"><p class="suave">Cargando…</p></div>
       </section>
 
       <!-- Finanzas (solo administradora) -->
@@ -333,6 +343,11 @@
           <label class="campo">Tipo de stock<select name="tipo_stock"><option value="aparte">Stock aparte (dropshipping)</option><option value="local">Stock local (lo compré)</option><option value="sin">Sin stock</option></select></label>
           <label class="campo">Costo (L) <small>(lo que te cuesta)</small><input name="costo" inputmode="decimal" placeholder="0.00" autocomplete="off"></label>
         </div>
+        <div class="rejilla" id="bloque-lote" data-requiere="finanzas" hidden>
+          <label class="campo">Lote <select name="lote_id"></select></label>
+          <label class="campo">Precio de etiqueta (L) <small>(reparte la inversión)</small><input name="etiqueta" inputmode="decimal" placeholder="Ej. 800" autocomplete="off"></label>
+        </div>
+        <p class="suave" id="sugerido-info" hidden><span id="sugerido-texto"></span> <button type="button" class="boton suave chico" id="usar-sugerido">Usar ese precio</button></p>
         <p class="suave" id="margen-info"></p>
         <label class="casilla"><input type="checkbox" name="cotizar"><span>Por cotizar <small>(no tiene precio fijo; se confirma por WhatsApp)</small></span></label>
         <label class="campo">Descripción<textarea name="descripcion" rows="4" maxlength="1200"></textarea></label>
@@ -376,6 +391,24 @@
       <p class="error" id="error-instagram" role="alert" hidden></p>
     </div>
     <div class="dlg-pie"><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cerrar</button><button type="button" class="boton suave" id="ig-compartir" hidden>Compartir</button><button type="button" class="boton suave" id="ig-descargar">Descargar</button><button type="button" class="boton" id="ig-publicar">Publicar</button></div>
+    </form>
+  </dialog>
+
+  <!-- Lote de inversión -->
+  <dialog id="dlg-lote" class="chico" aria-labelledby="dlg-lote-t">
+    <form id="form-lote" novalidate>
+      <div class="dlg-top"><h2 id="dlg-lote-t">Nuevo lote</h2><button type="button" class="icono" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
+      <div class="dlg-cuerpo">
+        <label class="campo">Nombre<input name="nombre" maxlength="80" placeholder="Ej. Drop 18 de noviembre" autocomplete="off"></label>
+        <div class="rejilla">
+          <label class="campo">Inversión (L)<input name="inversion" inputmode="decimal" placeholder="45000" autocomplete="off"></label>
+          <label class="campo">Meta de ventas (L)<input name="meta" inputmode="decimal" placeholder="Vacío = +80 %" autocomplete="off"></label>
+        </div>
+        <p class="suave" id="lote-margen"></p>
+        <label class="casilla"><input type="checkbox" name="completo"><span>Ya cargué todo el lote <small>(el reparto del costo se ajusta exacto; mientras cargas, se calcula con la meta como base)</small></span></label>
+        <p class="error" id="error-lote" role="alert" hidden></p>
+      </div>
+      <div class="dlg-pie"><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cancelar</button><button type="submit" class="boton" id="lote-guardar">Guardar</button></div>
     </form>
   </dialog>
 

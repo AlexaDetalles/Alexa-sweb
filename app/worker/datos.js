@@ -6,6 +6,7 @@ import { actividad, limpiarEstadisticas } from './estadisticas.js';
 import { crearMovimiento, anularMovimiento, resumen, enlacesHoja } from './finanzas.js';
 import { crearPublicacion, listarPublicaciones, reintentarPublicacion, cancelarPublicacion } from './social.js';
 import { sitio } from './correo.js';
+import { listarLotes, verLote, crearLote, cambiarLote, borrarLote, aplicarSugeridos, recalcularLote } from './lotes.js';
 
 const ABIERTO = { 'Access-Control-Allow-Origin': '*' }; // lectura pública: cualquier página puede mostrar el catálogo
 
@@ -225,19 +226,44 @@ async function crearProducto(env, d) {
   await revisarCategoria(env, p.categoria_id);
   const id = p.id || await referenciaLibre(env, p.categoria_id);
   const orden = p.orden ?? ((await env.BD.prepare('SELECT coalesce(max(orden), 0) + 10 AS n FROM productos').first()).n);
+  if (p.lote_id) {
+    await revisarLote(env, p.lote_id, p.tipo_stock ?? 'aparte');
+    p.lote_cantidad ??= p.cantidad ?? 1;
+    p.cantidad ??= p.lote_cantidad; // lo comprado en el lote es lo que hay en existencia
+  }
   try { await insertar(env, 'productos', { ...p, id, orden }).run(); } catch (e) {
     if (duplicado(e)) falla(409, `Ya existe un producto con la referencia ${id}.`);
     throw e;
   }
+  if (p.lote_id) await recalcularLote(env, p.lote_id);
   return json({ id }, 201);
+}
+
+/** Un producto de un lote tiene que ser «Stock local» (es lo que se compró) y el lote tiene que existir. */
+async function revisarLote(env, loteId, tipoStock) {
+  if (!(await env.BD.prepare('SELECT 1 FROM lotes WHERE id = ?').bind(loteId).first())) falla(400, 'Ese lote ya no existe.');
+  if (tipoStock !== 'local') falla(400, 'Los productos de un lote deben ser «Stock local».');
 }
 
 async function cambiarProducto(env, id, d) {
   const p = V.producto(d);
   if ('categoria_id' in p) await revisarCategoria(env, p.categoria_id);
-  const antes = 'imagen_url' in p ? (await env.BD.prepare('SELECT imagen_url FROM productos WHERE id = ?').bind(id).first())?.imagen_url : null;
+  const antes = await env.BD.prepare('SELECT imagen_url, lote_id, lote_cantidad, cantidad, tipo_stock FROM productos WHERE id = ?').bind(id).first();
+  if (!antes) falla(404, 'El producto ya no existe.');
+  const loteNuevo = 'lote_id' in p ? p.lote_id : antes.lote_id;
+  if (loteNuevo) {
+    await revisarLote(env, loteNuevo, p.tipo_stock ?? antes.tipo_stock);
+    if (antes.lote_cantidad === null && !('lote_cantidad' in p)) { // entra al lote: sus unidades actuales son las compradas
+      p.lote_cantidad = p.cantidad ?? antes.cantidad ?? 1;
+      if ((p.cantidad ?? antes.cantidad) === null || (p.cantidad ?? antes.cantidad) === undefined) p.cantidad = p.lote_cantidad;
+    }
+    if ('lote_cantidad' in p && p.lote_cantidad !== null && antes.lote_cantidad !== null && antes.cantidad !== null && !('cantidad' in p)) {
+      p.cantidad = Math.max(0, antes.cantidad + (p.lote_cantidad - antes.lote_cantidad)); // comprar más (o corregir) mueve las existencias igual
+    }
+  }
   noExiste(await actualizar(env, 'productos', [['id', id]], { ...p, actualizado: fechaSql() }), 'El producto ya no existe.');
-  if (antes && antes !== p.imagen_url) await soltarFoto(env, antes);
+  if (antes.imagen_url && 'imagen_url' in p && antes.imagen_url !== p.imagen_url) await soltarFoto(env, antes.imagen_url);
+  for (const l of new Set([antes.lote_id, loteNuevo].filter(Boolean))) await recalcularLote(env, l);
   return json({ ok: true });
 }
 
@@ -249,7 +275,7 @@ async function duplicarProducto(env, id) {
   const orden = (await env.BD.prepare('SELECT coalesce(max(orden), 0) + 10 AS n FROM productos').first()).n;
   await insertar(env, 'productos', {
     id: nuevo, nombre: `${o.nombre} (copia)`.slice(0, 120), categoria_id: o.categoria_id, descripcion: o.descripcion, precio: o.precio,
-    cotizar: o.cotizar, imagen_url: o.imagen_url, disponible: o.disponible, cantidad: o.cantidad, costo: o.costo, tipo_stock: o.tipo_stock, visible: 0, orden,
+    cotizar: o.cotizar, imagen_url: o.imagen_url, disponible: o.disponible, cantidad: o.cantidad, costo: o.costo, tipo_stock: o.tipo_stock, referencia: o.referencia, visible: 0, orden,
   }).run();
   return json({ id: nuevo }, 201);
 }
@@ -391,6 +417,14 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
     return id === 'enlaces' ? enlacesHoja(env, sitio(env)) : resumen(env);
   }
   if (m === 'GET' && recurso === 'publicaciones') return listarPublicaciones(env);
+  if (recurso === 'lotes') { // lotes de inversión: costos y ganancias, solo administradora
+    exigirPermiso(s, 'finanzas');
+    if (m === 'GET') return id ? verLote(env, id) : listarLotes(env);
+    if (m === 'POST' && !id) return crearLote(env, d);
+    if (m === 'POST' && accion === 'precios') return aplicarSugeridos(env, id, d.modo);
+    if (m === 'PUT' && id) return cambiarLote(env, id, d);
+    if (m === 'DELETE' && id) return borrarLote(env, id);
+  }
   if (m !== 'GET') exigirPermiso(s, recurso === 'ajustes' ? 'ajustes' : 'catalogo');
 
   if (m === 'GET' && recurso === 'datos') {
@@ -431,7 +465,7 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
     if (m === 'POST' && !id) return crearProducto(env, d);
     if (m === 'PUT' && id && !accion) return cambiarProducto(env, id, d);
     if (m === 'POST' && accion === 'duplicar') return duplicarProducto(env, id);
-    if (m === 'POST' && accion === 'restaurar') { noExiste(await env.BD.prepare('UPDATE productos SET borrado_en = NULL WHERE id = ? AND borrado_en IS NOT NULL').bind(id).run(), 'El producto ya no está en la papelera.'); return json({ ok: true }); }
+    if (m === 'POST' && accion === 'restaurar') { noExiste(await env.BD.prepare('UPDATE productos SET borrado_en = NULL WHERE id = ? AND borrado_en IS NOT NULL').bind(id).run(), 'El producto ya no está en la papelera.'); await recalcularLote(env, (await env.BD.prepare('SELECT lote_id FROM productos WHERE id = ?').bind(id).first())?.lote_id); return json({ ok: true }); }
     if (m === 'DELETE' && id && new URL(req.url).searchParams.get('definitivo') === '1') {
       // Solo se elimina de verdad lo que ya está en la papelera, junto con su foto.
       const p = await env.BD.prepare('SELECT imagen_url FROM productos WHERE id = ? AND borrado_en IS NOT NULL').bind(id).first();
@@ -440,7 +474,7 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
       await soltarFoto(env, p.imagen_url);
       return json({ ok: true });
     }
-    if (m === 'DELETE' && id) { noExiste(await env.BD.prepare('UPDATE productos SET borrado_en = ? WHERE id = ? AND borrado_en IS NULL').bind(fechaSql(), id).run(), 'El producto ya no existe.'); return json({ ok: true }); }
+    if (m === 'DELETE' && id) { noExiste(await env.BD.prepare('UPDATE productos SET borrado_en = ? WHERE id = ? AND borrado_en IS NULL').bind(fechaSql(), id).run(), 'El producto ya no existe.'); await recalcularLote(env, (await env.BD.prepare('SELECT lote_id FROM productos WHERE id = ?').bind(id).first())?.lote_id); return json({ ok: true }); }
   } else if (recurso === 'categorias') {
     if (m === 'POST' && !id) return crearCategoria(env, d);
     if (m === 'PUT' && id) return cambiarCategoria(env, id, d);

@@ -54,6 +54,12 @@ export function producto(d, crear = false) {
   if ('imagen_url' in d) r.imagen_url = fotoONula(d.imagen_url);
   if ('disponible' in d) r.disponible = booleano(d.disponible);
   if ('visible' in d) r.visible = booleano(d.visible);
+  if ('lote_id' in d) r.lote_id = d.lote_id === null || d.lote_id === '' ? null : entero(d.lote_id, 'Lote', 1000000000);
+  if ('referencia' in d) r.referencia = numero(d.referencia, 'Precio de referencia', { nulo: true });
+  if ('lote_cantidad' in d) {
+    r.lote_cantidad = d.lote_cantidad === null || d.lote_cantidad === '' ? null : entero(d.lote_cantidad, 'Unidades del lote');
+    if (r.lote_cantidad === 0) falla(400, 'Unidades del lote: mínimo 1.');
+  }
   if ('costo' in d) r.costo = numero(d.costo, 'Costo', { nulo: true });
   if ('tipo_stock' in d) {
     if (!['aparte', 'local', 'sin'].includes(d.tipo_stock)) falla(400, 'Tipo de stock: elige stock aparte, stock local o sin stock.');

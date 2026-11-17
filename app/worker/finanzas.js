@@ -1,5 +1,6 @@
 // Finanzas del negocio: libro de compras y ventas, resumen (inversión, ventas, ganancia) y las hojas CSV que alimentan la hoja de Google.
 import { falla, json, fechaSql, iguales } from './util.js';
+import { detalleLote } from './lotes.js';
 
 const TIPOS_STOCK = { aparte: 'Stock aparte', local: 'Stock local', sin: 'Sin stock' };
 const num = (v, campo, { max = 1000000, nulo = false } = {}) => {
@@ -75,7 +76,7 @@ const conGanancia = (r) => ({ ...r, invertido: dinero(r.invertido), ingresos: di
 
 export async function resumen(env) {
   const hace = (dias) => fechaSql(Date.now() - dias * 86400000);
-  const [total, semana, mes, porTipo, porCat, stock, sinCosto, recientes, aj] = await env.BD.batch([
+  const [total, semana, mes, porTipo, porCat, stock, sinCosto, recientes, aj, lotesBD] = await env.BD.batch([
     env.BD.prepare(`SELECT ${SUMAS} FROM movimientos WHERE anulado = 0`),
     env.BD.prepare(`SELECT ${SUMAS} FROM movimientos WHERE anulado = 0 AND fecha >= ?`).bind(hace(7)),
     env.BD.prepare(`SELECT ${SUMAS} FROM movimientos WHERE anulado = 0 AND fecha >= ?`).bind(hace(30)),
@@ -86,11 +87,17 @@ export async function resumen(env) {
     env.BD.prepare(`SELECT tipo_stock, count(*) AS n FROM productos WHERE borrado_en IS NULL AND costo IS NULL GROUP BY tipo_stock`),
     env.BD.prepare(`SELECT * FROM movimientos ORDER BY id DESC LIMIT 40`),
     env.BD.prepare('SELECT hoja_url FROM ajustes WHERE id = 1'),
+    env.BD.prepare('SELECT id FROM lotes ORDER BY id DESC'),
   ]);
-  const t = conGanancia(total.results[0]);
+  // La inversión de los lotes (compra grande con costo por producto desconocido) también cuenta como invertido, en stock local.
+  const lotes = [];
+  for (const { id } of lotesBD.results) lotes.push(await detalleLote(env, id));
+  const invertidoLotes = dinero(lotes.reduce((s, l) => s + l.inversion, 0));
+  const sumarLotes = (r, tipo) => (tipo === undefined || tipo === 'local' ? { ...r, invertido: r.invertido + invertidoLotes } : r);
+  const t = conGanancia(sumarLotes(total.results[0]));
   const enStock = stock.results.filter((p) => p.cantidad !== null);
   const capitalEnStock = dinero(enStock.reduce((s, p) => s + (p.costo ?? 0) * p.cantidad, 0));
-  const local = conGanancia(porTipo.results.find((x) => x.tipo_stock === 'local') ?? { invertido: 0, ingresos: 0, costo_vendido: 0, unidades_vendidas: 0 });
+  const local = conGanancia(sumarLotes(porTipo.results.find((x) => x.tipo_stock === 'local') ?? { tipo_stock: 'local', invertido: 0, ingresos: 0, costo_vendido: 0, unidades_vendidas: 0 }, 'local'));
   return json({
     total: t,
     semana: conGanancia(semana.results[0]),
@@ -99,7 +106,8 @@ export async function resumen(env) {
     retorno_local: t.invertido > 0 ? Math.round((local.ganancia / t.invertido) * 1000) / 10 : null,
     capital_en_stock: capitalEnStock,
     unidades_en_stock: enStock.reduce((s, p) => s + p.cantidad, 0),
-    por_tipo: porTipo.results.map((r) => ({ tipo_stock: r.tipo_stock, nombre: TIPOS_STOCK[r.tipo_stock], ...conGanancia(r) })),
+    por_tipo: [...porTipo.results.filter((r) => r.tipo_stock !== 'local'), ...(invertidoLotes > 0 || porTipo.results.some((r) => r.tipo_stock === 'local') ? [{ ...local, tipo_stock: 'local' }] : [])].map((r) => ({ nombre: TIPOS_STOCK[r.tipo_stock], ...conGanancia(r) })),
+    lotes: lotes.map((l) => ({ id: l.id, nombre: l.nombre, inversion: l.inversion, meta: l.meta, ventas_estimadas: l.ventas_estimadas, ganancia_estimada: l.ganancia_estimada, margen_estimado: l.margen_estimado, vendido: l.vendido, unidades: l.unidades, completo: l.completo })),
     por_categoria: porCat.results.map((r) => ({ categoria_id: r.categoria_id, categoria: r.categoria, ...conGanancia(r) })),
     sin_costo: sinCosto.results,
     recientes: recientes.results.map((m) => ({ ...m, anulado: !!m.anulado, total: dinero(m.cantidad * (m.tipo === 'venta' ? m.precio_unit : m.costo_unit)) })),
@@ -117,12 +125,12 @@ const csv = (filas) => `﻿${filas.map((f) => f.map(celda).join(',')).join('\n')
 const hondu = (sql) => { const d = new Date(`${sql.replace(' ', 'T')}Z`.replace('ZZ', 'Z')); return Number.isNaN(d.getTime()) ? sql : new Date(d.getTime() - 6 * 3600000).toISOString().replace('T', ' ').slice(0, 16); };
 
 async function hojaProductos(env) {
-  const { results } = await env.BD.prepare(`SELECT p.id, p.nombre, coalesce(c.nombre, '') AS categoria, p.tipo_stock, p.costo, p.precio, p.cotizar, p.cantidad, p.visible, p.disponible
-    FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id WHERE p.borrado_en IS NULL ORDER BY c.orden, p.orden, p.nombre`).all();
-  return csv([['Referencia', 'Producto', 'Categoría', 'Tipo de stock', 'Costo (L)', 'Precio (L)', 'Margen (L)', 'Cantidad', 'Valor en stock (L)', 'Visible', 'Hay'],
+  const { results } = await env.BD.prepare(`SELECT p.id, p.nombre, coalesce(c.nombre, '') AS categoria, p.tipo_stock, p.costo, p.precio, p.cotizar, p.cantidad, p.visible, p.disponible, coalesce(l.nombre, '') AS lote, p.referencia
+    FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id LEFT JOIN lotes l ON l.id = p.lote_id WHERE p.borrado_en IS NULL ORDER BY c.orden, p.orden, p.nombre`).all();
+  return csv([['Referencia', 'Producto', 'Categoría', 'Tipo de stock', 'Costo (L)', 'Precio (L)', 'Margen (L)', 'Cantidad', 'Valor en stock (L)', 'Visible', 'Hay', 'Lote', 'Precio de etiqueta (L)'],
     ...results.map((p) => [p.id, p.nombre, p.categoria, TIPOS_STOCK[p.tipo_stock], p.costo ?? '', p.cotizar ? 'Por cotizar' : p.precio ?? '',
       p.costo !== null && !p.cotizar && p.precio !== null ? dinero(p.precio - p.costo) : '', p.cantidad ?? '',
-      p.tipo_stock === 'local' && p.cantidad !== null && p.costo !== null ? dinero(p.costo * p.cantidad) : '', p.visible ? 'Sí' : 'No', p.disponible ? 'Sí' : 'No'])]);
+      p.tipo_stock === 'local' && p.cantidad !== null && p.costo !== null ? dinero(p.costo * p.cantidad) : '', p.visible ? 'Sí' : 'No', p.disponible ? 'Sí' : 'No', p.lote, p.referencia ?? ''])]);
 }
 async function hojaMovimientos(env) {
   const { results } = await env.BD.prepare('SELECT * FROM movimientos ORDER BY id DESC').all();
@@ -142,6 +150,9 @@ async function hojaResumen(env) {
     [],
     ['Por tipo de stock', 'Invertido (L)', 'Vendido (L)', 'Costo de lo vendido (L)', 'Ganancia (L)', 'Unidades vendidas'],
     ...r.por_tipo.map((x) => fila(x.nombre, x)),
+    [],
+    ['Lotes', 'Inversión (L)', 'Meta de ventas (L)', 'Ventas estimadas con tus precios (L)', 'Ganancia estimada (L)', 'Vendido de verdad (L)'],
+    ...r.lotes.map((l) => [l.nombre, l.inversion, l.meta, l.ventas_estimadas, l.ganancia_estimada, l.vendido.ingresos]),
     [],
     ['Por categoría', 'Invertido (L)', 'Vendido (L)', 'Costo de lo vendido (L)', 'Ganancia (L)', 'Unidades vendidas'],
     ...r.por_categoria.map((x) => fila(x.categoria, x)),

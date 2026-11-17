@@ -533,6 +533,53 @@ test('finanzas: stock local (compra = inversión), stock aparte (sin inversión)
   for (const id of [local, aparte, sin]) { await llamar('DELETE', `/api/admin/productos/${id}`); await llamar('DELETE', `/api/admin/productos/${id}?definitivo=1`); }
 });
 
+test('lotes: la inversión se reparte por precio de etiqueta, el precio lo pones tú y todo se suma', async () => {
+  const mov = (cuerpo) => llamar('POST', '/api/admin/movimientos', cuerpo);
+  const antes = (await llamar('GET', '/api/admin/finanzas')).datos;
+  // L 45,000 por todo; meta 80,000 (sin meta, el sistema propone +80 %)
+  const sinMeta = await llamar('POST', '/api/admin/lotes', { nombre: 'Prueba sin meta', inversion: 1000 });
+  assert.equal((await llamar('GET', `/api/admin/lotes/${sinMeta.datos.id}`)).datos.meta, 1800);
+  await llamar('DELETE', `/api/admin/lotes/${sinMeta.datos.id}`);
+  const lote = (await llamar('POST', '/api/admin/lotes', { nombre: 'Drop de prueba', inversion: 45000, meta: 80000 })).datos.id;
+  const crear = async (extra) => (await llamar('POST', '/api/admin/productos', { categoria_id: 'RPM', visible: 1, disponible: 1, tipo_stock: 'local', lote_id: lote, ...extra }));
+  assert.equal((await crear({ nombre: 'No local', precio: 1, tipo_stock: 'aparte' })).estado, 400, 'un lote solo lleva stock local');
+  const A = (await crear({ nombre: 'Tenis lote', precio: 800, referencia: 800, cantidad: 50 })).datos.id;
+  const B = (await crear({ nombre: 'Camiseta lote', precio: 400, referencia: 400, cantidad: 100 })).datos.id;
+  let l = (await llamar('GET', `/api/admin/lotes/${lote}`)).datos;
+  const f = (id) => l.filas.find((x) => x.id === id);
+  // etiquetas por 80,000 en total = la meta: costo 450 y 225, sugerido = la etiqueta
+  assert.deepEqual([f(A).costo, f(B).costo, f(A).sugerido, f(B).sugerido], [450, 225, 800, 400]);
+  assert.deepEqual([l.ventas_estimadas, l.ganancia_estimada, l.margen_estimado, l.margen_meta], [80000, 35000, 77.8, 77.8]);
+  assert.equal((await admin()).productos.find((p) => p.id === A).costo, 450, 'el costo repartido queda en el producto');
+  // pones tu propio precio (900): el total se suma con ese precio
+  await llamar('PUT', `/api/admin/productos/${A}`, { precio: 900 });
+  l = (await llamar('GET', `/api/admin/lotes/${lote}`)).datos;
+  assert.deepEqual([l.ventas_estimadas, l.ganancia_estimada, f(A).costo], [85000, 40000, 450]);
+  // finanzas: la inversión del lote cuenta como invertida y la ganancia sale con el costo repartido
+  assert.equal((await mov({ tipo: 'venta', producto_id: A, cantidad: 2 })).estado, 201);
+  const r = (await llamar('GET', '/api/admin/finanzas')).datos;
+  assert.equal(r.total.invertido - antes.total.invertido, 45000);
+  assert.equal(Math.round((r.total.ganancia - antes.total.ganancia) * 100) / 100, 900, '2 × (900 − 450)');
+  assert.equal(r.lotes.find((x) => x.id === lote).vendido.ganancia, 900);
+  l = (await llamar('GET', `/api/admin/lotes/${lote}`)).datos;
+  assert.equal(l.vendido.unidades, 2);
+  assert.equal(l.filas.find((x) => x.id === A).costo, 450, 'vender no cambia el costo repartido');
+  // comprar más unidades del lote mueve las existencias
+  await llamar('PUT', `/api/admin/productos/${B}`, { lote_cantidad: 110 });
+  assert.equal((await admin()).productos.find((p) => p.id === B).cantidad, 110);
+  // aplicar los precios sugeridos
+  assert.equal((await llamar('POST', `/api/admin/lotes/${lote}/precios`, { modo: 'todos' })).datos.cambiados, 2);
+  l = (await llamar('GET', `/api/admin/lotes/${lote}`)).datos;
+  assert.ok(l.filas.every((x) => x.precio === x.sugerido));
+  // rangos: el lote es solo de administradora (validaciones)
+  assert.equal((await llamar('PUT', `/api/admin/lotes/${lote}`, { inversion: -5 })).estado, 400);
+  assert.equal((await llamar('GET', '/api/admin/lotes', undefined, { conSesion: false })).estado, 401);
+  // borrar el lote deja los productos
+  assert.equal((await llamar('DELETE', `/api/admin/lotes/${lote}`)).estado, 200);
+  assert.equal((await admin()).productos.find((p) => p.id === A).lote_id, null);
+  for (const id of [A, B]) { await llamar('DELETE', `/api/admin/productos/${id}`); await llamar('DELETE', `/api/admin/productos/${id}?definitivo=1`); }
+});
+
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
   const miCookie = cookie;
   const nueva = 'otra-clave-nueva-456';

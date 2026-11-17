@@ -275,3 +275,10 @@ details.paso form { display: grid; gap: 12px; margin-top: 14px; max-width: 560px
 .fin-enlaces { margin: 8px 0 30px; font-size: 13px; }
 .fin-enlaces summary { cursor: pointer; color: var(--muted); }
 .fin-enlaces code { display: block; word-break: break-all; background: #efe6df; padding: 8px 10px; border-radius: 8px; margin-top: 4px; user-select: all; }
+
+/* Lotes */
+.lote { background: var(--tarjeta); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px 16px; margin: 0 0 22px; }
+.lote-cab { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap; }
+.lote-cab h2 { font-size: 20px; margin: 0 8px 4px 0; display: inline; }
+.lote-precio { width: 92px; }
+.lote-pie { margin-top: 12px; justify-content: flex-start; }
