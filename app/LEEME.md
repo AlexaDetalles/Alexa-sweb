@@ -13,6 +13,7 @@ app/
 
 ## Qué puedes hacer en el panel
 - **Productos**: crear, editar, foto (se reduce sola en el celular), precio, «por cotizar», visible/oculto, hay/agotado, ordenar, duplicar, papelera de 30 días.
+- **Imagen para Instagram**: dentro de un producto, «Imagen para Instagram» crea una lámina 4:5 (2160×2700) con la foto, el nombre, el precio y una talla opcional, con el estilo rojo y grano de película de la tienda. Se dibuja en el navegador y se descarga (o se comparte desde el celular).
 - **Categorías**: crear, subcategorías, ocultar, ordenar (reemplazan los códigos HP, MP, PHP… escritos en el código).
 - **Regalos personalizados** (para ella / para él), totalmente configurables: pasos propios (nombre, título, una o varias opciones, mínimo/máximo, de qué otro paso dependen, orden, visible), opciones con **foto**, descripción, etiqueta («Popular») y precio, textos de la página y dedicatoria (tarjeta con mensaje). El panel avisa si algo no se va a mostrar. Se ve en `/regalos/personalizar/ella` y `/regalos/personalizar/el`.
 - **Panel instalable (PWA)**: en el navegador aparece «Instalar app» y queda como una app en el celular o la computadora.

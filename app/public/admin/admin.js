@@ -1,5 +1,6 @@
 // Panel de administración de Alexa Detalles: productos, categorías, regalos personalizados y ajustes.
 // Sin librerías. Todo lo que viene de la base de datos pasa por esc() antes de llegar al HTML.
+import { dibujarInstagram, nombreArchivo } from '/admin/instagram.js';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -265,6 +266,31 @@ function abrirProducto(p, categoria = E.cat) {
 fp().cotizar.addEventListener('change', (ev) => { fp().precio.disabled = ev.target.checked; if (ev.target.checked) fp().precio.value = ''; });
 $('#foto-subir').addEventListener('click', () => $('#foto-archivo').click());
 $('#foto-quitar').addEventListener('click', () => { E.foto = null; pintarFoto(); });
+
+// Imagen para Instagram: usa lo que hay ahora en el formulario (foto, nombre, precio) y una talla opcional.
+const datosInstagram = () => { const f = fp(); return { fotoUrl: E.foto, nombre: f.nombre.value, precio: f.precio.value, cotizar: f.cotizar.checked, talla: $('#ig-talla').value }; };
+let igPintando = 0;
+async function pintarInstagram() {
+  const turno = ++igPintando; mostrarError('#error-instagram');
+  try { await dibujarInstagram($('#ig-lienzo'), datosInstagram()); } catch (e) { if (turno === igPintando) mostrarError('#error-instagram', 'No pude dibujar la imagen. Intenta de nuevo.'); }
+}
+$('#producto-instagram').addEventListener('click', () => {
+  if (!fp().nombre.value.trim()) return mostrarError('#error-producto', 'Escribe el nombre del producto para crear la imagen.');
+  mostrarError('#error-producto');
+  $('#ig-talla').value = ''; $('#ig-compartir').hidden = !(navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] }));
+  $('#dlg-instagram').showModal(); pintarInstagram();
+});
+let igTemporizador; $('#ig-talla').addEventListener('input', () => { clearTimeout(igTemporizador); igTemporizador = setTimeout(pintarInstagram, 250); });
+const igArchivo = () => new Promise((res) => $('#ig-lienzo').toBlob(res, 'image/png'));
+$('#ig-descargar').addEventListener('click', async () => {
+  const blob = await igArchivo(); if (!blob) return mostrarError('#error-instagram', 'No pude crear la imagen.');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombreArchivo(fp().nombre.value, fp().referencia.value); a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+});
+$('#ig-compartir').addEventListener('click', async () => {
+  const blob = await igArchivo(); if (!blob) return;
+  try { await navigator.share({ files: [new File([blob], nombreArchivo(fp().nombre.value, fp().referencia.value), { type: 'image/png' })] }); } catch { /* la persona canceló */ }
+});
 
 /** Reduce la foto en el propio teléfono: 1200 px (ficha) y 600 px (catálogo), en WebP o, si el navegador no lo sabe crear, JPEG. */
 async function prepararFoto(archivo) {
