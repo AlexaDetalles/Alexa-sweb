@@ -20,13 +20,13 @@ body{width:1080px;height:1350px;overflow:hidden;position:relative;background:#4a
  linear-gradient(165deg,#f0414f 0%,#c1121f 38%,#7a0912 72%,#2f0307 100%)}
 .glow{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 30%,rgba(255,190,150,.35),transparent 60%);mix-blend-mode:screen}
 .vig{position:absolute;inset:0;z-index:49;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.6) 100%)}
-.grain{position:absolute;inset:0;z-index:50;opacity:.55;mix-blend-mode:overlay;pointer-events:none;background:url(file://{R}/grain.png) 0 0/1080px 1350px}
+.grain{position:absolute;inset:0;z-index:50;opacity:.38;mix-blend-mode:overlay;pointer-events:none;background:url(file://{R}/grain.png) 0 0/1080px 1350px}
 .t{-webkit-mask-image:url({SPECK});mask-image:url({SPECK});-webkit-mask-size:512px 512px;mask-size:512px 512px;font-family:Anton;text-transform:uppercase;position:absolute;left:0;right:0;text-align:center;line-height:.86;z-index:20;
  color:#fff;drop-shadow(0 0 22px rgba(255,120,110,.55)) drop-shadow(0 18px 36px rgba(0,0,0,.45))}
 .t .g{background:linear-gradient(180deg,#fff 0%,#fff 45%,#ffc9c2 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .t .o{color:transparent;-webkit-text-stroke:4px #fff}
 .card{position:absolute;background:#f6f2ea;padding:12px;box-shadow:0 34px 70px rgba(0,0,0,.6),0 6px 14px rgba(0,0,0,.35)}
-.card img,.ph0{width:100%;height:100%;display:block;object-fit:cover;filter:contrast(1.06) saturate(.92) sepia(.08)}
+.card img,.ph0{width:100%;height:100%;display:block;object-fit:cover;filter:saturate(.95)}
 .ph0{background:linear-gradient(160deg,#2c2c2c,#141414)}
 .tag{position:absolute;left:0;right:0;text-align:center;z-index:30;color:#fff;font-weight:700;font-size:26px;letter-spacing:12px;text-transform:uppercase;text-shadow:0 2px 14px rgba(0,0,0,.5)}
 </style>
@@ -43,7 +43,7 @@ def s2():
       +'<div class=tag style="bottom:70px;left:340px;right:340px">Alexa</div>')
 def s3():
     return page('<div class=t style="top:110px;font-size:310px"><span class=g>Tiendas</span><br><span class=o>Alexa</span></div>'
-      +card(5,320,700,440,560,-2,z=5)+card(0,60,830,260,340,-8)+card(2,760,830,260,340,8)
+      +card(5,320,700,440,560,-2,z=5)+card(6,60,830,260,340,-8)+card(7,760,830,260,340,8)
       +'<div class=tag style="bottom:44px">@tiendasalexa_</div>')
 for i,f in enumerate((s1,s2,s3),1): open(f'{R}/slide{i}.html','w').write(f())
 print(len(PH),'fotos')
