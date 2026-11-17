@@ -645,7 +645,7 @@ test('gastos, crédito y abonos: el crédito cuesta más que el contado, se avis
   assert.equal((await llamar('PUT', '/api/admin/finanzas/config', { credito_pct: 900 })).estado, 400);
   await llamar('PUT', '/api/admin/finanzas/config', { credito_pct: 20 });
   // hojas
-  for (const hoja of ['gastos', 'creditos']) assert.equal((await fetch(`${URL_BASE}/api/finanzas/csv/${hoja}?clave=${FINANZAS_TOKEN}`)).status, 200, hoja);
+  for (const hoja of ['gastos', 'creditos', 'lotes']) assert.equal((await fetch(`${URL_BASE}/api/finanzas/csv/${hoja}?clave=${FINANZAS_TOKEN}`)).status, 200, hoja);
   assert.equal((await llamar('GET', '/api/admin/creditos', undefined, { conSesion: false })).estado, 401);
   await llamar('DELETE', `/api/admin/productos/${producto}`); await llamar('DELETE', `/api/admin/productos/${producto}?definitivo=1`);
 });

@@ -167,6 +167,7 @@
           <div><h1 id="t-productos">Productos</h1><p id="conteo" class="suave"></p></div>
           <button type="button" class="boton" id="nuevo-producto"><svg class="ico"><use href="#i-mas"/></svg>Nuevo producto</button>
         </div>
+        <div class="contador" id="contador" data-requiere="finanzas" hidden></div>
         <div class="herramientas">
           <label class="campo buscar">Buscar<input type="search" id="buscar" placeholder="Nombre o referencia…" autocomplete="off"></label>
           <label class="campo">Categoría<select id="filtro-categoria"></select></label>
@@ -345,12 +346,12 @@
         </div>
         <label class="campo">Cantidad en existencia <small>(opcional)</small><input name="cantidad" inputmode="numeric" placeholder="Vacío = sin control de cantidad" autocomplete="off"></label>
         <div class="rejilla">
-          <label class="campo">Tipo de stock<select name="tipo_stock"><option value="aparte">Stock aparte (dropshipping)</option><option value="local">Stock local (lo compré)</option><option value="sin">Sin stock</option></select></label>
+          <label class="campo">Tipo de stock<select name="tipo_stock"><option value="aparte">Stock aparte (dropshipping)</option><option value="local1">Stock local 1 (lo tengo, sin inversión)</option><option value="local2">Stock local 2 (con inversión)</option><option value="sin">Sin stock</option></select></label>
           <label class="campo">Costo (L) <small>(lo que te cuesta)</small><input name="costo" inputmode="decimal" placeholder="0.00" autocomplete="off"></label>
         </div>
         <div class="rejilla" id="bloque-lote" data-requiere="finanzas" hidden>
           <label class="campo">Lote <select name="lote_id"></select></label>
-          <label class="campo">Precio de etiqueta (L) <small>(reparte la inversión)</small><input name="etiqueta" inputmode="decimal" placeholder="Ej. 800" autocomplete="off"></label>
+          <label class="campo">Precio de etiqueta (L) <small>(opcional: si no lo pones, se usa tu precio)</small><input name="etiqueta" inputmode="decimal" placeholder="Ej. 800" autocomplete="off"></label>
         </div>
         <p class="suave" id="sugerido-info" hidden><span id="sugerido-texto"></span> <button type="button" class="boton suave chico" id="usar-sugerido">Usar ese precio</button></p>
         <p class="suave" id="margen-info"></p>
@@ -365,6 +366,7 @@
       <div class="dlg-pie">
         <button type="button" class="boton suave peligro" id="producto-borrar">Mandar a la papelera</button>
         <button type="button" class="boton suave" id="producto-duplicar">Duplicar</button>
+        <button type="button" class="boton suave" id="producto-otro" hidden>Guardar y agregar otro</button>
         <button type="button" class="boton suave" id="producto-instagram"><svg class="ico"><use href="#i-foto"/></svg>Imagen para Instagram</button>
         <span class="espacio"></span>
         <button type="button" class="boton suave" data-cerrar>Cancelar</button>

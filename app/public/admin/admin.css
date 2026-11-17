@@ -297,3 +297,9 @@ progress.barra-pago { display: block; width: 100%; height: 6px; appearance: none
 progress.barra-pago::-webkit-progress-bar { background: #e4dccf; }
 progress.barra-pago::-webkit-progress-value { background: var(--ok); }
 progress.barra-pago::-moz-progress-bar { background: var(--ok); }
+
+/* Contador del stock local */
+.contador { background: var(--tarjeta); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin: 0 0 14px; }
+.contador-cab { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.contador-linea { margin: 4px 0 0; font-size: 14px; }
+.contador .pos { color: var(--ok); } .contador .neg { color: var(--mal); }

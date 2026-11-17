@@ -199,10 +199,11 @@ const hondu = (sql) => { const d = new Date(`${sql.replace(' ', 'T')}Z`.replace(
 async function hojaProductos(env) {
   const { results } = await env.BD.prepare(`SELECT p.id, p.nombre, coalesce(c.nombre, '') AS categoria, p.tipo_stock, p.costo, p.precio, p.cotizar, p.cantidad, p.visible, p.disponible, coalesce(l.nombre, '') AS lote, p.referencia
     FROM productos p LEFT JOIN categorias c ON c.id = p.categoria_id LEFT JOIN lotes l ON l.id = p.lote_id WHERE p.borrado_en IS NULL ORDER BY c.orden, p.orden, p.nombre`).all();
-  return csv([['Referencia', 'Producto', 'Categoría', 'Tipo de stock', 'Costo (L)', 'Precio (L)', 'Margen (L)', 'Cantidad', 'Valor en stock (L)', 'Visible', 'Hay', 'Lote', 'Precio de etiqueta (L)'],
+  return csv([['Referencia', 'Producto', 'Categoría', 'Tipo de stock', 'Costo (L)', 'Precio (L)', 'Margen (L)', 'Cantidad', 'Costo × cantidad (L)', 'Visible', 'Hay', 'Lote', 'Precio de etiqueta (L)', 'Valor a tu precio (L)'],
     ...results.map((p) => [p.id, p.nombre, p.categoria, TIPOS_STOCK[p.tipo_stock], p.costo ?? '', p.cotizar ? 'Por cotizar' : p.precio ?? '',
       p.costo !== null && !p.cotizar && p.precio !== null ? dinero(p.precio - p.costo) : '', p.cantidad ?? '',
-      esLocal(p.tipo_stock) && p.cantidad !== null && p.costo !== null ? dinero(p.costo * p.cantidad) : '', p.visible ? 'Sí' : 'No', p.disponible ? 'Sí' : 'No', p.lote, p.referencia ?? ''])]);
+      esLocal(p.tipo_stock) && p.cantidad !== null && p.costo !== null ? dinero(p.costo * p.cantidad) : '', p.visible ? 'Sí' : 'No', p.disponible ? 'Sí' : 'No', p.lote, p.referencia ?? '',
+      esLocal(p.tipo_stock) && !p.cotizar && p.precio !== null ? dinero((p.cantidad ?? 1) * p.precio) : ''])]);
 }
 async function hojaMovimientos(env) {
   const { results } = await env.BD.prepare('SELECT * FROM movimientos ORDER BY id DESC').all();
@@ -242,7 +243,13 @@ async function hojaCreditos(env) {
   return csv([['Nº', 'Fecha', 'Cliente', 'Teléfono', 'Producto', 'Contado (L)', 'Pagos', 'Pago (L)', 'Total crédito (L)', 'Abonado (L)', 'Saldo (L)', 'Próximo pago', 'Vencido (L)', 'Estado'],
     ...lista.map((c) => [c.id, hondu(c.fecha), c.cliente, c.telefono, c.producto_nombre, c.precio_contado, c.cuotas, c.cuota_monto, c.total, c.abonado, c.saldo, c.proximo_vencimiento ?? '', c.monto_vencido, c.estado === 'pagado' ? 'Pagado' : c.vencido ? 'Vencido' : 'Al día'])]);
 }
-const HOJAS = { productos: hojaProductos, movimientos: hojaMovimientos, resumen: hojaResumen, gastos: hojaGastos, creditos: hojaCreditos };
+async function hojaLotes(env) {
+  const { results } = await env.BD.prepare('SELECT id FROM lotes ORDER BY id').all();
+  const lotes = []; for (const { id } of results) lotes.push(await detalleLote(env, id));
+  return csv([['Nº', 'Lote', 'Inversión (L)', 'Meta de ventas (L)', 'Valor a tus precios (L)', 'Ganancia estimada (L)', 'Margen estimado (%)', 'Falta para cubrir la inversión (L)', 'Falta para la meta (L)', 'Vendido de verdad (L)', 'Ganancia real (L)', 'Unidades', 'Completo'],
+    ...lotes.map((l) => [l.id, l.nombre, l.inversion, l.meta, l.ventas_estimadas, l.ganancia_estimada, l.margen_estimado ?? '', l.falta_cubrir, l.falta_para_meta, l.vendido.ingresos, l.vendido.ganancia, l.unidades, l.completo ? 'Sí' : 'No'])]);
+}
+const HOJAS = { productos: hojaProductos, movimientos: hojaMovimientos, resumen: hojaResumen, gastos: hojaGastos, creditos: hojaCreditos, lotes: hojaLotes };
 
 /** GET /api/finanzas/csv/<hoja>?clave=…  Solo con la clave secreta FINANZAS_TOKEN; sin ella la ruta ni existe. */
 export async function hojaCsv(env, hoja, clave) {

@@ -162,6 +162,7 @@ async function cargar() {
   const d = await api('GET', 'admin/datos');
   Object.assign(E, { cats: d.categorias, prods: d.productos, papelera: d.papelera, ops: d.opciones, pasos: d.pasos, regaloCfg: d.regalo_config, ajustes: d.ajustes });
   pintar();
+  cargarContador();
 }
 const VISTAS = ['productos', 'inventario', 'categorias', 'lotes', 'finanzas', 'redes', 'regalos', 'estadisticas', 'ajustes'];
 function ir(vista) {
@@ -210,7 +211,7 @@ function pintarProductos() {
       !p.visible && '<span class="etiqueta aviso">Oculto</span>',
       !hay(p) && '<span class="etiqueta mal">Sin existencias</span>',
       p.cantidad !== null && p.cantidad > 0 && p.cantidad <= POCAS && '<span class="etiqueta aviso">Quedan ' + p.cantidad + '</span>',
-      p.tipo_stock === 'local' && '<span class="etiqueta ok">Stock local</span>',
+      (p.tipo_stock === 'local1' || p.tipo_stock === 'local2') && `<span class="etiqueta ok">${TIPOS_STOCK[p.tipo_stock]}</span>`,
       p.cotizar && '<span class="etiqueta">Por cotizar</span>',
       p.visible && !enPapelera && !catVisible(p.categoria_id) && '<span class="etiqueta aviso">Su categoría está oculta</span>',
     ].filter(Boolean).join('');
@@ -267,8 +268,8 @@ function pintarInventario() {
     const controles = p.cantidad === null
       ? `<button type="button" class="boton suave chico" data-inv="controlar" data-id="${esc(p.id)}">Contar unidades</button>`
       : `<button type="button" class="icono" data-inv="menos" data-id="${esc(p.id)}" aria-label="Quitar una unidad: ${esc(p.nombre)}" ${p.cantidad === 0 ? 'disabled' : ''}>−</button><input class="inv-input" type="number" inputmode="numeric" min="0" max="100000" step="1" value="${p.cantidad}" data-inv-input data-id="${esc(p.id)}" aria-label="Cantidad de ${esc(p.nombre)}"><button type="button" class="icono" data-inv="mas" data-id="${esc(p.id)}" aria-label="Agregar una unidad: ${esc(p.nombre)}">+</button><button type="button" class="boton suave chico" data-inv="dejar" data-id="${esc(p.id)}" title="Dejar de contar las unidades de este producto">Sin control</button>`;
-    const tipo = `<span class="etiqueta ${p.tipo_stock === 'local' ? 'ok' : p.tipo_stock === 'sin' ? 'mal' : ''}">${TIPOS_STOCK[p.tipo_stock] ?? ''}</span>`;
-    const dinerito = (p.tipo_stock === 'sin' ? '' : `<button type="button" class="boton suave chico" data-inv="vender" data-id="${esc(p.id)}">Vendí</button>`) + (p.tipo_stock === 'local' ? `<button type="button" class="boton suave chico" data-inv="comprar" data-id="${esc(p.id)}">Compré</button>` : '');
+    const tipo = `<span class="etiqueta ${p.tipo_stock === 'local1' || p.tipo_stock === 'local2' ? 'ok' : p.tipo_stock === 'sin' ? 'mal' : ''}">${TIPOS_STOCK[p.tipo_stock] ?? ''}</span>`;
+    const dinerito = (p.tipo_stock === 'sin' ? '' : `<button type="button" class="boton suave chico" data-inv="vender" data-id="${esc(p.id)}">Vendí</button>`) + (p.tipo_stock === 'local2' && !p.lote_id ? `<button type="button" class="boton suave chico" data-inv="comprar" data-id="${esc(p.id)}">Compré</button>` : '');
     return `<li class="fila ${p.visible ? '' : 'apagada'}"><span class="mini">${miniatura(p)}</span><div class="fila-texto"><div class="fila-nombre">${esc(p.nombre)}</div><div class="fila-meta"><span>${esc(p.id)}</span><span>${esc(nombreCat(p.categoria_id))}</span>${tipo}${etiqueta}${p.visible ? '' : '<span class="etiqueta aviso">Oculto</span>'}</div></div><div class="fila-acciones inv-cant">${controles}${dinerito}</div></li>`;
   }).join('');
   $('#inv-vacio').hidden = lista.length > 0;
@@ -315,7 +316,7 @@ function abrirMov(p, tipo) {
   const f = fm(); f.reset();
   $('#dlg-mov-t').textContent = tipo === 'venta' ? 'Vendí' : 'Compré stock';
   $('#mov-precio-t').textContent = tipo === 'venta' ? 'Precio de venta al contado por unidad (L)' : 'Costo por unidad (L)';
-  const tope = tipo === 'venta' && p.tipo_stock === 'local' && p.cantidad !== null ? ` · quedan ${p.cantidad}` : '';
+  const tope = tipo === 'venta' && (p.tipo_stock === 'local1' || p.tipo_stock === 'local2') && p.cantidad !== null ? ` · quedan ${p.cantidad}` : '';
   $('#mov-producto').textContent = `${p.nombre} (${p.id}) · ${TIPOS_STOCK[p.tipo_stock]}${tope}`;
   f.cantidad.value = 1;
   f.precio.value = (tipo === 'venta' ? p.precio : p.costo) ?? '';
@@ -379,6 +380,28 @@ fm().addEventListener('submit', async (ev) => {
   b.disabled = false;
 });
 
+// --- contador del stock local: lo que se va sumando mientras cargas productos ---------------------
+const pctTxt = (n) => (n === null || n === undefined ? '' : `${n.toLocaleString('es-HN')} %`);
+function htmlContador(c) {
+  if (!c || (c.inversion <= 0 && c.valor_total <= 0)) return '';
+  const cubre = c.falta_cubrir <= 0;
+  return `
+    <div class="contador-cab"><b>Stock local cargado: ${dinero(c.valor_total)}</b> <span class="suave">a tus precios · local 1 ${dinero(c.local1.valor + 0)} · local 2 ${dinero(c.local2.valor)}${c.vendido > 0 ? ` · ya vendido ${dinero(c.vendido)}` : ''}</span></div>
+    ${c.inversion > 0 ? `
+    <progress class="barra-pago" max="100" value="${c.progreso_inversion ?? 0}" aria-label="Cargado frente a la inversión"></progress>
+    <p class="contador-linea">${cubre ? `✅ Ya cubres la inversión de ${dinero(c.inversion)} (sobran ${dinero(c.valor_total - c.inversion)} a tus precios).` : `Inversión ${dinero(c.inversion)}: <b>faltan ${dinero(c.falta_cubrir)}</b> en productos para cubrirla.`}</p>
+    <p class="contador-linea">Si vendes todo a estos precios: <b class="${c.ganancia_si_vendes_todo < 0 ? 'neg' : 'pos'}">${c.ganancia_si_vendes_todo < 0 ? 'pierdes ' : 'ganas '}${dinero(Math.abs(c.ganancia_si_vendes_todo))}</b>${c.margen_si_vendes_todo !== null ? ` (${pctTxt(c.margen_si_vendes_todo)})` : ''}.
+      ${c.falta_meta === null ? '' : c.falta_meta > 0 ? `Meta ${dinero(c.meta)}: faltan ${dinero(c.falta_meta)}${c.subida_pct ? ` — o sube tus precios ~${pctTxt(c.subida_pct)}` : ''}.` : `Meta ${dinero(c.meta)} alcanzada 🎯`}</p>
+    <p class="contador-linea suave">Recuperado vendiendo: ${dinero(c.vendido)} de ${dinero(c.inversion)}${c.falta_recuperar > 0 ? ` · faltan ${dinero(c.falta_recuperar)} por vender para recuperar la inversión` : ' · ¡inversión recuperada!'}</p>` : ''}`;
+}
+async function cargarContador() {
+  if (!puedeFinanzas()) return;
+  try {
+    const c = await api('GET', 'admin/finanzas/contador'), caja = $('#contador'), h = htmlContador(c);
+    caja.hidden = !h; caja.innerHTML = h;
+  } catch { /* sin contador */ }
+}
+
 // --- avisos de cobro: banner del panel ---------------------------------------------------------
 async function cargarAlertas() {
   if (!puedeFinanzas()) return;
@@ -408,7 +431,8 @@ async function cargarLotes() {
         <div class="fin-tarjeta"><span>Meta de ventas</span><b>${dinero(l.meta)}</b><small>${pct(l.margen_meta)} de ganancia</small></div>
         <div class="fin-tarjeta"><span>Ventas estimadas</span><b>${dinero(l.ventas_estimadas)}</b><small>con tus precios · ${l.unidades} unidades</small></div>
         <div class="fin-tarjeta ${l.ganancia_estimada < 0 ? 'neg' : 'pos'}"><span>Ganancia estimada</span><b>${dinero(l.ganancia_estimada)}</b><small>${pct(l.margen_estimado)} sobre lo invertido</small></div>
-        <div class="fin-tarjeta"><span>Falta para la meta</span><b>${dinero(l.falta_para_meta)}</b><small>${l.falta_para_meta > 0 ? 'sube precios o vende más' : 'meta alcanzada'}</small></div>
+        <div class="fin-tarjeta"><span>Falta para cubrir la inversión</span><b>${dinero(l.falta_cubrir)}</b><small>${l.falta_cubrir > 0 ? 'en productos, a tus precios' : '¡ya la cubres!'}</small></div>
+        <div class="fin-tarjeta"><span>Falta para la meta</span><b>${dinero(l.falta_para_meta)}</b><small>${l.falta_para_meta > 0 ? `o sube tus precios ~${l.subida_pct} %` : 'meta alcanzada'}</small></div>
         <div class="fin-tarjeta"><span>Vendido de verdad</span><b>${dinero(l.vendido.ingresos)}</b><small>ganancia real ${dinero(l.vendido.ganancia)} · ${l.vendido.unidades} unid.</small></div>
       </div>
       ${!l.completo && l.filas.length ? '<p class="nota">Todavía estás cargando este lote: las ventas estimadas suben conforme agregas productos. Cuando termines, edita el lote y marca «Ya cargué todo el lote».</p>' : ''}
@@ -488,6 +512,7 @@ async function cargarFinanzas() {
       <div class="fin-tarjeta ${r.cobros.vencidos ? 'neg' : ''}"><span>Por cobrar</span><b>${dinero(r.cobros.por_cobrar)}</b><small>${r.cobros.activos} deuda${r.cobros.activos === 1 ? '' : 's'}${r.cobros.vencidos ? ` · ${r.cobros.vencidos} vencida${r.cobros.vencidos === 1 ? '' : 's'}` : ''}</small></div>
       <div class="fin-tarjeta"><span>Capital en stock local</span><b>${dinero(r.capital_en_stock)}</b><small>${r.unidades_en_stock} unidades${r.retorno_local !== null ? ` · retorno ${r.retorno_local} %` : ''}</small></div>
     </div>
+    ${r.contador && (r.contador.inversion > 0 || r.contador.valor_total > 0) ? `<h2 class="fin-t">Inventario y proyección</h2><div class="contador">${htmlContador(r.contador)}</div>` : ''}
     ${r.sin_costo.length ? `<p class="nota">Hay productos sin costo (${r.sin_costo.map((x) => `${x.n} de ${esc(TIPOS_STOCK[x.tipo_stock])}`).join(', ')}). Sin costo no se puede calcular la ganancia: ponlo al editar el producto.</p>` : ''}
     <h2 class="fin-t">Por cobrar (deudas)</h2>
     <p class="suave">Ventas a crédito. Recargo sugerido: <input class="inv-input" id="credito-pct" inputmode="decimal" value="${r.credito_pct}" aria-label="Recargo del crédito en porcentaje"> % sobre el precio de contado. El crédito siempre tiene que costar más que el contado.</p>
@@ -606,13 +631,13 @@ function abrirProducto(p, categoria = E.cat) {
   prepararLote(p);
   pintarMargen();
   f.precio.disabled = f.cotizar.checked;
-  $('#producto-borrar').hidden = !p; $('#producto-duplicar').hidden = !p;
+  $('#producto-borrar').hidden = !p; $('#producto-duplicar').hidden = !p; $('#producto-otro').hidden = !!p;
   $('#foto-estado').textContent = '';
   mostrarError('#error-producto');
   pintarFoto();
   $('#dlg-producto').showModal();
 }
-const TIPOS_STOCK = { aparte: 'Stock aparte', local: 'Stock local', sin: 'Sin stock' };
+const TIPOS_STOCK = { aparte: 'Stock aparte', local1: 'Stock local 1', local2: 'Stock local 2', sin: 'Sin stock' };
 /** Lote, precio de etiqueta y precio sugerido en el editor del producto (solo administradora, solo stock local). */
 async function prepararLote(p) {
   const f = fp(), puede = PERMISOS[E.yo?.rol]?.includes('finanzas');
@@ -626,19 +651,24 @@ async function prepararLote(p) {
   actualizarLote();
 }
 function actualizarLote() {
-  const f = fp(), local = f.tipo_stock.value === 'local', lote = (E.lotesEditor || []).find((l) => String(l.id) === f.lote_id.value);
+  const f = fp(), tipo = f.tipo_stock.value, lote2 = tipo === 'local2', lote = (E.lotesEditor || []).find((l) => String(l.id) === f.lote_id.value);
+  // Stock local 1 no tuvo inversión: su costo es 0 y no se toca.
+  if (tipo === 'local1') { f.costo.value = 0; }
+  f.costo.disabled = tipo === 'local1';
   if (!PERMISOS[E.yo?.rol]?.includes('finanzas')) return;
-  $('#bloque-lote').hidden = !local || !(E.lotesEditor || []).length;
-  const enLote = local && !!lote;
-  f.costo.disabled = enLote; f.costo.placeholder = enLote ? 'Se calcula del lote' : '0.00';
+  $('#bloque-lote').hidden = !lote2 || !(E.lotesEditor || []).length;
+  const enLote = lote2 && !!lote;
+  f.costo.disabled = tipo === 'local1' || enLote; f.costo.placeholder = enLote ? 'Se calcula del lote' : tipo === 'local1' ? 'Sin inversión (0)' : '0.00';
   const otros = enLote ? lote.filas.filter((x) => x.id !== E.editando?.id) : [];
-  const est = enLote ? estimarEnLote(lote, otros, { referencia: f.etiqueta.value, unidades: f.cantidad.value || E.editando?.lote_cantidad || 1 }) : null;
-  $('#sugerido-info').hidden = !est; E.estCosto = est?.costo ?? null; pintarMargen();
-  if (est) { E.sugerido = est.sugerido; $('#sugerido-texto').textContent = `Precio sugerido ${dinero(est.sugerido)} (costo estimado ${dinero(est.costo)}${lote.completo ? '' : '; se afina cuando termines de cargar el lote'}).`; }
+  const conEtiqueta = f.etiqueta.value.trim() !== '';
+  // El precio de etiqueta es opcional: si no lo pones, el costo se reparte según el precio que le pones al producto.
+  const est = enLote ? estimarEnLote(lote, otros, { referencia: conEtiqueta ? f.etiqueta.value : f.precio.value, unidades: f.cantidad.value || E.editando?.lote_cantidad || 1 }) : null;
+  $('#sugerido-info').hidden = !est || !conEtiqueta; E.estCosto = est?.costo ?? null; pintarMargen();
+  if (est && conEtiqueta) { E.sugerido = est.sugerido; $('#sugerido-texto').textContent = `Precio sugerido ${dinero(est.sugerido)} (costo estimado ${dinero(est.costo)}${lote.completo ? '' : '; se afina cuando termines de cargar el lote'}).`; }
 }
 $('#usar-sugerido').addEventListener('click', () => { fp().precio.value = E.sugerido; fp().cotizar.checked = false; fp().precio.disabled = false; pintarMargen(); });
 ['lote_id', 'tipo_stock'].forEach((n) => fp()[n].addEventListener('change', actualizarLote));
-['etiqueta', 'cantidad'].forEach((n) => fp()[n].addEventListener('input', actualizarLote));
+['etiqueta', 'cantidad', 'precio'].forEach((n) => fp()[n].addEventListener('input', actualizarLote));
 function pintarMargen() {
   const f = fp(), precio = Number(f.precio.value.replace(/,/g, '')), delLote = f.costo.disabled && E.estCosto != null;
   const costo = delLote ? E.estCosto : Number(f.costo.value.replace(/,/g, ''));
@@ -760,7 +790,7 @@ fp().addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const f = fp(), b = $('#producto-guardar');
   const cuerpo = { nombre: f.nombre.value, categoria_id: f.categoria_id.value, precio: f.precio.value, cotizar: f.cotizar.checked, descripcion: f.descripcion.value, visible: f.visible.checked, disponible: f.disponible.checked, imagen_url: E.foto, cantidad: f.cantidad.value.trim(), tipo_stock: f.tipo_stock.value, costo: f.costo.value.trim() };
-  if (PERMISOS[E.yo?.rol]?.includes('finanzas')) { cuerpo.lote_id = f.tipo_stock.value === 'local' && f.lote_id.value ? Number(f.lote_id.value) : null; cuerpo.referencia = f.etiqueta.value.trim(); if (cuerpo.lote_id) delete cuerpo.costo; }
+  if (PERMISOS[E.yo?.rol]?.includes('finanzas')) { cuerpo.lote_id = f.tipo_stock.value === 'local2' && f.lote_id.value ? Number(f.lote_id.value) : null; cuerpo.referencia = f.etiqueta.value.trim(); if (cuerpo.lote_id || cuerpo.tipo_stock === 'local1') delete cuerpo.costo; }
   if (cuerpo.costo !== undefined && cuerpo.costo !== '' && !(Number(cuerpo.costo.replace(/,/g, '')) >= 0)) return mostrarError('#error-producto', 'El costo debe ser un número (o déjalo vacío).');
   if (cuerpo.cantidad !== '' && !/^\d{1,6}$/.test(cuerpo.cantidad)) return mostrarError('#error-producto', 'La cantidad debe ser un número entero (o déjala vacía).');
   if (!cuerpo.nombre.trim()) return mostrarError('#error-producto', 'Escribe el nombre.');
@@ -771,10 +801,18 @@ fp().addEventListener('submit', async (ev) => {
   try {
     if (E.editando) await api('PUT', `admin/productos/${encodeURIComponent(E.editando.id)}`, cuerpo);
     else await api('POST', 'admin/productos', cuerpo);
-    $('#dlg-producto').close(); await cargar(); avisar(E.editando ? 'Cambios guardados.' : 'Producto creado.');
+    const otro = E.agregarOtro && !E.editando, conservar = { cat: f.categoria_id.value, tipo: f.tipo_stock.value, lote: f.lote_id?.value ?? '' };
+    $('#dlg-producto').close(); await cargar(); avisar(E.editando ? 'Cambios guardados.' : otro ? `Producto guardado. Sigue con el siguiente.` : 'Producto creado.');
+    if (otro) { // carga rápida: se abre uno nuevo con la misma categoría, tipo de stock y lote
+      abrirProducto(null, conservar.cat);
+      fp().tipo_stock.value = conservar.tipo; if (conservar.lote) fp().lote_id.value = conservar.lote; actualizarLote();
+      fp().nombre.focus();
+    }
   } catch (e) { mostrarError('#error-producto', e.message); }
+  E.agregarOtro = false;
   b.disabled = false;
 });
+$('#producto-otro').addEventListener('click', () => { E.agregarOtro = true; fp().requestSubmit(); });
 $('#producto-borrar').addEventListener('click', async () => {
   const p = E.editando;
   if (!(await confirmar('Mandar a la papelera', `«${p.nombre}» dejará de verse en la tienda. Podrás restaurarlo durante 30 días.`, 'Mandar a la papelera'))) return;
