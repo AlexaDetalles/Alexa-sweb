@@ -201,6 +201,7 @@ body:not([data-p-catalogo]) :is(#nuevo-producto, #nueva-categoria, #sec-producto
 /* Estadísticas */
 body:not([data-p-estadisticas]) [data-requiere="estadisticas"] { display: none; }
 body:not([data-p-catalogo]) [data-requiere="catalogo"] { display: none; }
+body:not([data-p-finanzas]) [data-requiere="finanzas"] { display: none; }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .kpi { background: var(--tarjeta); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 2px; box-shadow: var(--sombra); }
 .kpi b { font: 500 34px/1.05 var(--serif); color: var(--wine); }
@@ -250,3 +251,23 @@ details.paso form { display: grid; gap: 12px; margin-top: 14px; max-width: 560px
 .inv-cant { gap: 6px; }
 .inv-input { width: 76px; min-height: 40px; text-align: center; border: 1px solid #bdb1a5; border-radius: 8px; background: #fff; font: inherit; font-weight: 600; }
 .inv-cant .icono { border-color: #bdb1a5; font-size: 20px; line-height: 1; }
+
+/* Finanzas y redes */
+.fin-tarjetas { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+.fin-tarjeta { background: var(--tarjeta); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 2px; }
+.fin-tarjeta span { font-size: 12px; color: var(--muted); }
+.fin-tarjeta b { font-size: 22px; font-family: var(--serif); font-weight: 600; }
+.fin-tarjeta small { font-size: 12px; color: var(--muted); }
+.fin-tarjeta.pos b { color: var(--ok); }
+.fin-tarjeta.neg b { color: var(--mal); }
+.fin-t { font-size: 18px; margin: 22px 0 8px; }
+.tabla-caja { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--tarjeta); }
+.tabla { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tabla th, .tabla td { padding: 9px 12px; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--line); }
+.tabla th:first-child, .tabla th[scope="row"] { text-align: left; font-weight: 600; }
+.tabla thead th { font-size: 12px; color: var(--muted); font-weight: 600; }
+.tabla tbody tr:last-child th, .tabla tbody tr:last-child td { border-bottom: 0; }
+.fin-hoja { margin: 8px 0 24px; }
+.ig-publicar { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px 14px; display: grid; gap: 12px; }
+.ig-publicar legend { padding: 0 6px; font-weight: 600; font-size: 14px; }
+.ig-publicar textarea { width: 100%; }

@@ -23,6 +23,35 @@ app/
 - **Ajustes**: WhatsApp de las asesoras y cambio de contraseña.
 - **Usuarios y rangos** (solo administradora): invitar por correo, cambiar rango, desactivar. Rangos: Administradora (todo), Encargada de Catálogo (productos, categorías y regalos), Encargada de Atención (WhatsApp de asesoras) y Supervisora (solo lectura). El servidor valida el rango en cada llamada.
 
+## Finanzas, stock y hoja de Google
+- **Tipo de stock** (en cada producto): **Stock aparte** = dropshipping, el proveedor lo tiene y no es inversión (todo lo que ya estaba subido); **Stock local** = lo compraste tú, sí es inversión; **Sin stock** = la tienda lo muestra «No disponible». Además cada producto tiene **Costo**.
+- **Inventario → «Compré» / «Vendí»**: «Compré» (solo stock local) suma unidades y cuenta como inversión; «Vendí» rebaja la cantidad (stock local) o solo registra la venta (stock aparte) y calcula la ganancia con el precio y el costo de ese momento. Un movimiento se puede **anular** y las unidades vuelven a su lugar.
+- **Pestaña Finanzas** (solo administradora): invertido, vendido, ganado, capital en stock local y retorno; por periodo (7 días, 30 días, todo), por tipo de stock y por categoría; movimientos recientes.
+- **Hoja de Google en tiempo real**: tiene tres pestañas (Productos, Movimientos y Resumen) hechas con `=IMPORTDATA("https://alexashop.cc/api/finanzas/csv/<hoja>?clave=…")`. Google las vuelve a leer sola, así que siempre muestra lo mismo que el panel. La `clave` es el secreto `FINANZAS_TOKEN` del Worker (`npx wrangler secret put FINANZAS_TOKEN`); sin ella esas direcciones responden 404. Si algún día se filtra, se cambia el secreto y se actualizan las 3 fórmulas (la pestaña Finanzas del panel muestra los enlaces nuevos a la administradora).
+
+## Publicar en Instagram y Facebook
+En un producto: **Imagen para Instagram → Publicar**. La descripción sale con este formato y se puede editar antes de publicar:
+```
+Valentino Born in Roma
+Precio: 4400Lps
+Alexashop.cc
+#perfumes
+```
+Elige Instagram, Facebook o las dos, y **Ahora mismo** o **Programar** (el Worker revisa cada 5 minutos y publica lo que ya toca). La pestaña **Redes** muestra el estado, deja reintentar o cancelar.
+
+**Conectar Meta (una sola vez)**
+1. Instagram tiene que ser cuenta **Profesional** (Business o Creator) y estar enlazada a una **Página de Facebook**.
+2. En https://developers.facebook.com crea una app de tipo **Empresa** y agrega el producto **Instagram**. Permisos: `instagram_basic`, `instagram_content_publish`, `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`. Mientras la app esté en modo desarrollo y tú seas administradora de ella, puedes publicar en tus propias cuentas sin pasar la revisión de Meta.
+3. En el **Explorador de la Graph API** genera un token de usuario con esos permisos y alárgalo en el **Depurador de tokens** («Extender token»). Con ese token pide `GET /me/accounts`: ahí salen el **id de la página** y su **token de página** (el que no caduca). Luego `GET /<id-de-la-página>?fields=instagram_business_account` da el **id de Instagram**.
+4. Guárdalos como secretos del Worker (nada de esto va en el código ni en GitHub):
+```bash
+cd app
+npx wrangler secret put META_TOKEN     # token de la página
+npx wrangler secret put META_PAGE_ID   # id de la página de Facebook
+npx wrangler secret put META_IG_ID     # id de la cuenta de Instagram
+```
+Instagram solo acepta JPEG: el panel convierte la lámina sola. Si algo falla, el error de Meta aparece en la pestaña Redes y se puede reintentar (lo que ya salió bien no se vuelve a publicar).
+
 ## SEO, seguridad y legal
 - **SEO**: cada producto tiene su ficha con dirección propia (`/producto/<referencia>`) con título, descripción, Open Graph, datos estructurados (Product y BreadcrumbList) y productos relacionados; `/sitemap.xml` se genera solo con todos los productos visibles; imagen social 1200×630; descripciones únicas por página.
 - **Seguridad**: informe y pendientes en [`SEGURIDAD.md`](SEGURIDAD.md). Cabeceras en `public/_headers`; el catálogo público se cachea 60 s en el borde y se purga al guardar.

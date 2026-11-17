@@ -135,6 +135,8 @@
         <button type="button" data-ir="productos" aria-current="page">Productos</button>
         <button type="button" data-ir="inventario" data-requiere="catalogo">Inventario</button>
         <button type="button" data-ir="categorias">Categorías</button>
+        <button type="button" data-ir="finanzas" data-requiere="finanzas">Finanzas</button>
+        <button type="button" data-ir="redes" data-requiere="catalogo">Redes</button>
         <button type="button" data-ir="regalos">Regalos</button>
         <button type="button" data-ir="estadisticas" data-requiere="estadisticas">Estadísticas</button>
         <button type="button" data-ir="ajustes">Ajustes</button>
@@ -182,6 +184,22 @@
         <div class="chips" id="inv-chips" role="group" aria-label="Filtrar inventario"></div>
         <ul class="lista" id="lista-inventario"></ul>
         <p class="vacio" id="inv-vacio" hidden>No hay productos con ese filtro.</p>
+      </section>
+
+      <!-- Finanzas (solo administradora) -->
+      <section id="sec-finanzas" aria-labelledby="t-finanzas" hidden>
+        <div class="cabecera">
+          <div><h1 id="t-finanzas">Finanzas</h1><p class="suave">Inversión, ventas y ganancia. Lo de «Stock aparte» (dropshipping) no es inversión; lo de «Stock local» sí.</p></div>
+        </div>
+        <div id="fin-contenido"><p class="suave">Cargando…</p></div>
+      </section>
+
+      <!-- Redes sociales -->
+      <section id="sec-redes" aria-labelledby="t-redes" hidden>
+        <div class="cabecera">
+          <div><h1 id="t-redes">Redes</h1><p class="suave">Publicaciones en Instagram y Facebook. Se crean desde un producto: «Imagen para Instagram» → Publicar.</p></div>
+        </div>
+        <div id="redes-contenido"><p class="suave">Cargando…</p></div>
       </section>
 
       <!-- Categorías -->
@@ -311,6 +329,11 @@
           <label class="campo">Referencia<input name="referencia" maxlength="80" placeholder="Se crea sola, ej. HP-22" autocomplete="off"></label>
         </div>
         <label class="campo">Cantidad en existencia <small>(opcional)</small><input name="cantidad" inputmode="numeric" placeholder="Vacío = sin control de cantidad" autocomplete="off"></label>
+        <div class="rejilla">
+          <label class="campo">Tipo de stock<select name="tipo_stock"><option value="aparte">Stock aparte (dropshipping)</option><option value="local">Stock local (lo compré)</option><option value="sin">Sin stock</option></select></label>
+          <label class="campo">Costo (L) <small>(lo que te cuesta)</small><input name="costo" inputmode="decimal" placeholder="0.00" autocomplete="off"></label>
+        </div>
+        <p class="suave" id="margen-info"></p>
         <label class="casilla"><input type="checkbox" name="cotizar"><span>Por cotizar <small>(no tiene precio fijo; se confirma por WhatsApp)</small></span></label>
         <label class="campo">Descripción<textarea name="descripcion" rows="4" maxlength="1200"></textarea></label>
         <div class="interruptores">
@@ -339,9 +362,38 @@
       <div class="campo"><span>Paleta de colores</span><div class="ig-paletas" id="ig-paletas" role="radiogroup" aria-label="Paleta de colores"></div></div>
       <label class="campo">Talla <small>(opcional)</small><input id="ig-talla" maxlength="14" placeholder="Ej. M, 28 o 9.5" autocomplete="off"></label>
       <p class="suave">Usa la foto, el nombre y el precio que tienes en el producto (aunque aún no lo hayas guardado). Sale lista para publicar: 4:5, 2160×2700.</p>
+      <fieldset class="ig-publicar">
+        <legend>Publicar en redes</legend>
+        <label class="campo">Descripción<textarea id="ig-descripcion" rows="5" maxlength="2200"></textarea></label>
+        <div class="interruptores">
+          <label class="casilla"><input type="checkbox" id="ig-red-ig" checked><span>Instagram</span></label>
+          <label class="casilla"><input type="checkbox" id="ig-red-fb" checked><span>Facebook</span></label>
+        </div>
+        <label class="campo">Cuándo<select id="ig-cuando"><option value="ahora">Ahora mismo</option><option value="programar">Programar…</option></select></label>
+        <label class="campo" id="ig-fecha-campo" hidden>Fecha y hora<input type="datetime-local" id="ig-fecha"></label>
+        <p class="suave" id="ig-meta-estado"></p>
+      </fieldset>
       <p class="error" id="error-instagram" role="alert" hidden></p>
     </div>
-    <div class="dlg-pie"><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cerrar</button><button type="button" class="boton suave" id="ig-compartir" hidden>Compartir</button><button type="button" class="boton" id="ig-descargar">Descargar imagen</button></div>
+    <div class="dlg-pie"><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cerrar</button><button type="button" class="boton suave" id="ig-compartir" hidden>Compartir</button><button type="button" class="boton suave" id="ig-descargar">Descargar</button><button type="button" class="boton" id="ig-publicar">Publicar</button></div>
+    </form>
+  </dialog>
+
+  <!-- Registrar una venta o una compra de stock -->
+  <dialog id="dlg-mov" class="chico" aria-labelledby="dlg-mov-t">
+    <form id="form-mov" novalidate>
+      <div class="dlg-top"><h2 id="dlg-mov-t">Vendí</h2><button type="button" class="icono" data-cerrar aria-label="Cerrar"><svg class="ico"><use href="#i-cerrar"/></svg></button></div>
+      <div class="dlg-cuerpo">
+        <p id="mov-producto" class="suave"></p>
+        <div class="rejilla">
+          <label class="campo">Cantidad<input name="cantidad" inputmode="numeric" value="1" autocomplete="off"></label>
+          <label class="campo"><span id="mov-precio-t">Precio de venta (L)</span><input name="precio" inputmode="decimal" autocomplete="off"></label>
+        </div>
+        <label class="campo">Nota <small>(opcional)</small><input name="nota" maxlength="200" autocomplete="off"></label>
+        <p class="suave" id="mov-total"></p>
+        <p class="error" id="error-mov" role="alert" hidden></p>
+      </div>
+      <div class="dlg-pie"><span class="espacio"></span><button type="button" class="boton suave" data-cerrar>Cancelar</button><button type="submit" class="boton" id="mov-guardar">Guardar</button></div>
     </form>
   </dialog>
 

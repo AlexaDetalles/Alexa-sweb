@@ -1,6 +1,7 @@
 // Panel de administración de Alexa Detalles: productos, categorías, regalos personalizados y ajustes.
 // Sin librerías. Todo lo que viene de la base de datos pasa por esc() antes de llegar al HTML.
 import { dibujarInstagram, nombreArchivo, PALETAS } from '/admin/instagram.js';
+import { armarDescripcion, aISO } from '/admin/social.js';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -8,7 +9,7 @@ const dinero = (n) => (n === null || n === undefined || n === '' ? '—' : new I
 const ico = (id) => `<svg class="ico" aria-hidden="true"><use href="#i-${id}"/></svg>`;
 const fold = (v) => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios', 'estadisticas'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: ['estadisticas'] };
+const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios', 'estadisticas', 'finanzas'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: ['estadisticas'] };
 const E = { invFiltro: 'todos', invTexto: '', invCat: '', yo: null, usuarios: [], invitaciones: [], roles: {}, cats: [], prods: [], papelera: [], ops: [], pasos: [], regaloCfg: [], ajustes: {}, vista: 'productos', texto: '', cat: '', filtro: 'todos', publico: 'mujer', foto: null, editando: null, opcion: null, categoria: null };
 
 // --- avisos, confirmación y llamadas a la API ------------------------------------------
@@ -91,7 +92,7 @@ document.addEventListener('click', (ev) => { const b = ev.target.closest('[data-
 function aplicarSesion(yo) {
   E.yo = yo;
   const permisos = PERMISOS[yo.rol] || [];
-  for (const p of ['catalogo', 'ajustes', 'usuarios', 'estadisticas']) document.body.toggleAttribute(`data-p-${p}`, permisos.includes(p));
+  for (const p of ['catalogo', 'ajustes', 'usuarios', 'estadisticas', 'finanzas']) document.body.toggleAttribute(`data-p-${p}`, permisos.includes(p));
   document.body.dataset.rol = yo.rol;
   $('#quien').textContent = `${yo.nombre || yo.correo} · ${yo.rolNombre || ''}`;
   $$('#form-ajustes input, #form-ajustes button').forEach((x) => { x.disabled = !permisos.includes('ajustes'); });
@@ -159,10 +160,10 @@ async function cargar() {
   Object.assign(E, { cats: d.categorias, prods: d.productos, papelera: d.papelera, ops: d.opciones, pasos: d.pasos, regaloCfg: d.regalo_config, ajustes: d.ajustes });
   pintar();
 }
-const VISTAS = ['productos', 'inventario', 'categorias', 'regalos', 'estadisticas', 'ajustes'];
+const VISTAS = ['productos', 'inventario', 'categorias', 'finanzas', 'redes', 'regalos', 'estadisticas', 'ajustes'];
 function ir(vista) {
   if (vista === 'usuarios') vista = 'ajustes'; // los usuarios viven dentro de Ajustes
-  if (!VISTAS.includes(vista) || (vista === 'estadisticas' && !PERMISOS[E.yo?.rol]?.includes('estadisticas')) || (vista === 'inventario' && !PERMISOS[E.yo?.rol]?.includes('catalogo'))) vista = 'productos';
+  if (!VISTAS.includes(vista) || (vista === 'estadisticas' && !PERMISOS[E.yo?.rol]?.includes('estadisticas')) || (['inventario', 'redes'].includes(vista) && !PERMISOS[E.yo?.rol]?.includes('catalogo')) || (vista === 'finanzas' && !PERMISOS[E.yo?.rol]?.includes('finanzas'))) vista = 'productos';
   E.vista = vista;
   history.replaceState(null, '', `#${vista}`);
   for (const s of VISTAS) $(`#sec-${s}`).hidden = s !== vista;
@@ -173,6 +174,8 @@ $('#pestanas').addEventListener('click', (ev) => { const b = ev.target.closest('
 function pintar() {
   if (E.vista === 'productos') pintarProductos();
   else if (E.vista === 'inventario') pintarInventario();
+  else if (E.vista === 'finanzas') cargarFinanzas();
+  else if (E.vista === 'redes') cargarRedes();
   else if (E.vista === 'categorias') pintarCategorias();
   else if (E.vista === 'regalos') pintarRegalos();
   else if (E.vista === 'estadisticas') pintarEstadisticas();
@@ -182,7 +185,7 @@ function pintar() {
 // --- productos -------------------------------------------------------------------------
 const miniatura = (p) => (p.imagen_url ? `<img src="${esc(p.imagen_url.startsWith('/fotos/') ? p.imagen_url.replace('-1200.', '-600.') : p.imagen_url)}" alt="" loading="lazy">` : ico('foto'));
 /** Un producto se vende si está en «Hay» y, cuando se cuenta, le queda alguna unidad. */
-const hay = (p) => p.disponible && (p.cantidad === null || p.cantidad === undefined || p.cantidad > 0);
+const hay = (p) => p.disponible && p.tipo_stock !== 'sin' && (p.cantidad === null || p.cantidad === undefined || p.cantidad > 0);
 const POCAS = 5;
 const FILTROS = [['todos', 'Todos', () => true], ['visibles', 'Visibles', (p) => p.visible], ['ocultos', 'Ocultos', (p) => !p.visible], ['agotados', 'Sin existencias', (p) => !hay(p)], ['sinfoto', 'Sin foto', (p) => !p.imagen_url]];
 function productosFiltrados() {
@@ -203,6 +206,7 @@ function pintarProductos() {
       !p.visible && '<span class="etiqueta aviso">Oculto</span>',
       !hay(p) && '<span class="etiqueta mal">Sin existencias</span>',
       p.cantidad !== null && p.cantidad > 0 && p.cantidad <= POCAS && '<span class="etiqueta aviso">Quedan ' + p.cantidad + '</span>',
+      p.tipo_stock === 'local' && '<span class="etiqueta ok">Stock local</span>',
       p.cotizar && '<span class="etiqueta">Por cotizar</span>',
       p.visible && !enPapelera && !catVisible(p.categoria_id) && '<span class="etiqueta aviso">Su categoría está oculta</span>',
     ].filter(Boolean).join('');
@@ -259,7 +263,9 @@ function pintarInventario() {
     const controles = p.cantidad === null
       ? `<button type="button" class="boton suave chico" data-inv="controlar" data-id="${esc(p.id)}">Contar unidades</button>`
       : `<button type="button" class="icono" data-inv="menos" data-id="${esc(p.id)}" aria-label="Quitar una unidad: ${esc(p.nombre)}" ${p.cantidad === 0 ? 'disabled' : ''}>−</button><input class="inv-input" type="number" inputmode="numeric" min="0" max="100000" step="1" value="${p.cantidad}" data-inv-input data-id="${esc(p.id)}" aria-label="Cantidad de ${esc(p.nombre)}"><button type="button" class="icono" data-inv="mas" data-id="${esc(p.id)}" aria-label="Agregar una unidad: ${esc(p.nombre)}">+</button><button type="button" class="boton suave chico" data-inv="dejar" data-id="${esc(p.id)}" title="Dejar de contar las unidades de este producto">Sin control</button>`;
-    return `<li class="fila ${p.visible ? '' : 'apagada'}"><span class="mini">${miniatura(p)}</span><div class="fila-texto"><div class="fila-nombre">${esc(p.nombre)}</div><div class="fila-meta"><span>${esc(p.id)}</span><span>${esc(nombreCat(p.categoria_id))}</span>${etiqueta}${p.visible ? '' : '<span class="etiqueta aviso">Oculto</span>'}</div></div><div class="fila-acciones inv-cant">${controles}</div></li>`;
+    const tipo = `<span class="etiqueta ${p.tipo_stock === 'local' ? 'ok' : p.tipo_stock === 'sin' ? 'mal' : ''}">${TIPOS_STOCK[p.tipo_stock] ?? ''}</span>`;
+    const dinerito = (p.tipo_stock === 'sin' ? '' : `<button type="button" class="boton suave chico" data-inv="vender" data-id="${esc(p.id)}">Vendí</button>`) + (p.tipo_stock === 'local' ? `<button type="button" class="boton suave chico" data-inv="comprar" data-id="${esc(p.id)}">Compré</button>` : '');
+    return `<li class="fila ${p.visible ? '' : 'apagada'}"><span class="mini">${miniatura(p)}</span><div class="fila-texto"><div class="fila-nombre">${esc(p.nombre)}</div><div class="fila-meta"><span>${esc(p.id)}</span><span>${esc(nombreCat(p.categoria_id))}</span>${tipo}${etiqueta}${p.visible ? '' : '<span class="etiqueta aviso">Oculto</span>'}</div></div><div class="fila-acciones inv-cant">${controles}${dinerito}</div></li>`;
   }).join('');
   $('#inv-vacio').hidden = lista.length > 0;
 }
@@ -282,6 +288,8 @@ $('#lista-inventario').addEventListener('click', (ev) => {
   switch (b.dataset.inv) {
     case 'menos': return void fijarCantidad(p.id, Math.max(0, p.cantidad - 1), 'data-inv="menos"');
     case 'mas': return void fijarCantidad(p.id, Math.min(100000, p.cantidad + 1), 'data-inv="mas"');
+    case 'vender': return abrirMov(p, 'venta');
+    case 'comprar': return abrirMov(p, 'compra');
     case 'controlar': return void fijarCantidad(p.id, 0, 'data-inv-input');
     case 'dejar': return void fijarCantidad(p.id, null);
   }
@@ -291,6 +299,105 @@ $('#lista-inventario').addEventListener('change', (ev) => {
   const n = Number(i.value);
   if (i.value.trim() === '' || !Number.isInteger(n) || n < 0 || n > 100000) { avisar('Escribe un número entero de 0 en adelante.', true); return pintarInventario(); }
   fijarCantidad(i.dataset.id, n, 'data-inv-input');
+});
+
+// --- compras y ventas (alimentan Finanzas y la hoja de Google) -----------------------------
+const fechaHN = (sql) => { const t = Date.parse(`${String(sql).replace(' ', 'T')}Z`); return Number.isNaN(t) ? esc(sql) : new Date(t).toLocaleString('es-HN', { timeZone: 'America/Tegucigalpa', dateStyle: 'short', timeStyle: 'short' }); };
+const fm = () => $('#form-mov');
+function abrirMov(p, tipo) {
+  E.mov = { p, tipo };
+  const f = fm(); f.reset();
+  $('#dlg-mov-t').textContent = tipo === 'venta' ? 'Vendí' : 'Compré stock';
+  $('#mov-precio-t').textContent = tipo === 'venta' ? 'Precio de venta por unidad (L)' : 'Costo por unidad (L)';
+  const tope = tipo === 'venta' && p.tipo_stock === 'local' && p.cantidad !== null ? ` · quedan ${p.cantidad}` : '';
+  $('#mov-producto').textContent = `${p.nombre} (${p.id}) · ${TIPOS_STOCK[p.tipo_stock]}${tope}`;
+  f.cantidad.value = 1;
+  f.precio.value = (tipo === 'venta' ? p.precio : p.costo) ?? '';
+  mostrarError('#error-mov'); totalMov();
+  $('#dlg-mov').showModal();
+}
+function totalMov() {
+  const f = fm(), n = Number(f.cantidad.value), x = Number(String(f.precio.value).replace(/,/g, ''));
+  const { p, tipo } = E.mov ?? {};
+  if (!p || !(n >= 1) || !Number.isFinite(x) || f.precio.value.trim() === '') { $('#mov-total').textContent = ''; return; }
+  const ganancia = tipo === 'venta' && p.costo !== null && p.costo !== undefined ? ` · ganancia ${dinero(n * (x - p.costo))}` : '';
+  $('#mov-total').textContent = `Total ${dinero(n * x)}${ganancia}`;
+}
+fm().addEventListener('input', totalMov);
+fm().addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const { p, tipo } = E.mov, f = fm(), b = $('#mov-guardar');
+  if (!/^\d{1,6}$/.test(f.cantidad.value.trim()) || Number(f.cantidad.value) < 1) return mostrarError('#error-mov', 'La cantidad debe ser un número entero de 1 en adelante.');
+  if (f.precio.value.trim() === '') return mostrarError('#error-mov', tipo === 'venta' ? 'Escribe a cuánto vendiste cada unidad.' : 'Escribe cuánto te costó cada unidad.');
+  b.disabled = true; mostrarError('#error-mov');
+  try {
+    await api('POST', 'admin/movimientos', { tipo, producto_id: p.id, cantidad: Number(f.cantidad.value), [tipo === 'venta' ? 'precio' : 'costo']: f.precio.value.trim(), nota: f.nota.value });
+    $('#dlg-mov').close(); await cargar(); avisar(tipo === 'venta' ? 'Venta registrada.' : 'Compra registrada: ya cuenta como inversión.');
+  } catch (e) { mostrarError('#error-mov', e.message); }
+  b.disabled = false;
+});
+
+// --- finanzas (solo administradora) --------------------------------------------------------
+const TABLA_FIN = (titulo, filas) => `<h2 class="fin-t">${esc(titulo)}</h2><div class="tabla-caja"><table class="tabla"><thead><tr><th></th><th>Invertido</th><th>Vendido</th><th>Costo vendido</th><th>Ganancia</th><th>Unid.</th></tr></thead><tbody>${filas.map((r) => `<tr><th scope="row">${esc(r[0])}</th><td>${dinero(r[1].invertido)}</td><td>${dinero(r[1].ingresos)}</td><td>${dinero(r[1].costo_vendido)}</td><td><b>${dinero(r[1].ganancia)}</b></td><td>${r[1].unidades_vendidas}</td></tr>`).join('') || '<tr><td colspan="6" class="suave">Todavía no hay ventas.</td></tr>'}</tbody></table></div>`;
+async function cargarFinanzas() {
+  const cont = $('#fin-contenido');
+  let r;
+  try { r = await api('GET', 'admin/finanzas'); } catch (e) { cont.innerHTML = `<p class="error">${esc(e.message)}</p>`; return; }
+  if (E.vista !== 'finanzas') return;
+  const t = r.total;
+  const hoja = r.hoja_url ? `<a class="boton" href="${esc(r.hoja_url)}" target="_blank" rel="noopener noreferrer">Abrir la hoja de Google</a>` : '<p class="suave">La hoja de Google todavía no está conectada.</p>';
+  cont.innerHTML = `
+    <div class="fin-tarjetas">
+      <div class="fin-tarjeta"><span>Invertido</span><b>${dinero(t.invertido)}</b><small>en stock local comprado</small></div>
+      <div class="fin-tarjeta"><span>Vendido</span><b>${dinero(t.ingresos)}</b><small>${t.unidades_vendidas} unidades</small></div>
+      <div class="fin-tarjeta ${t.ganancia < 0 ? 'neg' : 'pos'}"><span>Ganado</span><b>${dinero(t.ganancia)}</b><small>vendido − lo que costó</small></div>
+      <div class="fin-tarjeta"><span>Capital en stock local</span><b>${dinero(r.capital_en_stock)}</b><small>${r.unidades_en_stock} unidades${r.retorno_local !== null ? ` · retorno ${r.retorno_local} %` : ''}</small></div>
+    </div>
+    ${r.sin_costo.length ? `<p class="nota">Hay productos sin costo (${r.sin_costo.map((x) => `${x.n} de ${esc(TIPOS_STOCK[x.tipo_stock])}`).join(', ')}). Sin costo no se puede calcular la ganancia: ponlo al editar el producto.</p>` : ''}
+    ${TABLA_FIN('Por periodo', [['Últimos 7 días', r.semana], ['Últimos 30 días', r.mes], ['Todo el tiempo', r.total]])}
+    ${TABLA_FIN('Por tipo de stock', r.por_tipo.map((x) => [x.nombre, x]))}
+    ${TABLA_FIN('Por categoría', r.por_categoria.map((x) => [x.categoria, x]))}
+    <h2 class="fin-t">Movimientos recientes</h2>
+    <ul class="lista" id="fin-recientes">${r.recientes.map((m) => `<li class="fila sin-foto-miniatura ${m.anulado ? 'apagada' : ''}"><div class="fila-texto"><div class="fila-nombre">${m.tipo === 'venta' ? 'Venta' : 'Compra'} · ${esc(m.producto_nombre)}</div><div class="fila-meta"><span>${fechaHN(m.fecha)}</span><span>${m.cantidad} × ${dinero(m.tipo === 'venta' ? m.precio_unit : m.costo_unit)}</span><span class="precio">${dinero(m.total)}</span><span class="etiqueta">${esc(TIPOS_STOCK[m.tipo_stock])}</span>${m.anulado ? '<span class="etiqueta mal">Anulado</span>' : ''}${m.nota ? `<span>${esc(m.nota)}</span>` : ''}</div></div>${m.anulado ? '' : `<div class="fila-acciones"><button type="button" class="boton suave peligro chico" data-anular="${m.id}">Anular</button></div>`}</li>`).join('') || '<li class="vacio">Aún no hay movimientos. Registra una venta o una compra desde la pestaña Inventario.</li>'}</ul>
+    <h2 class="fin-t">Hoja de Google</h2>
+    <p class="suave">Se actualiza sola con estos mismos datos (Productos, Movimientos y Resumen).</p>
+    <div class="fin-hoja">${hoja}</div>`;
+}
+$('#fin-contenido').addEventListener('click', async (ev) => {
+  const b = ev.target.closest('[data-anular]'); if (!b) return;
+  if (!(await confirmar('Anular movimiento', 'Se marca como anulado y las unidades vuelven a su lugar. No cuenta en los totales.', 'Anular'))) return;
+  try { await api('DELETE', `admin/movimientos/${b.dataset.anular}`); await cargar(); avisar('Movimiento anulado.'); } catch (e) { avisar(e.message, true); }
+});
+
+// --- redes sociales ------------------------------------------------------------------------
+const ESTADOS_PUB = { pendiente: ['Programada', 'aviso'], publicada: ['Publicada', 'ok'], error: ['Con error', 'mal'], cancelada: ['Cancelada', ''] };
+const NOMBRES_RED = { ig: 'Instagram', fb: 'Facebook' };
+async function cargarRedes() {
+  const cont = $('#redes-contenido');
+  let r;
+  try { r = await api('GET', 'admin/publicaciones'); } catch (e) { cont.innerHTML = `<p class="error">${esc(e.message)}</p>`; return; }
+  if (E.vista !== 'redes') return;
+  const c = r.conexion, conectado = c.instagram || c.facebook;
+  cont.innerHTML = `
+    <div class="fin-tarjetas">
+      <div class="fin-tarjeta ${c.instagram ? 'pos' : 'neg'}"><span>Instagram</span><b>${c.instagram ? 'Conectado' : 'Sin conectar'}</b></div>
+      <div class="fin-tarjeta ${c.facebook ? 'pos' : 'neg'}"><span>Facebook</span><b>${c.facebook ? 'Conectado' : 'Sin conectar'}</b></div>
+    </div>
+    ${conectado ? '' : `<p class="nota">Para publicar hay que conectar Meta una sola vez. Se guardan 3 claves secretas en el Worker: <code>META_TOKEN</code>, <code>META_PAGE_ID</code> y <code>META_IG_ID</code> (con <code>npx wrangler secret put NOMBRE</code>). La guía paso a paso está en <code>app/LEEME.md</code>, sección «Publicar en Instagram y Facebook».</p>`}
+    <h2 class="fin-t">Últimas publicaciones</h2>
+    <ul class="lista">${r.publicaciones.map((p) => {
+      const [txt, cls] = ESTADOS_PUB[p.estado] ?? [p.estado, ''];
+      const errores = Object.entries(p.resultado).filter(([, v]) => !v.ok).map(([k, v]) => `${NOMBRES_RED[k]}: ${esc(v.error)}`).join(' · ');
+      const acciones = ['pendiente', 'error'].includes(p.estado) ? `<button type="button" class="boton suave chico" data-reintentar="${p.id}">${p.estado === 'pendiente' ? 'Publicar ya' : 'Reintentar'}</button><button type="button" class="boton suave peligro chico" data-cancelar="${p.id}">Cancelar</button>` : '';
+      return `<li class="fila sin-foto-miniatura"><div class="fila-texto"><div class="fila-nombre">${esc(p.descripcion.split('\n')[0])}</div><div class="fila-meta"><span class="etiqueta ${cls}">${txt}</span><span>${p.redes.map((x) => NOMBRES_RED[x]).join(' + ')}</span><span>${p.estado === 'pendiente' ? 'para ' : ''}${fechaHN(p.programada_en)}</span>${errores ? `<span class="etiqueta mal">${errores}</span>` : ''}</div></div><div class="fila-acciones">${acciones}</div></li>`;
+    }).join('') || '<li class="vacio">Todavía no has publicado nada desde el panel.</li>'}</ul>`;
+}
+$('#redes-contenido').addEventListener('click', async (ev) => {
+  const re = ev.target.closest('[data-reintentar]'), ca = ev.target.closest('[data-cancelar]');
+  try {
+    if (re) { re.disabled = true; const r = await api('POST', `admin/publicaciones/${re.dataset.reintentar}/reintentar`); avisar(r.estado === 'publicada' ? 'Publicada.' : 'No se pudo publicar: mira el detalle.', r.estado !== 'publicada'); await cargarRedes(); }
+    else if (ca && await confirmar('Cancelar publicación', 'No se publicará.', 'Cancelar publicación')) { await api('DELETE', `admin/publicaciones/${ca.dataset.cancelar}`); await cargarRedes(); }
+  } catch (e) { avisar(e.message, true); }
 });
 
 // Editor de producto y foto
@@ -314,6 +421,8 @@ function abrirProducto(p, categoria = E.cat) {
   f.visible.checked = p ? p.visible : true;
   f.disponible.checked = p ? p.disponible : true;
   f.cantidad.value = p?.cantidad ?? '';
+  f.tipo_stock.value = p?.tipo_stock ?? 'aparte'; f.costo.value = p?.costo ?? '';
+  pintarMargen();
   f.precio.disabled = f.cotizar.checked;
   $('#producto-borrar').hidden = !p; $('#producto-duplicar').hidden = !p;
   $('#foto-estado').textContent = '';
@@ -321,6 +430,13 @@ function abrirProducto(p, categoria = E.cat) {
   pintarFoto();
   $('#dlg-producto').showModal();
 }
+const TIPOS_STOCK = { aparte: 'Stock aparte', local: 'Stock local', sin: 'Sin stock' };
+function pintarMargen() {
+  const f = fp(), precio = Number(f.precio.value.replace(/,/g, '')), costo = Number(f.costo.value.replace(/,/g, ''));
+  const ok = !f.cotizar.checked && f.precio.value.trim() !== '' && f.costo.value.trim() !== '' && Number.isFinite(precio) && Number.isFinite(costo);
+  $('#margen-info').textContent = ok ? `Ganas ${dinero(precio - costo)} por unidad${precio > 0 ? ` (${Math.round(((precio - costo) / precio) * 100)} % del precio)` : ''}.` : '';
+}
+['precio', 'costo', 'cotizar'].forEach((n) => fp()[n].addEventListener('input', pintarMargen));
 fp().cotizar.addEventListener('change', (ev) => { fp().precio.disabled = ev.target.checked; if (ev.target.checked) fp().precio.value = ''; });
 $('#foto-subir').addEventListener('click', () => $('#foto-archivo').click());
 $('#foto-quitar').addEventListener('click', () => { E.foto = null; pintarFoto(); });
@@ -348,10 +464,43 @@ $('#producto-instagram').addEventListener('click', () => {
   if (!fp().nombre.value.trim()) return mostrarError('#error-producto', 'Escribe el nombre del producto para crear la imagen.');
   mostrarError('#error-producto');
   $('#ig-talla').value = ''; $('#ig-compartir').hidden = !(navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] }));
+  const f = fp(), cat = catPorId(f.categoria_id.value);
+  $('#ig-descripcion').value = armarDescripcion({ nombre: f.nombre.value, precio: f.precio.value, cotizar: f.cotizar.checked, categoriaId: f.categoria_id.value, categoriaNombre: cat?.nombre });
+  $('#ig-cuando').value = 'ahora'; $('#ig-fecha-campo').hidden = true; $('#ig-fecha').value = '';
+  $('#ig-meta-estado').textContent = ''; $('#ig-publicar').disabled = false;
+  api('GET', 'admin/publicaciones').then(({ conexion: c }) => {
+    $('#ig-red-ig').disabled = !c.instagram; $('#ig-red-fb').disabled = !c.facebook;
+    if (!c.instagram) $('#ig-red-ig').checked = false; if (!c.facebook) $('#ig-red-fb').checked = false;
+    $('#ig-meta-estado').textContent = c.instagram || c.facebook ? '' : 'Meta todavía no está conectado (pestaña Redes). Mientras tanto puedes descargar la imagen y subirla a mano.';
+    $('#ig-publicar').disabled = !(c.instagram || c.facebook);
+  }).catch(() => { $('#ig-publicar').disabled = true; });
   pintarPaletas(); $('#dlg-instagram').showModal(); pintarInstagram();
 });
 let igTemporizador; $('#ig-talla').addEventListener('input', () => { clearTimeout(igTemporizador); igTemporizador = setTimeout(pintarInstagram, 250); });
 const igArchivo = () => new Promise((res) => $('#ig-lienzo').toBlob(res, 'image/png'));
+$('#ig-cuando').addEventListener('change', (ev) => { $('#ig-fecha-campo').hidden = ev.target.value !== 'programar'; });
+$('#ig-publicar').addEventListener('click', async () => {
+  const redes = [$('#ig-red-ig').checked && 'ig', $('#ig-red-fb').checked && 'fb'].filter(Boolean);
+  const descripcion = $('#ig-descripcion').value.trim(), programar = $('#ig-cuando').value === 'programar';
+  if (!redes.length) return mostrarError('#error-instagram', 'Elige Instagram, Facebook o las dos.');
+  if (!descripcion) return mostrarError('#error-instagram', 'Escribe la descripción.');
+  if (programar && !aISO($('#ig-fecha').value)) return mostrarError('#error-instagram', 'Elige la fecha y la hora.');
+  mostrarError('#error-instagram');
+  const b = $('#ig-publicar'); b.disabled = true; b.textContent = programar ? 'Programando…' : 'Publicando…';
+  try {
+    // Instagram solo acepta JPEG: la lámina se guarda en JPEG y se sube a la tienda para que Meta la descargue.
+    const jpeg = await new Promise((res) => $('#ig-lienzo').toBlob(res, 'image/jpeg', 0.92));
+    if (!jpeg) throw new Error('No pude crear la imagen.');
+    const form = new FormData(); form.set('imagen', jpeg, 'lamina.jpg'); form.set('descripcion', descripcion); form.set('redes', redes.join(','));
+    if (programar) form.set('programada_en', aISO($('#ig-fecha').value));
+    if (fp().referencia.value.trim()) form.set('producto_id', fp().referencia.value.trim());
+    const r = await api('POST', 'admin/publicaciones', form);
+    if (r.estado === 'publicada') { $('#dlg-instagram').close(); avisar(`Publicado en ${redes.map((x) => ({ ig: 'Instagram', fb: 'Facebook' }[x])).join(' y ')}.`); }
+    else if (r.estado === 'pendiente') { $('#dlg-instagram').close(); avisar('Programada. Se publica sola a esa hora (revisa la pestaña Redes).'); }
+    else mostrarError('#error-instagram', Object.entries(r.resultado || {}).filter(([, v]) => !v.ok).map(([k, v]) => `${{ ig: 'Instagram', fb: 'Facebook' }[k]}: ${v.error}`).join(' · ') || 'No se pudo publicar.');
+  } catch (e) { mostrarError('#error-instagram', e.message); }
+  b.disabled = false; b.textContent = 'Publicar';
+});
 $('#ig-descargar').addEventListener('click', async () => {
   const blob = await igArchivo(); if (!blob) return mostrarError('#error-instagram', 'No pude crear la imagen.');
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nombreArchivo(fp().nombre.value, fp().referencia.value); a.click();
@@ -401,7 +550,8 @@ $('#foto-archivo').addEventListener('change', async (ev) => {
 fp().addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const f = fp(), b = $('#producto-guardar');
-  const cuerpo = { nombre: f.nombre.value, categoria_id: f.categoria_id.value, precio: f.precio.value, cotizar: f.cotizar.checked, descripcion: f.descripcion.value, visible: f.visible.checked, disponible: f.disponible.checked, imagen_url: E.foto, cantidad: f.cantidad.value.trim() };
+  const cuerpo = { nombre: f.nombre.value, categoria_id: f.categoria_id.value, precio: f.precio.value, cotizar: f.cotizar.checked, descripcion: f.descripcion.value, visible: f.visible.checked, disponible: f.disponible.checked, imagen_url: E.foto, cantidad: f.cantidad.value.trim(), tipo_stock: f.tipo_stock.value, costo: f.costo.value.trim() };
+  if (cuerpo.costo !== '' && !(Number(cuerpo.costo.replace(/,/g, '')) >= 0)) return mostrarError('#error-producto', 'El costo debe ser un número (o déjalo vacío).');
   if (cuerpo.cantidad !== '' && !/^\d{1,6}$/.test(cuerpo.cantidad)) return mostrarError('#error-producto', 'La cantidad debe ser un número entero (o déjala vacía).');
   if (!cuerpo.nombre.trim()) return mostrarError('#error-producto', 'Escribe el nombre.');
   if (!cuerpo.categoria_id) return mostrarError('#error-producto', 'Elige una categoría.');

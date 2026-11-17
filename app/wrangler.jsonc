@@ -35,7 +35,7 @@
     { "name": "LIMITE_VISTA", "namespace_id": "3102", "simple": { "limit": 60, "period": 60 } }
   ],
   // Cada lunes 6:00 (Honduras): respaldo en R2 y limpieza de papelera y sesiones viejas.
-  "triggers": { "crons": ["0 12 * * 1"] },
+  "triggers": { "crons": ["0 12 * * 1", "*/5 * * * *"] },
   "vars": {
     "NOMBRE": "Alexa Detalles",
     "REMITENTE": "no-responder@alexashop.cc",
