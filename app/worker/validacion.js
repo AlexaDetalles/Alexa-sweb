@@ -65,6 +65,7 @@ export function producto(d, crear = false) {
     if (!['aparte', 'local1', 'local2', 'sin'].includes(d.tipo_stock)) falla(400, 'Tipo de stock: elige stock aparte, stock local 1, stock local 2 o sin stock.');
     r.tipo_stock = d.tipo_stock;
   }
+  if ('talla' in d) r.talla = texto(d.talla, 20, 'Talla');
   if ('cantidad' in d) r.cantidad = d.cantidad === null || d.cantidad === '' ? null : entero(d.cantidad, 'Cantidad');
   if ('orden' in d) r.orden = entero(d.orden, 'Orden');
   return r;

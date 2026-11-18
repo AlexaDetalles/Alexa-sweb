@@ -101,3 +101,23 @@ test('sin claves de Meta no publica y lo dice claro', async () => {
   assert.match(datos.resultado.ig.error, /no está conectado/);
   assert.equal(llamadas.length, 0);
 });
+
+test('historias: Instagram con media_type STORIES (sin texto) y Facebook como historia de la página', async () => {
+  const { estado, datos } = await crear({ redes: 'ig,fb', formato: 'historia' }); // sin descripción: las historias no la llevan
+  assert.equal(estado, 201);
+  assert.equal(datos.estado, 'publicada');
+  const ig = llamadas.find((c) => c.ruta.endsWith('/ig-1/media'));
+  assert.equal(ig.cuerpo.media_type, 'STORIES');
+  assert.equal(ig.cuerpo.caption, undefined, 'las historias de Instagram no llevan texto');
+  assert.match(ig.cuerpo.image_url, /\/fotos\/social\/[0-9a-f-]{36}\.jpg$/);
+  assert.ok(llamadas.some((c) => c.ruta.endsWith('/ig-1/media_publish') && c.cuerpo.creation_id === 'contenedor-1'));
+  const foto = llamadas.find((c) => c.ruta.endsWith('/pg-1/photos'));
+  assert.equal(foto.cuerpo.published, 'false', 'primero se sube la foto sin publicarla');
+  assert.ok(llamadas.some((c) => c.ruta.endsWith('/pg-1/photo_stories') && c.cuerpo.photo_id === 'fb-foto-1'));
+  const lista = (await listarPublicaciones(env).then((r) => r.json())).publicaciones;
+  assert.equal(lista[0].formato, 'historia');
+  // una publicación normal sigue siendo normal
+  llamadas.length = 0;
+  await crear({ descripcion: 'Texto', redes: 'ig' });
+  assert.equal(llamadas.find((c) => c.ruta.endsWith('/ig-1/media')).cuerpo.media_type, undefined);
+});

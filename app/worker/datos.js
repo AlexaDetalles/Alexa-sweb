@@ -280,7 +280,7 @@ async function duplicarProducto(env, id) {
   const orden = (await env.BD.prepare('SELECT coalesce(max(orden), 0) + 10 AS n FROM productos').first()).n;
   await insertar(env, 'productos', {
     id: nuevo, nombre: `${o.nombre} (copia)`.slice(0, 120), categoria_id: o.categoria_id, descripcion: o.descripcion, precio: o.precio,
-    cotizar: o.cotizar, imagen_url: o.imagen_url, disponible: o.disponible, cantidad: o.cantidad, costo: o.costo, tipo_stock: o.tipo_stock, referencia: o.referencia, visible: 0, orden,
+    cotizar: o.cotizar, imagen_url: o.imagen_url, disponible: o.disponible, cantidad: o.cantidad, costo: o.costo, tipo_stock: o.tipo_stock, referencia: o.referencia, talla: o.talla, visible: 0, orden,
   }).run();
   return json({ id: nuevo }, 201);
 }

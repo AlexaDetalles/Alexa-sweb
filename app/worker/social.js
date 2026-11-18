@@ -35,8 +35,9 @@ async function meta(env, ruta, params, metodo = 'POST') {
   return datos;
 }
 
-async function publicarInstagram(env, imagen, descripcion) {
-  const c = await meta(env, `${env.META_IG_ID}/media`, { image_url: imagen, caption: descripcion });
+async function publicarInstagram(env, imagen, descripcion, historia) {
+  // Historia: imagen vertical 9:16 sin texto (las Stories de Instagram no llevan descripción).
+  const c = await meta(env, `${env.META_IG_ID}/media`, historia ? { image_url: imagen, media_type: 'STORIES' } : { image_url: imagen, caption: descripcion });
   // Instagram procesa la imagen unos segundos: se reintenta hasta que esté lista.
   let ultimo;
   for (let i = 0; i < 6; i++) {
@@ -45,7 +46,12 @@ async function publicarInstagram(env, imagen, descripcion) {
   }
   throw ultimo;
 }
-async function publicarFacebook(env, imagen, descripcion) {
+async function publicarFacebook(env, imagen, descripcion, historia) {
+  if (historia) { // historia de la página: se sube la foto sin publicarla y luego se publica como historia
+    const f = await meta(env, `${env.META_PAGE_ID}/photos`, { url: imagen, published: 'false' });
+    const h = await meta(env, `${env.META_PAGE_ID}/photo_stories`, { photo_id: f.id });
+    return h.post_id || f.id;
+  }
   const r = await meta(env, `${env.META_PAGE_ID}/photos`, { url: imagen, caption: descripcion, published: 'true' });
   return r.post_id || r.id;
 }
@@ -58,7 +64,7 @@ async function publicar(env, fila) {
     if (resultado[red]?.ok) continue;
     try {
       if (!estadoMeta(env)[red === 'ig' ? 'instagram' : 'facebook']) throw new Error(`${REDES[red]} no está conectado todavía (faltan las claves de Meta).`);
-      const id = red === 'ig' ? await publicarInstagram(env, imagen, fila.descripcion) : await publicarFacebook(env, imagen, fila.descripcion);
+      const id = red === 'ig' ? await publicarInstagram(env, imagen, fila.descripcion, fila.formato === 'historia') : await publicarFacebook(env, imagen, fila.descripcion, fila.formato === 'historia');
       resultado[red] = { ok: true, id };
     } catch (e) { resultado[red] = { ok: false, error: e.message }; }
   }
@@ -78,7 +84,9 @@ export async function crearPublicacion(req, env, sesion) {
   if (f.size > 8 * 1024 * 1024) falla(400, 'La imagen pesa demasiado (máximo 8 MB).');
   const bytes = new Uint8Array(await f.arrayBuffer());
   if (!esJpeg(bytes)) falla(400, 'La imagen debe ser JPEG (Instagram no acepta PNG).');
-  const descripcion = String(form.get('descripcion') ?? '').replace(/\r\n?/g, '\n').trim(); // los formularios mandan saltos de línea CRLF
+  const formato = String(form.get('formato') ?? 'post') === 'historia' ? 'historia' : 'post';
+  let descripcion = String(form.get('descripcion') ?? '').replace(/\r\n?/g, '\n').trim(); // los formularios mandan saltos de línea CRLF
+  if (formato === 'historia' && !descripcion) descripcion = 'Historia'; // las historias no llevan texto: esto solo identifica la publicación en el panel
   if (!descripcion || descripcion.length > 2200) falla(400, 'Escribe la descripción (máximo 2200 caracteres).');
   const pedidas = String(form.get('redes') ?? '').split(',').map((x) => x.trim()).filter(Boolean);
   if (!pedidas.length || pedidas.some((r) => !REDES[r])) falla(400, 'Elige Instagram, Facebook o las dos.');
@@ -94,8 +102,8 @@ export async function crearPublicacion(req, env, sesion) {
   const clave = `social/${crypto.randomUUID()}.jpg`;
   await env.FOTOS.put(clave, bytes, { httpMetadata: { contentType: 'image/jpeg', cacheControl: 'public, max-age=31536000, immutable' } });
   const productoId = String(form.get('producto_id') ?? '').slice(0, 80) || null;
-  const r = await env.BD.prepare('INSERT INTO publicaciones (producto_id, descripcion, imagen_clave, redes, programada_en, usuario) VALUES (?, ?, ?, ?, ?, ?)')
-    .bind(productoId, descripcion, clave, redes.join(','), programada, sesion?.correo ?? '').run();
+  const r = await env.BD.prepare('INSERT INTO publicaciones (producto_id, descripcion, imagen_clave, redes, programada_en, usuario, formato) VALUES (?, ?, ?, ?, ?, ?, ?)')
+    .bind(productoId, descripcion, clave, redes.join(','), programada, sesion?.correo ?? '', formato).run();
   const id = r.meta.last_row_id;
   if (programada > fechaSql()) return json({ id, estado: 'pendiente', programada_en: programada }, 201);
   const fila = await env.BD.prepare('SELECT * FROM publicaciones WHERE id = ?').bind(id).first();
