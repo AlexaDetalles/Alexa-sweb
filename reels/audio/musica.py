@@ -210,6 +210,7 @@ def reel1():
     m.poner(ping(E5), T(153), 0.25, mojado=True)
     m.poner(campana(Cs5), T(160), 0.22, mojado=True)  # marca
     m.poner(campana(A5), T(166), 0.18, mojado=True)
+    m.poner(ping(E5), T(193), 0.25, mojado=True)  # alexashop.cc
     return m
 
 
@@ -233,6 +234,7 @@ def reel2():
     pulsos(m, 280, 380, 20, 0.4, doble=False)
     m.poner(campana(Cs5), T(330), 0.24, mojado=True)
     m.poner(campana(A5), T(336), 0.18, mojado=True)
+    m.poner(ping(E5), T(353), 0.25, mojado=True)  # alexashop.cc
     return m
 
 
@@ -247,7 +249,9 @@ def reel3():
     m.poner(ping(A4), T(13), 0.28, mojado=True)   # «Closet 001 abre»
     m.poner(ping(Cs5), T(23), 0.3, mojado=True)   # «Martes 24»
     m.poner(campana(E5), T(43), 0.26, mojado=True)  # hora
-    m.poner(ping(A5), T(63), 0.25, mojado=True)   # llamada a la acción
+    m.poner(ping(A5), T(63), 0.25, mojado=True)   # incentivo
+    m.poner(ping(E5), T(83), 0.25, mojado=True)   # alexashop.cc
+    m.poner(campana(Cs5), T(100), 0.2, mojado=True)
     return m
 
 
@@ -270,7 +274,8 @@ def reel4():
     m.poner(ping(A4), T(333), 0.3, mojado=True)
     m.poner(ping(Cs5), T(343), 0.3, mojado=True)
     m.poner(campana(E5), T(363), 0.24, mojado=True)
-    m.poner(ping(A5), T(383), 0.25, mojado=True)
+    m.poner(ping(A5), T(383), 0.25, mojado=True)   # incentivo
+    m.poner(ping(E5), T(403), 0.25, mojado=True)   # alexashop.cc
     pulsos(m, 320, 440, 20, 0.4, doble=False)
     return m
 
@@ -292,8 +297,9 @@ def reel5():
         m.poner(campana(nota * 2 if i == 2 else nota), T(ini + 6), 0.2, mojado=True)
         m.poner(ping(nota), T(ini + 23), 0.25, mojado=True)
         m.poner(ping(nota * 1.5), T(ini + 33), 0.2, mojado=True)
-    m.poner(campana(A5), T(300), 0.22, mojado=True)
-    m.poner(campana(Cs5), T(330), 0.2, mojado=True)
+    m.poner(ping(A5), T(313), 0.25, mojado=True)
+    m.poner(ping(E5), T(333), 0.25, mojado=True)
+    m.poner(campana(Cs5), T(350), 0.22, mojado=True)
     return m
 
 

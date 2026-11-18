@@ -83,14 +83,12 @@ export const Rule: React.FC<{at: number; width?: number}> = ({at, width = 120}) 
   return <div style={{height: 3, width: width * p, background: C.gold, margin: '0 auto'}} />;
 };
 
-/** Marca: tacón dorado + «lexa» + «Detalles & Obsequios», como en el encabezado de la web. */
+/** Marca: el tacón (la A de Alexa) como sello, con el nombre completo escrito debajo para que nadie lea «lexa». */
 export const Wordmark: React.FC<{scale?: number}> = ({scale = 1}) => (
-  <div style={{display: 'flex', alignItems: 'center', gap: 22 * scale}}>
-    <Img src={staticFile('img/logo-mark.svg')} style={{height: 118 * scale, width: 'auto'}} />
-    <div style={{lineHeight: 1}}>
-      <div style={{fontFamily: F.serif, fontSize: 104 * scale, color: C.cream, fontWeight: 500, letterSpacing: '.02em'}}>lexa</div>
-      <div style={{fontFamily: F.sans, fontSize: 21 * scale, color: C.goldSoft, letterSpacing: '.32em', marginTop: 8 * scale, textTransform: 'uppercase'}}>Detalles &amp; Obsequios</div>
-    </div>
+  <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 * scale}}>
+    <Img src={staticFile('img/logo-mark.svg')} style={{height: 130 * scale, width: 'auto'}} />
+    <div style={{fontFamily: F.serif, fontSize: 124 * scale, color: C.cream, fontWeight: 500, letterSpacing: '.06em', lineHeight: 0.9}}>Alexa</div>
+    <div style={{fontFamily: F.sans, fontSize: 21 * scale, color: C.goldSoft, letterSpacing: '.32em', textTransform: 'uppercase'}}>Detalles &amp; Obsequios</div>
   </div>
 );
 

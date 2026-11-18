@@ -19,8 +19,8 @@ node render.mjs 4-Anuncio --foto=60   # un cuadro suelto para revisar
 node render.mjs 4-Anuncio --props=props.json   # otra fecha o números
 npm run studio                     # editor visual
 ```
-`props.json` de ejemplo: `{"dia":"Martes 1","hora":"1:00 PM","cta":"Escribe CLOSET","piezas":143,"unicas":124}`.
-Para Apertura: `{"piezas":[{"img":"img/mi-foto.webp","nombre":"Tenis Nike","precio":"L1,200"}]}` (la foto va en `public/img/`).
+`props.json` de ejemplo: `{"dia":"Martes 1","hora":"1:00 PM","incentivo":"Las primeras 10 compras: envoltura de regalo gratis","piezas":143,"unicas":124}`.
+Para Apertura (también lleva `incentivo`): `{"piezas":[{"img":"img/mi-foto.webp","nombre":"Tenis Nike","precio":"L1,200"}]}` (la foto va en `public/img/`).
 
 ## Sincronía
 90 pulsos por minuto: un pulso cada 20 cuadros. Los tiempos `at` de `src/Reels.tsx` coinciden con los sonidos de `audio/musica.py`. Si mueves uno, mueve el otro.
