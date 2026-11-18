@@ -50,6 +50,17 @@ Alexashop.cc
 ```
 Elige Instagram, Facebook o las dos, y **Ahora mismo** o **Programar** (el Worker revisa cada 5 minutos y publica lo que ya toca). La pestaña **Redes** muestra el estado, deja reintentar o cancelar.
 
+**Imágenes para redes de muchos productos (automatización)**
+1. Toma las fotos y súbelas a cada producto (puedes poner también su **talla**; sale en la imagen). Para cargar rápido usa **«Guardar y agregar otro»**.
+2. En **Productos → «Imágenes para redes»** eliges qué productos (Stock local 2 por defecto), **la paleta** (las 6 de siempre o **cualquier color** con el selector «Otro color»: el panel arma el fondo, las letras y el brillo a partir de él) y el formato: **Publicación 4:5** (2160×2700), **Historia 9:16** (2160×3840) o las dos.
+3. **«Descargar todas (.zip)»** crea todas las imágenes con esa misma paleta y las baja juntas en un solo archivo (`imagenes-local2-<paleta>.zip`). Los productos sin foto se saltan y el panel avisa cuántos son. Todo se dibuja en tu navegador: nada sale a ningún servicio.
+4. **«Programar todas»** (cuando Meta esté conectado): publica todas en Instagram y/o Facebook, **una cada N horas** desde la fecha que elijas (con su historia 10 minutos después si la marcaste). Se ven en la pestaña **Redes** y salen solas.
+5. Una sola imagen: dentro del producto, «Imagen para Instagram» (con selector de formato y de color).
+
+**Historias**: Instagram (`media_type=STORIES`) y Facebook (historia de la página) se publican por la API de Meta; las historias van sin texto, en 9:16.
+
+**WhatsApp**: la API oficial de WhatsApp **no permite publicar Estados (historias) ni escribir en grupos o chats por ti**; solo mandar mensajes a clientes que ya te escribieron o con plantillas aprobadas. Lo que sí hay: en el celular, el botón **«Compartir…»** abre el menú de tu teléfono con las imágenes ya listas (hasta 20) y ahí eliges WhatsApp → el chat o **«Mi estado»**; en la computadora, baja el .zip y arrástralas a WhatsApp Web.
+
 **Conectar Meta (una sola vez)**
 1. Instagram tiene que ser cuenta **Profesional** (Business o Creator) y estar enlazada a una **Página de Facebook**.
 2. En https://developers.facebook.com crea una app de tipo **Empresa** y agrega el producto **Instagram**. Permisos: `instagram_basic`, `instagram_content_publish`, `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`. Mientras la app esté en modo desarrollo y tú seas administradora de ella, puedes publicar en tus propias cuentas sin pasar la revisión de Meta.

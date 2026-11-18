@@ -1,6 +1,7 @@
 // Panel de administración de Alexa Detalles: productos, categorías, regalos personalizados y ajustes.
 // Sin librerías. Todo lo que viene de la base de datos pasa por esc() antes de llegar al HTML.
-import { dibujarInstagram, nombreArchivo, PALETAS } from '/admin/instagram.js';
+import { dibujarInstagram, nombreArchivo, crearImagen, esColor, PALETAS } from '/admin/instagram.js';
+import { crearZip, nombreSeguro } from '/admin/zip.js';
 import { armarDescripcion, aISO } from '/admin/social.js';
 import { estimarEnLote } from '/admin/lotes.js';
 import { cuotaSugerida, resumenCredito, enlaceRecordatorio } from '/admin/creditos.js';
@@ -408,6 +409,86 @@ async function cargarContador() {
   } catch { /* sin contador */ }
 }
 
+// --- imágenes para redes de muchos productos a la vez --------------------------------------------
+const MS = { ocupado: false, cancelar: false };
+const msPintarPaletas = selectorPaletas('#ms-paletas', '#ms-color', () => msPaleta, (v) => { msPaleta = v; guardarPaleta(v); }, () => {});
+const msProductos = () => { const t = $('#ms-tipo').value; return E.prods.filter((p) => (t === 'todos' || p.tipo_stock === t) && p.imagen_url); };
+function msCuenta() {
+  const t = $('#ms-tipo').value, todos = E.prods.filter((p) => t === 'todos' || p.tipo_stock === t), con = todos.filter((p) => p.imagen_url).length, formatos = ($('#ms-post').checked ? 1 : 0) + ($('#ms-historia').checked ? 1 : 0);
+  $('#ms-cuenta').textContent = `${con} producto${con === 1 ? '' : 's'} con foto${todos.length - con ? ` (${todos.length - con} sin foto se saltan: súbeles su foto)` : ''} · ${con * formatos} imagen${con * formatos === 1 ? '' : 'es'}.`;
+}
+$('#abrir-masivo').addEventListener('click', () => {
+  msPaleta = paletaGuardada(); msPintarPaletas(); mostrarError('#error-masivo'); $('#ms-estado').textContent = ''; $('#ms-progreso').hidden = true;
+  const ahora = new Date(Date.now() + 3600000); ahora.setMinutes(0, 0, 0); $('#ms-inicio').value = new Date(ahora.getTime() - ahora.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  $('#ms-compartir').hidden = !(navigator.canShare && navigator.canShare({ files: [new File([''], 'a.jpg', { type: 'image/jpeg' })] }));
+  api('GET', 'admin/publicaciones').then(({ conexion: c }) => { $('#ms-meta-estado').textContent = c.instagram || c.facebook ? '' : 'Meta todavía no está conectado (pestaña Redes). Mientras tanto puedes descargar el .zip y subirlas a mano.'; $('#ms-programar').disabled = !(c.instagram || c.facebook); $('#ms-red-ig').disabled = !c.instagram; $('#ms-red-fb').disabled = !c.facebook; if (!c.instagram) $('#ms-red-ig').checked = false; if (!c.facebook) $('#ms-red-fb').checked = false; }).catch(() => { $('#ms-programar').disabled = true; });
+  msCuenta(); $('#dlg-masivo').showModal();
+});
+['#ms-tipo', '#ms-post', '#ms-historia'].forEach((i) => $(i).addEventListener('change', msCuenta));
+/** Crea todas las imágenes (una por producto y formato) con la paleta elegida. Devuelve [{ p, formato, blob }]. */
+async function msGenerar() {
+  const formatos = [$('#ms-post').checked && 'post', $('#ms-historia').checked && 'historia'].filter(Boolean), lista = msProductos();
+  if (!formatos.length) throw new Error('Elige Publicación, Historia o las dos.');
+  if (!lista.length) throw new Error('No hay productos con foto de ese tipo.');
+  const salida = [], total = lista.length * formatos.length;
+  MS.cancelar = false; $('#ms-progreso').hidden = false; $('#ms-progreso').max = total;
+  for (const p of lista) for (const formato of formatos) {
+    if (MS.cancelar) throw new Error('Cancelado.');
+    $('#ms-progreso').value = salida.length; $('#ms-estado').textContent = `Creando ${salida.length + 1} de ${total}: ${p.nombre}…`;
+    const blob = await crearImagen({ fotoUrl: p.imagen_url, nombre: p.nombre, precio: p.precio, cotizar: p.cotizar, talla: p.talla, paleta: msPaleta, formato }, { calidad: 0.88 });
+    if (!blob) throw new Error(`No pude crear la imagen de «${p.nombre}».`);
+    salida.push({ p, formato, blob });
+    await new Promise((r) => setTimeout(r)); // deja respirar a la pantalla
+  }
+  $('#ms-progreso').value = total;
+  return salida;
+}
+const msNombre = (i, dosFormatos) => `${i.p.id}-${nombreSeguro(i.p.nombre.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'producto')}${dosFormatos ? `-${i.formato}` : ''}.jpg`;
+async function msOcupado(fn) {
+  if (MS.ocupado) return; MS.ocupado = true; mostrarError('#error-masivo');
+  const botones = ['#ms-descargar', '#ms-programar', '#ms-compartir'].map((x) => $(x)); botones.forEach((b) => { b.disabled = true; });
+  try { await fn(); } catch (e) { if (e.message !== 'Cancelado.') mostrarError('#error-masivo', e.message); $('#ms-estado').textContent = ''; }
+  botones.forEach((b) => { b.disabled = false; }); $('#ms-programar').disabled = $('#ms-meta-estado').textContent !== ''; MS.ocupado = false;
+}
+$('#ms-cerrar').addEventListener('click', () => { MS.cancelar = true; });
+$('#ms-descargar').addEventListener('click', () => msOcupado(async () => {
+  const imagenes = await msGenerar();
+  $('#ms-estado').textContent = 'Juntando todo en un .zip…';
+  const zip = await crearZip(imagenes.map((i) => ({ nombre: msNombre(i, $('#ms-post').checked && $('#ms-historia').checked), datos: i.blob })));
+  const pal = esColor(msPaleta) ? `color-${msPaleta.slice(1)}` : msPaleta, a = document.createElement('a');
+  a.href = URL.createObjectURL(zip); a.download = `imagenes-${$('#ms-tipo').value}-${pal}.zip`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+  $('#ms-estado').textContent = `Listo: ${imagenes.length} imágenes en un .zip (${(zip.size / 1048576).toFixed(1)} MB).`;
+}));
+$('#ms-compartir').addEventListener('click', () => msOcupado(async () => {
+  const imagenes = (await msGenerar()).slice(0, 20); // las apps de mensajes aceptan pocas a la vez
+  await navigator.share({ files: imagenes.map((i) => new File([i.blob], msNombre(i, true), { type: 'image/jpeg' })) }).catch(() => {});
+  $('#ms-estado').textContent = imagenes.length < msProductos().length ? 'Compartí las primeras 20: para el resto usa el .zip.' : '';
+}));
+$('#ms-programar').addEventListener('click', () => msOcupado(async () => {
+  const redes = [$('#ms-red-ig').checked && 'ig', $('#ms-red-fb').checked && 'fb'].filter(Boolean), cada = Number(String($('#ms-cada').value).replace(',', '.')), inicio = new Date($('#ms-inicio').value);
+  if (!redes.length) throw new Error('Elige Instagram, Facebook o las dos.');
+  if (Number.isNaN(inicio.getTime())) throw new Error('Elige cuándo empieza.');
+  if (!(cada >= 0.25 && cada <= 168)) throw new Error('«Una cada» debe ser entre 0.25 y 168 horas.');
+  const lista = msProductos(), n = lista.length;
+  if (!n) throw new Error('No hay productos con foto de ese tipo.');
+  const fin = new Date(inicio.getTime() + (n - 1) * cada * 3600000);
+  if (!(await confirmar('Programar publicaciones', `Se programan ${n} publicaciones en ${redes.map((x) => ({ ig: 'Instagram', fb: 'Facebook' }[x])).join(' y ')}, una cada ${cada} h: desde ${inicio.toLocaleString('es-HN', { dateStyle: 'short', timeStyle: 'short' })} hasta ${fin.toLocaleString('es-HN', { dateStyle: 'short', timeStyle: 'short' })}${$('#ms-historia').checked ? ' (cada una con su historia 10 minutos después)' : ''}.`, 'Programar'))) throw new Error('Cancelado.');
+  const imagenes = await msGenerar(); let hechas = 0;
+  $('#ms-progreso').max = imagenes.length; $('#ms-progreso').value = 0;
+  for (const i of imagenes) {
+    if (MS.cancelar) throw new Error('Cancelado.');
+    const idx = lista.indexOf(i.p), cuando = new Date(inicio.getTime() + idx * cada * 3600000 + (i.formato === 'historia' ? 600000 : 0));
+    const cat = catPorId(i.p.categoria_id), form = new FormData();
+    form.set('imagen', i.blob, 'lamina.jpg'); form.set('redes', redes.join(',')); form.set('formato', i.formato); form.set('producto_id', i.p.id); form.set('programada_en', cuando.toISOString());
+    form.set('descripcion', i.formato === 'historia' ? '' : armarDescripcion({ nombre: i.p.nombre, precio: i.p.precio, cotizar: i.p.cotizar, categoriaId: i.p.categoria_id, categoriaNombre: cat?.nombre }));
+    $('#ms-estado').textContent = `Programando ${hechas + 1} de ${imagenes.length}: ${i.p.nombre}…`;
+    await api('POST', 'admin/publicaciones', form);
+    $('#ms-progreso').value = ++hechas;
+  }
+  $('#ms-estado').textContent = `Listo: ${hechas} publicaciones programadas. Las ves en la pestaña Redes y salen solas a su hora.`;
+  avisar(`${hechas} publicaciones programadas.`);
+}));
+
 // --- avisos de cobro: banner del panel ---------------------------------------------------------
 async function cargarAlertas() {
   if (!puedeFinanzas()) return;
@@ -638,7 +719,7 @@ function abrirProducto(p, categoria = E.cat) {
   f.disponible.checked = p ? p.disponible : true;
   f.cantidad.value = p?.cantidad ?? '';
   f.tipo_stock.value = p?.tipo_stock ?? 'aparte'; f.costo.value = p?.costo ?? '';
-  f.etiqueta.value = p?.referencia ?? '';
+  f.etiqueta.value = p?.referencia ?? ''; f.talla.value = p?.talla ?? '';
   prepararLote(p);
   pintarMargen();
   f.precio.disabled = f.cotizar.checked;
@@ -692,28 +773,38 @@ $('#foto-subir').addEventListener('click', () => $('#foto-archivo').click());
 $('#foto-quitar').addEventListener('click', () => { E.foto = null; pintarFoto(); });
 
 // Imagen para Instagram: usa lo que hay ahora en el formulario (foto, nombre, precio) y una talla opcional.
-let igPaleta = 'rojo';
-try { igPaleta = PALETAS.some((p) => p.id === localStorage.getItem('alexa_ig_paleta')) ? localStorage.getItem('alexa_ig_paleta') : 'rojo'; } catch { /* sin almacenamiento: se queda el rojo */ }
-const datosInstagram = () => { const f = fp(); return { fotoUrl: E.foto, nombre: f.nombre.value, precio: f.precio.value, cotizar: f.cotizar.checked, talla: $('#ig-talla').value, paleta: igPaleta }; };
-function pintarPaletas() {
-  $('#ig-paletas').innerHTML = PALETAS.map((p) => `<button type="button" class="ig-paleta" role="radio" data-paleta="${p.id}" aria-checked="${p.id === igPaleta}" title="${esc(p.nombre)}"><span class="ig-muestra"></span><small>${esc(p.nombre)}</small></button>`).join('');
-  // el color se pone desde JS: la política de seguridad del panel no permite style="" escrito en el HTML
-  $$('#ig-paletas .ig-paleta').forEach((b, i) => { b.querySelector('.ig-muestra').style.background = `linear-gradient(135deg, ${PALETAS[i].fondo.join(', ')})`; });
+const paletaGuardada = () => { try { const v = localStorage.getItem('alexa_ig_paleta'); return PALETAS.some((p) => p.id === v) || esColor(v) ? v : 'rojo'; } catch { return 'rojo'; } };
+let igPaleta = paletaGuardada(), msPaleta = igPaleta;
+const guardarPaleta = (v) => { try { localStorage.setItem('alexa_ig_paleta', v); } catch { /* da igual */ } };
+const datosInstagram = () => { const f = fp(); return { fotoUrl: E.foto, nombre: f.nombre.value, precio: f.precio.value, cotizar: f.cotizar.checked, talla: $('#ig-talla').value, paleta: igPaleta, formato: $('#ig-formato').value }; };
+/** Selector de paletas + color libre (el que la dueña elija). leer/escribir: dónde se guarda la elegida; alCambiar: qué volver a dibujar. */
+function selectorPaletas(contenedor, entradaColor, leer, escribir, alCambiar) {
+  const pintar = () => {
+    const actual = leer();
+    $(contenedor).innerHTML = PALETAS.map((p) => `<button type="button" class="ig-paleta" role="radio" data-paleta="${p.id}" aria-checked="${p.id === actual}" title="${esc(p.nombre)}"><span class="ig-muestra"></span><small>${esc(p.nombre)}</small></button>`).join('');
+    // el color se pone desde JS: la política de seguridad del panel no permite style="" escrito en el HTML
+    $$(`${contenedor} .ig-paleta`).forEach((b, i) => { b.querySelector('.ig-muestra').style.background = `linear-gradient(135deg, ${PALETAS[i].fondo.join(', ')})`; });
+    if (esColor(actual)) $(entradaColor).value = actual;
+    $(entradaColor).closest('.ig-color').style.fontWeight = esColor(actual) ? '700' : '400';
+  };
+  $(contenedor).addEventListener('click', (ev) => { const b = ev.target.closest('[data-paleta]'); if (!b) return; escribir(b.dataset.paleta); pintar(); alCambiar(); });
+  $(entradaColor).addEventListener('input', () => { escribir($(entradaColor).value); pintar(); alCambiar(); });
+  return pintar;
 }
-$('#ig-paletas').addEventListener('click', (ev) => {
-  const b = ev.target.closest('[data-paleta]'); if (!b) return;
-  igPaleta = b.dataset.paleta; try { localStorage.setItem('alexa_ig_paleta', igPaleta); } catch { /* da igual */ }
-  pintarPaletas(); pintarInstagram();
-});
+const pintarPaletas = selectorPaletas('#ig-paletas', '#ig-color', () => igPaleta, (v) => { igPaleta = v; guardarPaleta(v); }, () => pintarInstagram());
 let igPintando = 0;
 async function pintarInstagram() {
   const turno = ++igPintando; mostrarError('#error-instagram');
+  const historia = $('#ig-formato').value === 'historia';
+  $('#ig-lienzo').classList.toggle('historia', historia);
+  $('#ig-descripcion').disabled = historia; $('#ig-descripcion').placeholder = historia ? 'Las historias no llevan texto.' : '';
   try { await dibujarInstagram($('#ig-lienzo'), datosInstagram()); } catch (e) { if (turno === igPintando) mostrarError('#error-instagram', 'No pude dibujar la imagen. Intenta de nuevo.'); }
 }
+$('#ig-formato').addEventListener('change', pintarInstagram);
 $('#producto-instagram').addEventListener('click', () => {
   if (!fp().nombre.value.trim()) return mostrarError('#error-producto', 'Escribe el nombre del producto para crear la imagen.');
   mostrarError('#error-producto');
-  $('#ig-talla').value = ''; $('#ig-compartir').hidden = !(navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] }));
+  $('#ig-talla').value = fp().talla.value.trim(); $('#ig-formato').value = 'post'; $('#ig-compartir').hidden = !(navigator.canShare && navigator.canShare({ files: [new File([''], 'a.png', { type: 'image/png' })] }));
   const f = fp(), cat = catPorId(f.categoria_id.value);
   $('#ig-descripcion').value = armarDescripcion({ nombre: f.nombre.value, precio: f.precio.value, cotizar: f.cotizar.checked, categoriaId: f.categoria_id.value, categoriaNombre: cat?.nombre });
   $('#ig-cuando').value = 'ahora'; $('#ig-fecha-campo').hidden = true; $('#ig-fecha').value = '';
@@ -731,9 +822,10 @@ const igArchivo = () => new Promise((res) => $('#ig-lienzo').toBlob(res, 'image/
 $('#ig-cuando').addEventListener('change', (ev) => { $('#ig-fecha-campo').hidden = ev.target.value !== 'programar'; });
 $('#ig-publicar').addEventListener('click', async () => {
   const redes = [$('#ig-red-ig').checked && 'ig', $('#ig-red-fb').checked && 'fb'].filter(Boolean);
+  const formato = $('#ig-formato').value, historia = formato === 'historia';
   const descripcion = $('#ig-descripcion').value.trim(), programar = $('#ig-cuando').value === 'programar';
   if (!redes.length) return mostrarError('#error-instagram', 'Elige Instagram, Facebook o las dos.');
-  if (!descripcion) return mostrarError('#error-instagram', 'Escribe la descripción.');
+  if (!descripcion && !historia) return mostrarError('#error-instagram', 'Escribe la descripción.');
   if (programar && !aISO($('#ig-fecha').value)) return mostrarError('#error-instagram', 'Elige la fecha y la hora.');
   mostrarError('#error-instagram');
   const b = $('#ig-publicar'); b.disabled = true; b.textContent = programar ? 'Programando…' : 'Publicando…';
@@ -741,7 +833,7 @@ $('#ig-publicar').addEventListener('click', async () => {
     // Instagram solo acepta JPEG: la lámina se guarda en JPEG y se sube a la tienda para que Meta la descargue.
     const jpeg = await new Promise((res) => $('#ig-lienzo').toBlob(res, 'image/jpeg', 0.92));
     if (!jpeg) throw new Error('No pude crear la imagen.');
-    const form = new FormData(); form.set('imagen', jpeg, 'lamina.jpg'); form.set('descripcion', descripcion); form.set('redes', redes.join(','));
+    const form = new FormData(); form.set('imagen', jpeg, 'lamina.jpg'); form.set('descripcion', historia ? '' : descripcion); form.set('redes', redes.join(',')); form.set('formato', formato);
     if (programar) form.set('programada_en', aISO($('#ig-fecha').value));
     if (fp().referencia.value.trim()) form.set('producto_id', fp().referencia.value.trim());
     const r = await api('POST', 'admin/publicaciones', form);
@@ -800,7 +892,7 @@ $('#foto-archivo').addEventListener('change', async (ev) => {
 fp().addEventListener('submit', async (ev) => {
   ev.preventDefault();
   const f = fp(), b = $('#producto-guardar');
-  const cuerpo = { nombre: f.nombre.value, categoria_id: f.categoria_id.value, precio: f.precio.value, cotizar: f.cotizar.checked, descripcion: f.descripcion.value, visible: f.visible.checked, disponible: f.disponible.checked, imagen_url: E.foto, cantidad: f.cantidad.value.trim(), tipo_stock: f.tipo_stock.value, costo: f.costo.value.trim() };
+  const cuerpo = { nombre: f.nombre.value, categoria_id: f.categoria_id.value, precio: f.precio.value, cotizar: f.cotizar.checked, descripcion: f.descripcion.value, visible: f.visible.checked, disponible: f.disponible.checked, imagen_url: E.foto, cantidad: f.cantidad.value.trim(), tipo_stock: f.tipo_stock.value, costo: f.costo.value.trim(), talla: f.talla.value.trim() };
   if (PERMISOS[E.yo?.rol]?.includes('finanzas')) { cuerpo.lote_id = f.tipo_stock.value === 'local2' && f.lote_id.value ? Number(f.lote_id.value) : null; cuerpo.referencia = f.etiqueta.value.trim(); if (cuerpo.lote_id || cuerpo.tipo_stock === 'local1') delete cuerpo.costo; }
   if (cuerpo.costo !== undefined && cuerpo.costo !== '' && !(Number(cuerpo.costo.replace(/,/g, '')) >= 0)) return mostrarError('#error-producto', 'El costo debe ser un número (o déjalo vacío).');
   if (cuerpo.cantidad !== '' && !/^\d{1,6}$/.test(cuerpo.cantidad)) return mostrarError('#error-producto', 'La cantidad debe ser un número entero (o déjala vacía).');

@@ -1,7 +1,7 @@
 // Imagen para Instagram desde el panel: foto + nombre + precio + talla, en 4:5 (1080×1350) y guardada al doble (2160×2700).
 // Todo ocurre en el navegador con <canvas>: la foto no sale a ningún servicio. Mismo estilo que el carrusel «New Drop»:
 // rojo con degradado, grano de película en toda la lámina y moteado en las letras.
-const ANCHO = 1080, ALTO = 1350, ESCALA = 2;
+const ANCHO = 1080, ALTO = 1350, ALTO_HISTORIA = 1920, ESCALA = 2;
 /**
  * Paletas de la lámina. fondo: 4 tonos del degradado (de arriba-izquierda a abajo-derecha); brillo: luz arriba a la izquierda;
  * texto: degradado de las letras; trazo: contorno del precio; marco: borde de la foto; pildora/pildoraTexto: etiqueta de talla;
@@ -15,7 +15,29 @@ export const PALETAS = [
   { id: 'verde', nombre: 'Esmeralda', fondo: ['#2fd08a', '#0f7a4f', '#064430', '#021a12'], brillo: 'rgba(120,255,190,.6)', luz: 'rgba(120,255,190,.45)', texto: ['#fff', '#eafff4', '#aef0cf'], trazo: '#d6ffe9', marco: '#f3faf6', pildora: '#050505', pildoraTexto: '#aef0cf', suave: 'rgba(220,255,238,.85)', vineta: 0.5 },
   { id: 'crema', nombre: 'Crema', fondo: ['#fbf5ea', '#eddcc0', '#d3b88c', '#b8956a'], brillo: 'rgba(255,255,255,.9)', luz: 'rgba(255,255,255,.0)', texto: ['#7a0b17', '#b11226', '#3a0a0e'], trazo: '#8b0a14', marco: '#ffffff', pildora: '#2a0d0a', pildoraTexto: '#fbf5ea', suave: 'rgba(58,10,14,.75)', vineta: 0.22 },
 ];
-export const paletaPorId = (id) => PALETAS.find((p) => p.id === id) || PALETAS[0];
+
+// --- paleta a partir de cualquier color elegido -----------------------------------------------
+const aRGB = (hex) => { const h = String(hex).replace('#', ''); const n = parseInt(h.length === 3 ? h.replace(/./g, '$&$&') : h, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
+const aHex = (r, g, b) => `#${[r, g, b].map((v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('')}`;
+const mezclar = (c, destino, t) => aHex(...c.map((v, i) => v + (destino[i] - v) * t));          // t = 0 → c, t = 1 → destino
+const luminancia = ([r, g, b]) => (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+export const esColor = (v) => /^#[0-9a-f]{6}$/i.test(String(v));
+
+/** Paleta completa (fondo, brillo, letras, marco…) derivada de UN color: sirve para «el color que yo elija». */
+export function paletaDesdeColor(hex) {
+  const c = aRGB(esColor(hex) ? hex : '#c1121f'), BLANCO = [255, 255, 255], NEGRO = [0, 0, 0];
+  if (luminancia(c) > 0.72) { // color claro: fondo claro y letras oscuras (como «Crema»)
+    const oscuro = mezclar(c, NEGRO, 0.78);
+    return { id: 'color', nombre: 'Mi color', fondo: [mezclar(c, BLANCO, 0.55), mezclar(c, BLANCO, 0.15), aHex(...c), mezclar(c, NEGRO, 0.18)], brillo: 'rgba(255,255,255,.9)', luz: 'rgba(255,255,255,0)',
+      texto: [mezclar(c, NEGRO, 0.55), oscuro, mezclar(c, NEGRO, 0.85)], trazo: oscuro, marco: '#ffffff', pildora: oscuro, pildoraTexto: mezclar(c, BLANCO, 0.9), suave: 'rgba(30,20,20,.75)', vineta: 0.2 };
+  }
+  const [r, g, b] = c;
+  return { id: 'color', nombre: 'Mi color', fondo: [mezclar(c, BLANCO, 0.12), aHex(r, g, b), mezclar(c, NEGRO, 0.45), mezclar(c, NEGRO, 0.88)],
+    brillo: `rgba(${Math.round(r + (255 - r) * 0.45)},${Math.round(g + (255 - g) * 0.45)},${Math.round(b + (255 - b) * 0.45)},.8)`, luz: `rgba(${Math.round(r + (255 - r) * 0.35)},${Math.round(g + (255 - g) * 0.35)},${Math.round(b + (255 - b) * 0.35)},.5)`,
+    texto: ['#fff', '#fff', mezclar(c, BLANCO, 0.78)], trazo: '#fff', marco: '#f6f2ea', pildora: '#050505', pildoraTexto: '#fff', suave: 'rgba(255,255,255,.8)', vineta: 0.55 };
+}
+/** id de una paleta de la lista, o un color «#rrggbb» elegido a mano. */
+export const paletaPorId = (id) => (esColor(id) ? paletaDesdeColor(id) : PALETAS.find((p) => p.id === id) || PALETAS[0]);
 
 let fuentes = null;
 /** Carga una sola vez las letras de la tienda (están en /assets/fonts; el panel solo permite fuentes propias). */
@@ -76,11 +98,16 @@ function cargarFoto(url) {
   });
 }
 
-/** Texto con degradado blanco→rosado, resplandor suave y moteado de grano (como la tinta de un cartel). */
+/**
+ * Texto con degradado, resplandor suave y moteado de grano (como la tinta de un cartel).
+ * Se dibuja en una capa del tamaño del texto (no de toda la lámina): así crear decenas de imágenes seguidas es rápido y gasta poca memoria.
+ */
 function letras(ctx, linea, x, y, tam, familia, pal, { relleno = true } = {}) {
-  const w = ctx.canvas.width / ESCALA, h = ctx.canvas.height / ESCALA;
+  const dy = ctx.getTransform().f / ESCALA; // desplazamiento vertical de la composición (historia)
+  ctx.save(); ctx.font = `${tam}px ${familia}`; const ancho = ctx.measureText(linea).width; ctx.restore();
+  const margen = 70, x0 = Math.floor(x - ancho / 2 - margen), y0 = Math.floor(y - tam * 1.05 - margen / 2), w = Math.ceil(ancho + margen * 2), h = Math.ceil(tam * 1.35 + margen);
   const capa = document.createElement('canvas'); capa.width = w * ESCALA; capa.height = h * ESCALA;
-  const c = capa.getContext('2d'); c.scale(ESCALA, ESCALA);
+  const c = capa.getContext('2d'); c.scale(ESCALA, ESCALA); c.translate(-x0, -y0);
   c.font = `${tam}px ${familia}`; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
   const g = c.createLinearGradient(0, y - tam * 0.8, 0, y);
   g.addColorStop(0, pal.texto[0]); g.addColorStop(0.45, pal.texto[1]); g.addColorStop(1, pal.texto[2]);
@@ -90,7 +117,7 @@ function letras(ctx, linea, x, y, tam, familia, pal, { relleno = true } = {}) {
   c.fillStyle = c.createPattern(motas(), 'repeat'); c.setTransform(1, 0, 0, 1, 0, 0); c.fillRect(0, 0, capa.width, capa.height);
   ctx.save();
   ctx.shadowColor = pal.luz; ctx.shadowBlur = 22;
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(capa, 0, 0);
+  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(capa, x0 * ESCALA, (y0 + dy) * ESCALA);
   ctx.restore();
 }
 
@@ -98,21 +125,24 @@ function letras(ctx, linea, x, y, tam, familia, pal, { relleno = true } = {}) {
  * Dibuja la lámina en `canvas`. datos: { fotoUrl, nombre, precio, cotizar, talla }.
  * El canvas queda en 2160×2700; en pantalla se muestra pequeño con CSS.
  */
-export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotizar, talla, paleta }) {
+export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotizar, talla, paleta, formato }) {
   const pal = paletaPorId(paleta);
   await cargarFuentes();
   const foto = await cargarFoto(fotoUrl);
-  canvas.width = ANCHO * ESCALA; canvas.height = ALTO * ESCALA;
+  // Historia: lienzo vertical 9:16 (1080×1920). La composición de siempre queda centrada, dentro de las zonas que no tapa la app (arriba 250 px, abajo 320 px).
+  const H = formato === 'historia' ? ALTO_HISTORIA : ALTO, dy = formato === 'historia' ? 250 : 0;
+  canvas.width = ANCHO * ESCALA; canvas.height = H * ESCALA;
   const ctx = canvas.getContext('2d');
   ctx.setTransform(ESCALA, 0, 0, ESCALA, 0, 0);
 
   // fondo: degradado rojo con brillo arriba a la izquierda y fondo oscuro abajo a la derecha
-  let g = ctx.createLinearGradient(ANCHO * 0.2, 0, ANCHO * 0.8, ALTO);
+  let g = ctx.createLinearGradient(ANCHO * 0.2, 0, ANCHO * 0.8, H);
   g.addColorStop(0, pal.fondo[0]); g.addColorStop(0.4, pal.fondo[1]); g.addColorStop(0.75, pal.fondo[2]); g.addColorStop(1, pal.fondo[3]);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, ANCHO, ALTO);
-  g = ctx.createRadialGradient(ANCHO * 0.2, ALTO * 0.08, 0, ANCHO * 0.2, ALTO * 0.08, ANCHO * 0.9);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, ANCHO, H);
+  g = ctx.createRadialGradient(ANCHO * 0.2, H * 0.08, 0, ANCHO * 0.2, H * 0.08, ANCHO * 0.9);
   g.addColorStop(0, pal.brillo); g.addColorStop(1, pal.brillo.replace(/[\d.]+\)$/, '0)'));
-  ctx.fillStyle = g; ctx.fillRect(0, 0, ANCHO, ALTO);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, ANCHO, H);
+  ctx.setTransform(ESCALA, 0, 0, ESCALA, 0, dy * ESCALA); // desde aquí todo se dibuja con el desplazamiento de la historia
 
   // etiqueta superior
   ctx.fillStyle = pal.suave; ctx.font = '700 26px AlexaGrotesk, sans-serif'; ctx.textAlign = 'center';
@@ -160,9 +190,10 @@ export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotiza
   ctx.fillText('TIENDAS ALEXA · @TIENDASALEXA_', ANCHO / 2 + 4, ALTO - 44); ctx.letterSpacing = '0px';
 
   // viñeta y grano de película sobre todo
-  g = ctx.createRadialGradient(ANCHO / 2, ALTO / 2, ANCHO * 0.45, ANCHO / 2, ALTO / 2, ANCHO * 0.95);
+  ctx.setTransform(ESCALA, 0, 0, ESCALA, 0, 0);
+  g = ctx.createRadialGradient(ANCHO / 2, H / 2, ANCHO * 0.45, ANCHO / 2, H / 2, ANCHO * (formato === 'historia' ? 1.15 : 0.95));
   g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${pal.vineta})`);
-  ctx.fillStyle = g; ctx.fillRect(0, 0, ANCHO, ALTO);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, ANCHO, H);
   ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = 0.4;
   ctx.fillStyle = ctx.createPattern(grano(), 'repeat'); ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.restore();
@@ -171,4 +202,11 @@ export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotiza
 export function nombreArchivo(nombre, id) {
   const base = String(nombre || id || 'producto').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
   return `alexa-${base || 'producto'}-instagram.png`;
+}
+
+/** Crea la imagen y la devuelve como archivo (JPEG por defecto: es lo único que acepta Instagram). */
+export async function crearImagen(datos, { tipo = 'image/jpeg', calidad = 0.92 } = {}) {
+  const lienzo = document.createElement('canvas');
+  await dibujarInstagram(lienzo, datos);
+  return new Promise((res) => lienzo.toBlob(res, tipo, calidad));
 }
