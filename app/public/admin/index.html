@@ -134,13 +134,18 @@
       <nav class="pestanas" id="pestanas" aria-label="Secciones">
         <button type="button" data-ir="productos" aria-current="page">Productos</button>
         <button type="button" data-ir="inventario" data-requiere="catalogo">Inventario</button>
-        <button type="button" data-ir="categorias">Categorías</button>
-        <button type="button" data-ir="lotes" data-requiere="finanzas">Lotes</button>
         <button type="button" data-ir="finanzas" data-requiere="finanzas">Finanzas</button>
+        <button type="button" data-ir="lotes" data-requiere="finanzas">Lotes</button>
         <button type="button" data-ir="redes" data-requiere="catalogo">Redes</button>
-        <button type="button" data-ir="regalos">Regalos</button>
-        <button type="button" data-ir="estadisticas" data-requiere="estadisticas">Estadísticas</button>
-        <button type="button" data-ir="ajustes">Ajustes</button>
+        <div class="mas" id="mas">
+          <button type="button" id="mas-boton" aria-expanded="false" aria-controls="mas-menu">Más</button>
+          <div class="mas-menu" id="mas-menu" hidden>
+            <button type="button" data-ir="categorias">Categorías</button>
+            <button type="button" data-ir="regalos">Regalos</button>
+            <button type="button" data-ir="estadisticas" data-requiere="estadisticas">Estadísticas</button>
+            <button type="button" data-ir="ajustes">Ajustes</button>
+          </div>
+        </div>
       </nav>
       <div class="barra-acciones">
         <span class="quien" id="quien"></span>
@@ -188,7 +193,7 @@
         <div class="cabecera">
           <div><h1 id="t-inventario">Inventario</h1><p id="inv-resumen" class="suave"></p></div>
         </div>
-        <p class="nota">Escribe cuántas unidades tienes de cada producto. Al llegar a 0 la tienda lo marca «No disponible» sola, y cuando quedan 5 o menos avisa «Últimas unidades». Sin cantidad, el producto sigue con el simple «Hay / Agotado».</p>
+        <p class="nota">Escribe cuántas unidades tienes de cada producto. Al llegar a 0 la tienda lo marca «No disponible» sola.</p>
         <div class="herramientas">
           <label class="campo buscar">Buscar<input type="search" id="inv-buscar" placeholder="Nombre o referencia…" autocomplete="off"></label>
           <label class="campo">Categoría<select id="inv-categoria"></select></label>
@@ -201,7 +206,7 @@
       <!-- Lotes de inversión (solo administradora) -->
       <section id="sec-lotes" aria-labelledby="t-lotes" hidden>
         <div class="cabecera">
-          <div><h1 id="t-lotes">Lotes</h1><p class="suave">Una compra grande (por ejemplo L 45,000 por todo el catálogo) cuyo costo por producto no conoces. La inversión se reparte según el precio de etiqueta de cada producto y tú pones el precio que quieras.</p></div>
+          <div><h1 id="t-lotes">Lotes</h1><p class="suave">Una compra grande cuyo costo por producto no conoces (por ejemplo L 45,000 por todo el catálogo). La inversión se reparte según el precio de etiqueta.</p></div>
           <button type="button" class="boton" id="nuevo-lote"><svg class="ico"><use href="#i-mas"/></svg>Nuevo lote</button>
         </div>
         <div id="lotes-contenido"><p class="suave">Cargando…</p></div>
@@ -345,28 +350,33 @@
         </div>
         <label class="campo">Nombre<input name="nombre" maxlength="120" required></label>
         <label class="campo">Categoría<select name="categoria_id" required></select></label>
-        <div class="rejilla">
+        <div class="rejilla dos">
           <label class="campo">Precio (L)<input name="precio" inputmode="decimal" placeholder="0.00" autocomplete="off"></label>
-          <label class="campo">Referencia<input name="referencia" maxlength="80" placeholder="Se crea sola, ej. HP-22" autocomplete="off"></label>
+          <label class="campo">Cantidad <small>(opcional)</small><input name="cantidad" inputmode="numeric" placeholder="Vacío = sin control" autocomplete="off"></label>
         </div>
-        <label class="campo">Talla <small>(opcional: sale en la imagen para redes)</small><input name="talla" maxlength="20" placeholder="Ej. M, 28 o 9.5" autocomplete="off"></label>
-        <label class="campo">Cantidad en existencia <small>(opcional)</small><input name="cantidad" inputmode="numeric" placeholder="Vacío = sin control de cantidad" autocomplete="off"></label>
-        <div class="rejilla">
-          <label class="campo">Tipo de stock<select name="tipo_stock"><option value="aparte">Stock aparte (dropshipping)</option><option value="local1">Stock local 1 (lo tengo, sin inversión)</option><option value="local2">Stock local 2 (con inversión)</option><option value="sin">Sin stock</option></select></label>
-          <label class="campo">Costo (L) <small>(lo que te cuesta)</small><input name="costo" inputmode="decimal" placeholder="0.00" autocomplete="off"></label>
-        </div>
-        <div class="rejilla" id="bloque-lote" data-requiere="finanzas" hidden>
-          <label class="campo">Lote <select name="lote_id"></select></label>
-          <label class="campo">Precio de etiqueta (L) <small>(opcional: si no lo pones, se usa tu precio)</small><input name="etiqueta" inputmode="decimal" placeholder="Ej. 800" autocomplete="off"></label>
-        </div>
-        <p class="suave" id="sugerido-info" hidden><span id="sugerido-texto"></span> <button type="button" class="boton suave chico" id="usar-sugerido">Usar ese precio</button></p>
-        <p class="suave" id="margen-info"></p>
-        <label class="casilla"><input type="checkbox" name="cotizar"><span>Por cotizar <small>(no tiene precio fijo; se confirma por WhatsApp)</small></span></label>
-        <label class="campo">Descripción<textarea name="descripcion" rows="4" maxlength="1200"></textarea></label>
-        <div class="interruptores">
-          <label class="casilla"><input type="checkbox" name="visible"><span>Visible en la tienda</span></label>
-          <label class="casilla"><input type="checkbox" name="disponible"><span>Hay existencias <small>(si no, se muestra «No disponible»)</small></span></label>
-        </div>
+        <label class="campo">Descripción <small>(escribe aquí la talla, por ejemplo «Talla 9»: se copia sola al campo Talla)</small><textarea name="descripcion" rows="3" maxlength="1200"></textarea></label>
+        <label class="campo">Talla <small>(se llena sola desde la descripción; sale en las imágenes y en la tienda)</small><input name="talla" maxlength="20" placeholder="Ej. M, 28 o 9.5" autocomplete="off"></label>
+        <label class="campo">Tipo de stock<select name="tipo_stock"><option value="aparte">Stock aparte (dropshipping)</option><option value="local1">Stock local 1 (lo tengo, sin inversión)</option><option value="local2">Stock local 2 (con inversión)</option><option value="sin">Sin stock</option></select></label>
+        <details class="mas-opciones" id="mas-opciones">
+          <summary>Más opciones <small>(costo, lote, referencia, visibilidad…)</small></summary>
+          <div class="mas-opciones-cuerpo">
+            <div class="rejilla dos">
+              <label class="campo">Referencia<input name="referencia" maxlength="80" placeholder="Se crea sola, ej. HP-22" autocomplete="off"></label>
+              <label class="campo">Costo (L) <small>(lo que te cuesta)</small><input name="costo" inputmode="decimal" placeholder="0.00" autocomplete="off"></label>
+            </div>
+            <div class="rejilla" id="bloque-lote" data-requiere="finanzas" hidden>
+              <label class="campo">Lote <select name="lote_id"></select></label>
+              <label class="campo">Precio de etiqueta (L) <small>(opcional: si no lo pones, se usa tu precio)</small><input name="etiqueta" inputmode="decimal" placeholder="Ej. 800" autocomplete="off"></label>
+            </div>
+            <p class="suave" id="sugerido-info" hidden><span id="sugerido-texto"></span> <button type="button" class="boton suave chico" id="usar-sugerido">Usar ese precio</button></p>
+            <p class="suave" id="margen-info"></p>
+            <label class="casilla"><input type="checkbox" name="cotizar"><span>Por cotizar <small>(no tiene precio fijo; se confirma por WhatsApp)</small></span></label>
+            <div class="interruptores">
+              <label class="casilla"><input type="checkbox" name="visible"><span>Visible en la tienda</span></label>
+              <label class="casilla"><input type="checkbox" name="disponible"><span>Hay existencias <small>(si no, se muestra «No disponible»)</small></span></label>
+            </div>
+          </div>
+        </details>
         <p class="error" id="error-producto" role="alert" hidden></p>
       </div>
       <div class="dlg-pie">

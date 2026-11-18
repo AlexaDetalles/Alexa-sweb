@@ -9,7 +9,8 @@ export const RE_ID_PRODUCTO = /^[A-Za-z0-9._-]{1,80}$/;
 const RE_ID_CATEGORIA = /^[A-Z0-9]{1,14}$/;
 
 function texto(v, max, campo, min = 0) {
-  const t = String(v ?? '').trim();
+  // Sin caracteres de control (NUL, etc.): no sirven para nada en un texto y rompen cosas por dentro. Los saltos de línea y tabuladores se conservan.
+  const t = String(v ?? '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim();
   if (t.length < min) falla(400, `${campo}: es obligatorio.`);
   if (t.length > max) falla(400, `${campo}: máximo ${max} caracteres.`);
   return t;
@@ -20,9 +21,11 @@ function numero(v, campo, { min = 0, max = 1000000, nulo = false } = {}) {
   if (!Number.isFinite(n) || n < min || n > max) falla(400, `${campo}: escribe un número válido.`);
   return Math.round(n * 100) / 100;
 }
-const entero = (v, campo, max = 100000) => {
+const entero = (v, campo, max = 100000, min = 0) => {
+  // «false», «[]» o un texto en blanco valen 0 para JavaScript: aquí no cuentan como número.
+  if (typeof v === 'boolean' || Array.isArray(v) || (typeof v === 'string' && v.trim() === '')) falla(400, `${campo}: número entero no válido.`);
   const n = Number(v);
-  if (!Number.isInteger(n) || n < 0 || n > max) falla(400, `${campo}: número entero no válido.`);
+  if (!Number.isInteger(n) || n < min || n > max) falla(400, `${campo}: número entero no válido.`);
   return n;
 };
 const booleano = (v) => (v === true || v === 1 || v === '1' || v === 'true' ? 1 : 0);
@@ -54,7 +57,7 @@ export function producto(d, crear = false) {
   if ('imagen_url' in d) r.imagen_url = fotoONula(d.imagen_url);
   if ('disponible' in d) r.disponible = booleano(d.disponible);
   if ('visible' in d) r.visible = booleano(d.visible);
-  if ('lote_id' in d) r.lote_id = d.lote_id === null || d.lote_id === '' ? null : entero(d.lote_id, 'Lote', 1000000000);
+  if ('lote_id' in d) r.lote_id = d.lote_id === null || d.lote_id === '' ? null : entero(d.lote_id, 'Lote', 1000000000, 1);
   if ('referencia' in d) r.referencia = numero(d.referencia, 'Precio de referencia', { nulo: true });
   if ('lote_cantidad' in d) {
     r.lote_cantidad = d.lote_cantidad === null || d.lote_cantidad === '' ? null : entero(d.lote_cantidad, 'Unidades del lote');

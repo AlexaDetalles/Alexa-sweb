@@ -137,3 +137,13 @@ Si escribes la talla en la descripción («Talla 11 y 12», «tallas 7, 7.5 y 8�
 - **Comprar por talla:** si el producto tiene varias tallas, la ficha y la ventana del producto muestran las tallas para elegir una o varias; cada talla elegida es una línea de la bolsa y el mensaje de WhatsApp la nombra («1 × Nike Giannis [CHM-08] · talla 11»). En las tarjetas del catálogo el botón dice «Elegir talla». Con una sola talla no hay nada que elegir: se anota sola.
 - **Vender una talla:** al registrar una venta de un producto con varias tallas, el panel pide cuál se vendió; esa talla sale de la lista (la tienda deja de ofrecerla) y queda anotada en el movimiento. Si anulas la venta, vuelve a escribir la talla en la ficha del producto.
 - El código común está en `public/assets/tallas.mjs` (tienda, panel y Worker) y `public/assets/core.mjs` (bolsa).
+
+## Panel más simple
+
+- **Pestañas:** las 5 de todos los días (Productos, Inventario, Finanzas, Lotes, Redes) y un menú **Más** con Categorías, Regalos, Estadísticas y Ajustes.
+- **Producto nuevo:** arriba solo lo básico (foto, nombre, categoría, precio, cantidad, descripción, talla, tipo de stock). Costo, lote, referencia, «por cotizar» y visibilidad están en **Más opciones**, que se abre sola cuando el producto ya usa algo de ahí (o si eliges «Stock local 2»).
+- **Lista de productos:** Categoría y Talla lado a lado; textos de ayuda más cortos; en Redes lo técnico (claves de Meta) queda plegado.
+
+## Pruebas de abuso (qué se probó)
+
+La API aguanta 493 combinaciones de datos absurdos por campo, cuerpos que no son JSON, peticiones sin sesión o desde otro origen, ids raros y 12 ventas simultáneas de la última unidad (pasa solo una; nunca queda negativa). La tienda aguanta textos con código en nombre/descripción/talla (se muestran tal cual, no se ejecutan), una bolsa guardada corrupta o hostil (10 variantes), enlaces con parámetros manipulados y clics seguidos (no pasa del límite de existencias). Los casos que fallaron al probar (nombres con caracteres de control y un lote «vacío» o 0) ahora dan un mensaje claro y tienen prueba en `pruebas/api.test.mjs`.

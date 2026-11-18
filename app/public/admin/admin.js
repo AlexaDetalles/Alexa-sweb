@@ -174,9 +174,15 @@ function ir(vista) {
   history.replaceState(null, '', `#${vista}`);
   for (const s of VISTAS) $(`#sec-${s}`).hidden = s !== vista;
   $$('#pestanas button').forEach((b) => (b.dataset.ir === vista ? b.setAttribute('aria-current', 'page') : b.removeAttribute('aria-current')));
+  if (MAS.includes(vista)) $('#mas-boton').setAttribute('aria-current', 'page');
   pintar();
 }
-$('#pestanas').addEventListener('click', (ev) => { const b = ev.target.closest('[data-ir]'); if (b) ir(b.dataset.ir); });
+const MAS = ['categorias', 'regalos', 'estadisticas', 'ajustes'];
+const cerrarMas = () => { $('#mas-menu').hidden = true; $('#mas-boton').setAttribute('aria-expanded', 'false'); };
+$('#mas-boton').addEventListener('click', () => { const abrir = $('#mas-menu').hidden; $('#mas-menu').hidden = !abrir; $('#mas-boton').setAttribute('aria-expanded', String(abrir)); });
+document.addEventListener('click', (ev) => { if (!ev.target.closest('#mas')) cerrarMas(); });
+document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') cerrarMas(); });
+$('#pestanas').addEventListener('click', (ev) => { const b = ev.target.closest('[data-ir]'); if (b) { ir(b.dataset.ir); cerrarMas(); } });
 function pintar() {
   if (E.vista === 'productos') pintarProductos();
   else if (E.vista === 'inventario') pintarInventario();
@@ -706,7 +712,7 @@ async function cargarRedes() {
       <div class="fin-tarjeta ${c.instagram ? 'pos' : 'neg'}"><span>Instagram</span><b>${c.instagram ? 'Conectado' : 'Sin conectar'}</b></div>
       <div class="fin-tarjeta ${c.facebook ? 'pos' : 'neg'}"><span>Facebook</span><b>${c.facebook ? 'Conectado' : 'Sin conectar'}</b></div>
     </div>
-    ${conectado ? '' : `<p class="nota">Para publicar hay que conectar Meta una sola vez. Se guardan 3 claves secretas en el Worker: <code>META_TOKEN</code>, <code>META_PAGE_ID</code> y <code>META_IG_ID</code> (con <code>npx wrangler secret put NOMBRE</code>). La guía paso a paso está en <code>app/LEEME.md</code>, sección «Publicar en Instagram y Facebook».</p>`}
+    ${conectado ? '' : `<p class="nota">Falta conectar tu cuenta de Meta (se hace una sola vez). Mientras tanto puedes descargar las imágenes y subirlas tú.</p><details class="detalle-tecnico"><summary>Ver los pasos técnicos</summary><p class="suave">Se guardan 3 claves secretas en el Worker: <code>META_TOKEN</code>, <code>META_PAGE_ID</code> y <code>META_IG_ID</code> (con <code>npx wrangler secret put NOMBRE</code>). La guía está en <code>app/LEEME.md</code>, sección «Publicar en Instagram y Facebook».</p></details>`}
     <h2 class="fin-t">Últimas publicaciones</h2>
     <ul class="lista">${r.publicaciones.map((p) => {
       const [txt, cls] = ESTADOS_PUB[p.estado] ?? [p.estado, ''];
@@ -749,6 +755,8 @@ function abrirProducto(p, categoria = E.cat) {
   prepararLote(p);
   pintarMargen();
   f.precio.disabled = f.cotizar.checked;
+  // «Más opciones» queda cerrado salvo que el producto ya use algo de ahí (costo, lote, referencia propia, oculto, agotado, por cotizar).
+  $('#mas-opciones').open = (!!p && ((p.costo !== null && p.costo !== undefined) || p.cotizar || !p.visible || !p.disponible || !!p.lote_id || (p.referencia !== null && p.referencia !== undefined))) || f.tipo_stock.value === 'local2';
   $('#producto-borrar').hidden = !p; $('#producto-duplicar').hidden = !p; $('#producto-otro').hidden = !!p;
   $('#foto-estado').textContent = '';
   mostrarError('#error-producto');
@@ -786,6 +794,7 @@ function actualizarLote() {
 }
 $('#usar-sugerido').addEventListener('click', () => { fp().precio.value = E.sugerido; fp().cotizar.checked = false; fp().precio.disabled = false; pintarMargen(); });
 ['lote_id', 'tipo_stock'].forEach((n) => fp()[n].addEventListener('change', actualizarLote));
+fp().tipo_stock.addEventListener('change', (ev) => { if (ev.target.value === 'local2') $('#mas-opciones').open = true; }); // el lote y el costo viven en «Más opciones»
 ['etiqueta', 'cantidad', 'precio'].forEach((n) => fp()[n].addEventListener('input', actualizarLote));
 function pintarMargen() {
   const f = fp(), precio = Number(f.precio.value.replace(/,/g, '')), delLote = f.costo.disabled && E.estCosto != null;
@@ -920,7 +929,7 @@ fp().addEventListener('submit', async (ev) => {
   const f = fp(), b = $('#producto-guardar');
   const cuerpo = { nombre: f.nombre.value, categoria_id: f.categoria_id.value, precio: f.precio.value, cotizar: f.cotizar.checked, descripcion: f.descripcion.value, visible: f.visible.checked, disponible: f.disponible.checked, imagen_url: E.foto, cantidad: f.cantidad.value.trim(), tipo_stock: f.tipo_stock.value, costo: f.costo.value.trim(), talla: f.talla.value.trim() };
   if (PERMISOS[E.yo?.rol]?.includes('finanzas')) { cuerpo.lote_id = f.tipo_stock.value === 'local2' && f.lote_id.value ? Number(f.lote_id.value) : null; cuerpo.referencia = f.etiqueta.value.trim(); if (cuerpo.lote_id || cuerpo.tipo_stock === 'local1') delete cuerpo.costo; }
-  if (cuerpo.costo !== undefined && cuerpo.costo !== '' && !(Number(cuerpo.costo.replace(/,/g, '')) >= 0)) return mostrarError('#error-producto', 'El costo debe ser un número (o déjalo vacío).');
+  if (cuerpo.costo !== undefined && cuerpo.costo !== '' && !(Number(cuerpo.costo.replace(/,/g, '')) >= 0)) { $('#mas-opciones').open = true; return mostrarError('#error-producto', 'El costo debe ser un número (o déjalo vacío).'); }
   if (cuerpo.cantidad !== '' && !/^\d{1,6}$/.test(cuerpo.cantidad)) return mostrarError('#error-producto', 'La cantidad debe ser un número entero (o déjala vacía).');
   if (!cuerpo.nombre.trim()) return mostrarError('#error-producto', 'Escribe el nombre.');
   if (!cuerpo.categoria_id) return mostrarError('#error-producto', 'Elige una categoría.');
@@ -935,9 +944,10 @@ fp().addEventListener('submit', async (ev) => {
     if (otro) { // carga rápida: se abre uno nuevo con la misma categoría, tipo de stock y lote
       abrirProducto(null, conservar.cat);
       fp().tipo_stock.value = conservar.tipo; if (conservar.lote) fp().lote_id.value = conservar.lote; actualizarLote();
+      $('#mas-opciones').open = conservar.tipo === 'local2';
       fp().nombre.focus();
     }
-  } catch (e) { mostrarError('#error-producto', e.message); }
+  } catch (e) { if (/costo|lote|etiqueta|referencia/i.test(e.message)) $('#mas-opciones').open = true; mostrarError('#error-producto', e.message); }
   E.agregarOtro = false;
   b.disabled = false;
 });

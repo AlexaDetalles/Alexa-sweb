@@ -781,6 +781,35 @@ test('tallas en la tienda: el catálogo manda las tallas y vender una la saca de
   assert.match(hoja, /Talla 12 · a Ana/, 'la nota del movimiento dice qué talla fue');
 });
 
+test('datos absurdos dan un mensaje claro (400), nunca un error interno', async () => {
+  const base = { nombre: 'Absurdo', categoria_id: 'HP', precio: 100 };
+  const intentos = [
+    { nombre: '\u0000' },            // solo un carácter de control: queda vacío
+    { nombre: '\u0000\u0001\u0002' },
+    { lote_id: ' ' }, { lote_id: '0' }, { lote_id: 0 }, { lote_id: [] }, { lote_id: false },
+    { cantidad: false }, { cantidad: [] }, { cantidad: ' ' },
+    { orden: false },
+  ];
+  for (const extra of intentos) {
+    const r = await llamar('POST', '/api/admin/productos', { ...base, ...extra });
+    assert.ok(r.estado >= 400 && r.estado < 500, `${JSON.stringify(extra)} → ${r.estado}`);
+  }
+  // los caracteres de control se quitan pero el texto normal (con saltos de línea) se conserva
+  const ok = await llamar('POST', '/api/admin/productos', { ...base, nombre: 'Con\u0000 control', descripcion: 'Línea 1\nLínea 2' });
+  assert.equal(ok.estado, 201);
+  const p = (await admin()).productos.find((x) => x.id === ok.datos.id);
+  assert.equal(p.nombre, 'Con control');
+  assert.equal(p.descripcion, 'Línea 1\nLínea 2');
+});
+
+test('ventas simultáneas de la última unidad: solo una pasa y no queda negativa', async () => {
+  const a = await llamar('POST', '/api/admin/productos', { nombre: 'Última', categoria_id: 'HP', precio: 100, tipo_stock: 'local1', cantidad: 1 });
+  const ventas = await Promise.all(Array.from({ length: 8 }, () => llamar('POST', '/api/admin/movimientos', { tipo: 'venta', producto_id: a.datos.id, cantidad: 1, precio: 100 })));
+  assert.equal(ventas.filter((v) => v.estado === 201).length, 1);
+  assert.ok(ventas.every((v) => v.estado < 500), 'ninguna da error interno');
+  assert.equal((await admin()).productos.find((p) => p.id === a.datos.id).cantidad, 0);
+});
+
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
   const miCookie = cookie;
   const nueva = 'otra-clave-nueva-456';
