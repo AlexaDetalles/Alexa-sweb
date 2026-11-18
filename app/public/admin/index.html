@@ -388,7 +388,7 @@
       <canvas id="ig-lienzo" class="ig-lienzo" aria-label="Vista previa de la imagen para Instagram"></canvas>
       <label class="campo">Formato<select id="ig-formato"><option value="post">Publicación (4:5)</option><option value="historia">Historia (9:16)</option></select></label>
       <div class="campo"><span>Paleta de colores</span><div class="ig-paletas" id="ig-paletas" role="radiogroup" aria-label="Paleta de colores"></div><label class="ig-color">Otro color: <input type="color" id="ig-color" value="#c1121f" aria-label="Elegir otro color"></label></div>
-      <label class="campo">Talla <small>(opcional)</small><input id="ig-talla" maxlength="14" placeholder="Ej. M, 28 o 9.5" autocomplete="off"></label>
+      <label class="campo">Talla <small>(opcional)</small><input id="ig-talla" maxlength="20" placeholder="Ej. M, 28 o 9.5" autocomplete="off"></label>
       <p class="suave">Usa la foto, el nombre y el precio que tienes en el producto (aunque aún no lo hayas guardado). Sale lista para publicar: 4:5, 2160×2700.</p>
       <fieldset class="ig-publicar">
         <legend>Publicar en redes</legend>
@@ -502,6 +502,7 @@
         <p class="suave">Crea la imagen de cada producto con la misma paleta, lista para publicar, y la descarga toda junta en un archivo .zip.</p>
         <label class="campo">Qué productos<select id="ms-tipo"><option value="local2">Stock local 2 (con inversión)</option><option value="local1">Stock local 1 (sin inversión)</option><option value="aparte">Stock aparte</option><option value="todos">Todos</option></select></label>
         <p class="suave" id="ms-cuenta"></p>
+        <p class="suave" id="ms-tallas" hidden><span id="ms-tallas-texto"></span> <button type="button" class="boton suave" id="ms-leer-tallas">Leer tallas de las descripciones</button></p>
         <div class="campo"><span>Paleta de colores (la misma para todas)</span><div class="ig-paletas" id="ms-paletas" role="radiogroup" aria-label="Paleta de colores"></div><label class="ig-color">Otro color: <input type="color" id="ms-color" value="#c1121f" aria-label="Elegir otro color"></label></div>
         <div class="interruptores">
           <label class="casilla"><input type="checkbox" id="ms-post" checked><span>Publicación 4:5 <small>(2160×2700)</small></span></label>

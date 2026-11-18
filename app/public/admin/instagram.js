@@ -171,7 +171,7 @@ export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotiza
   // nombre (hasta 2 líneas), precio y talla: el bloque se centra entre la foto y el pie
   const medir = (t, tam) => { ctx.font = `${tam}px AlexaAnton, Impact, sans-serif`; return ctx.measureText(t).width; };
   const { lineas, tam } = repartirNombre(nombre, medir, 920, 104);
-  const precioTxt = textoPrecio({ precio, cotizar }), tallaTxt = String(talla || '').trim().toUpperCase().slice(0, 14);
+  const precioTxt = textoPrecio({ precio, cotizar }), tallaTxt = String(talla || '').trim().toUpperCase().slice(0, 20);
   const tamPrecio = precioTxt.length > 8 ? 76 : 108, altNombre = lineas.length * tam * 0.98;
   const alto = altNombre + (precioTxt ? 34 + tamPrecio * 0.82 : 0) + (tallaTxt ? 34 + 64 : 0);
   const zonaTop = 130 + ch + 20, zonaBase = ALTO - 90;

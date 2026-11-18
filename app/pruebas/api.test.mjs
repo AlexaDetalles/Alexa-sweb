@@ -732,6 +732,33 @@ test('stock local 2 privado: no sale en la tienda, ni en la ficha, ni en el site
   for (const id of [privado, publico]) { await llamar('DELETE', `/api/admin/productos/${id}`); await llamar('DELETE', `/api/admin/productos/${id}?definitivo=1`); }
 });
 
+test('tallas: pasan solas de la descripción al campo Talla y el botón llena las que faltan', async () => {
+  // al crear: la talla escrita en la descripción se copia al campo Talla
+  const a = await llamar('POST', '/api/admin/productos', { nombre: 'Tenis de prueba', categoria_id: 'HP', precio: 1500, descripcion: 'Tenis de Basquetbol Talla 11 y 12' });
+  assert.equal(a.estado, 201);
+  const fila = async (id) => (await admin()).productos.find((p) => p.id === id);
+  assert.equal((await fila(a.datos.id)).talla, '11 · 12');
+  // una talla escrita a mano no se pisa
+  const b = await llamar('POST', '/api/admin/productos', { nombre: 'Con talla propia', categoria_id: 'HP', precio: 10, descripcion: 'Talla 8', talla: 'M' });
+  assert.equal((await fila(b.datos.id)).talla, 'M');
+  // al editar la descripción de un producto sin talla, también se llena
+  const c = await llamar('POST', '/api/admin/productos', { nombre: 'Sin talla aún', categoria_id: 'HP', precio: 10, descripcion: 'Bonito' });
+  assert.equal((await fila(c.datos.id)).talla, '');
+  assert.equal((await llamar('PUT', `/api/admin/productos/${c.datos.id}`, { descripcion: 'Tallas 7, 7.5 y 8' })).estado, 200);
+  assert.equal((await fila(c.datos.id)).talla, '7 · 7.5 · 8');
+  // botón: llena las vacías (preview con aplicar:false no toca nada) y avisa las que no pudo leer
+  const d = await llamar('POST', '/api/admin/productos', { nombre: 'Short raro', categoria_id: 'HP', precio: 10, descripcion: 'Talla:28-330' });
+  const e = await llamar('POST', '/api/admin/productos', { nombre: 'Camisa', categoria_id: 'HP', precio: 10, descripcion: 'x' });
+  await llamar('PUT', `/api/admin/productos/${e.datos.id}`, { talla: '' });
+  const vista = await llamar('POST', '/api/admin/tallas', { aplicar: false });
+  assert.equal(vista.estado, 200); assert.equal(vista.datos.aplicado, false);
+  assert.ok(vista.datos.sin_leer.some((x) => x.id === d.datos.id));
+  const hecho = await llamar('POST', '/api/admin/tallas', { aplicar: true });
+  assert.equal(hecho.estado, 200); assert.ok(hecho.datos.sin_leer.some((x) => x.id === d.datos.id));
+  assert.equal((await fila(d.datos.id)).talla, '');
+  assert.equal((await llamar('POST', '/api/admin/tallas', { aplicar: true }, { conSesion: false })).estado, 401);
+});
+
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
   const miCookie = cookie;
   const nueva = 'otra-clave-nueva-456';

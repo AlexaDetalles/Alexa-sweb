@@ -125,3 +125,7 @@ Importante: contraseña de 12+ caracteres; tras 5 intentos fallidos se bloquea 1
 - Las **fotos que ya estaban en la web** se conservan (`/assets/images/…`). Las que apuntaban a Pinterest/placeholders/GitHub Pages no se importaron: súbelas desde el panel (2 productos quedaron sin foto).
 - El **calzado** (CHM/CMM) estaba en el Excel pero la tienda no lo mostraba: se importó **oculto**; actívalo en Categorías cuando quieras.
 - Copia de seguridad automática cada lunes en R2 (`respaldos/`, 12 semanas).
+
+## Tallas desde la descripción
+
+Si escribes la talla en la descripción («Talla 11 y 12», «tallas 7, 7.5 y 8», «Talla S y XXL», «Unitalla»), al guardar el producto se copia sola al campo **Talla** (el que sale en las imágenes para redes, como «TALLA 11 · 12»). Una talla escrita a mano nunca se pisa. Para los productos que ya existen: *Imágenes para redes* → **Leer tallas de las descripciones**. Lo que no se pueda leer con seguridad (por ejemplo «28-330») se avisa y se escribe a mano. El lector está en `worker/tallas.js`, con sus pruebas en `pruebas/tallas.test.mjs`.

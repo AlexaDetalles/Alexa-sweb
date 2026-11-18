@@ -7,6 +7,7 @@ import { crearMovimiento, anularMovimiento, resumen, enlacesHoja, contadorStock 
 import { crearGasto, anularGasto, listarCreditos, resumenCobros, abonar, anularAbono } from './creditos.js';
 import { crearPublicacion, listarPublicaciones, reintentarPublicacion, cancelarPublicacion } from './social.js';
 import { sitio } from './correo.js';
+import { leerTallas } from './tallas.js';
 import { listarLotes, verLote, crearLote, cambiarLote, borrarLote, aplicarSugeridos, recalcularLote } from './lotes.js';
 
 const ABIERTO = { 'Access-Control-Allow-Origin': '*' }; // lectura pública: cualquier página puede mostrar el catálogo
@@ -224,6 +225,7 @@ async function referenciaLibre(env, categoriaId) {
 
 async function crearProducto(env, d) {
   const p = V.producto(d, true);
+  if (!p.talla) { const t = leerTallas(p.descripcion); if (t) p.talla = t; } // la talla que escribiste en la descripción pasa sola al campo Talla
   await revisarCategoria(env, p.categoria_id);
   const id = p.id || await referenciaLibre(env, p.categoria_id);
   const orden = p.orden ?? ((await env.BD.prepare('SELECT coalesce(max(orden), 0) + 10 AS n FROM productos').first()).n);
@@ -247,11 +249,28 @@ async function revisarLote(env, loteId, tipoStock) {
   if (tipoStock !== 'local2') falla(400, 'Los productos de un lote deben ser «Stock local 2» (los que se compraron con inversión).');
 }
 
+/** Llena el campo Talla de todos los productos que lo tienen vacío, leyendo la descripción. Con {aplicar: false} solo muestra qué haría. */
+async function rellenarTallas(env, d) {
+  const { results } = await env.BD.prepare("SELECT id, nombre, descripcion, talla FROM productos WHERE borrado_en IS NULL AND talla = '' ORDER BY nombre").all();
+  const cambios = [], sinLeer = [];
+  for (const r of results) {
+    const talla = leerTallas(r.descripcion);
+    if (talla) cambios.push({ id: r.id, nombre: r.nombre, talla });
+    else if (/talla/i.test(r.descripcion)) sinLeer.push({ id: r.id, nombre: r.nombre, descripcion: r.descripcion });
+  }
+  if (d?.aplicar !== false && cambios.length) {
+    const ahora = fechaSql();
+    await env.BD.batch(cambios.map((c) => env.BD.prepare("UPDATE productos SET talla = ?, actualizado = ? WHERE id = ? AND talla = ''").bind(c.talla, ahora, c.id)));
+  }
+  return json({ aplicado: d?.aplicar !== false, cambios, sin_leer: sinLeer });
+}
+
 async function cambiarProducto(env, id, d) {
   const p = V.producto(d);
   if ('categoria_id' in p) await revisarCategoria(env, p.categoria_id);
-  const antes = await env.BD.prepare('SELECT imagen_url, lote_id, lote_cantidad, cantidad, tipo_stock FROM productos WHERE id = ?').bind(id).first();
+  const antes = await env.BD.prepare('SELECT imagen_url, lote_id, lote_cantidad, cantidad, tipo_stock, descripcion, talla FROM productos WHERE id = ?').bind(id).first();
   if (!antes) falla(404, 'El producto ya no existe.');
+  if (!('talla' in p ? p.talla : antes.talla)) { const t = leerTallas('descripcion' in p ? p.descripcion : antes.descripcion); if (t) p.talla = t; }
   let loteNuevo = 'lote_id' in p ? p.lote_id : antes.lote_id;
   const tipoFinal = p.tipo_stock ?? antes.tipo_stock;
   if (tipoFinal === 'local1') p.costo = 0;
@@ -490,6 +509,7 @@ export async function rutasAdmin(req, env, ruta, d, ctx) {
     if (m === 'DELETE' && id) return cancelarPublicacion(env, id);
   }
   if (recurso === 'orden' && m === 'POST') return ordenar(env, d);
+  if (recurso === 'tallas' && m === 'POST') return rellenarTallas(env, d);
   if (recurso === 'ajustes' && m === 'PUT') { await actualizar(env, 'ajustes', [['id', 1]], V.ajustes(d)); return json({ ok: true }); }
 
   if (recurso === 'productos') {

@@ -417,14 +417,28 @@ function msCuenta() {
   const t = $('#ms-tipo').value, todos = E.prods.filter((p) => t === 'todos' || p.tipo_stock === t), con = todos.filter((p) => p.imagen_url).length, formatos = ($('#ms-post').checked ? 1 : 0) + ($('#ms-historia').checked ? 1 : 0);
   $('#ms-cuenta').textContent = `${con} producto${con === 1 ? '' : 's'} con foto${todos.length - con ? ` (${todos.length - con} sin foto se saltan: súbeles su foto)` : ''} · ${con * formatos} imagen${con * formatos === 1 ? '' : 'es'}.`;
 }
+/** Aviso de productos con foto pero sin talla: la talla sale en la imagen, y casi siempre ya está escrita en la descripción. */
+function msTallas() {
+  const t = $('#ms-tipo').value, sin = E.prods.filter((p) => (t === 'todos' || p.tipo_stock === t) && p.imagen_url && !p.talla).length;
+  $('#ms-tallas').hidden = !sin; $('#ms-tallas-texto').textContent = `${sin} producto${sin === 1 ? '' : 's'} con foto no tiene${sin === 1 ? '' : 'n'} talla (no saldrá en la imagen).`;
+}
+$('#ms-leer-tallas').addEventListener('click', async () => {
+  mostrarError('#error-masivo'); const b = $('#ms-leer-tallas'); b.disabled = true;
+  try {
+    const r = await api('POST', 'admin/tallas', { aplicar: true });
+    await cargar(); msCuenta(); msTallas();
+    const falta = r.sin_leer.length ? ` No pude leer la talla de: ${r.sin_leer.map((x) => x.nombre).join(', ')}. Escríbela a mano en su ficha.` : '';
+    $('#ms-estado').textContent = `Listo: se llenó la talla de ${r.cambios.length} producto${r.cambios.length === 1 ? '' : 's'}.${falta}`;
+  } catch (e) { mostrarError('#error-masivo', e.message); } finally { b.disabled = false; }
+});
 $('#abrir-masivo').addEventListener('click', () => {
   msPaleta = paletaGuardada(); msPintarPaletas(); mostrarError('#error-masivo'); $('#ms-estado').textContent = ''; $('#ms-progreso').hidden = true;
   const ahora = new Date(Date.now() + 3600000); ahora.setMinutes(0, 0, 0); $('#ms-inicio').value = new Date(ahora.getTime() - ahora.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   $('#ms-compartir').hidden = !(navigator.canShare && navigator.canShare({ files: [new File([''], 'a.jpg', { type: 'image/jpeg' })] }));
   api('GET', 'admin/publicaciones').then(({ conexion: c }) => { $('#ms-meta-estado').textContent = c.instagram || c.facebook ? '' : 'Meta todavía no está conectado (pestaña Redes). Mientras tanto puedes descargar el .zip y subirlas a mano.'; $('#ms-programar').disabled = !(c.instagram || c.facebook); $('#ms-red-ig').disabled = !c.instagram; $('#ms-red-fb').disabled = !c.facebook; if (!c.instagram) $('#ms-red-ig').checked = false; if (!c.facebook) $('#ms-red-fb').checked = false; }).catch(() => { $('#ms-programar').disabled = true; });
-  msCuenta(); $('#dlg-masivo').showModal();
+  msCuenta(); msTallas(); $('#dlg-masivo').showModal();
 });
-['#ms-tipo', '#ms-post', '#ms-historia'].forEach((i) => $(i).addEventListener('change', msCuenta));
+['#ms-tipo', '#ms-post', '#ms-historia'].forEach((i) => $(i).addEventListener('change', () => { msCuenta(); msTallas(); }));
 /** Crea todas las imágenes (una por producto y formato) con la paleta elegida. Devuelve [{ p, formato, blob }]. */
 async function msGenerar() {
   const formatos = [$('#ms-post').checked && 'post', $('#ms-historia').checked && 'historia'].filter(Boolean), lista = msProductos();
