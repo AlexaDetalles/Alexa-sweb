@@ -8,6 +8,7 @@ import { crearGasto, anularGasto, listarCreditos, resumenCobros, abonar, anularA
 import { crearPublicacion, listarPublicaciones, reintentarPublicacion, cancelarPublicacion } from './social.js';
 import { sitio } from './correo.js';
 import { leerTallas } from './tallas.js';
+import { partirTallas, quitarTalla } from '../public/assets/tallas.mjs';
 import { listarLotes, verLote, crearLote, cambiarLote, borrarLote, aplicarSugeridos, recalcularLote } from './lotes.js';
 
 const ABIERTO = { 'Access-Control-Allow-Origin': '*' }; // lectura pública: cualquier página puede mostrar el catálogo
@@ -37,7 +38,7 @@ export async function catalogo(env) {
   const [cats, prods, aj] = await env.BD.batch([
     env.BD.prepare(`SELECT c.id, c.nombre, c.padre_id FROM categorias c LEFT JOIN categorias p ON p.id = c.padre_id
       WHERE c.activa = 1 AND (p.id IS NULL OR p.activa = 1) ORDER BY c.orden, c.nombre`),
-    env.BD.prepare(`SELECT p.id, p.nombre, p.categoria_id, p.descripcion, p.precio, p.cotizar, p.imagen_url, p.disponible, p.cantidad, p.tipo_stock
+    env.BD.prepare(`SELECT p.id, p.nombre, p.categoria_id, p.descripcion, p.precio, p.cotizar, p.imagen_url, p.disponible, p.cantidad, p.tipo_stock, p.talla
       FROM productos p JOIN categorias c ON c.id = p.categoria_id LEFT JOIN categorias pa ON pa.id = c.padre_id
       WHERE p.borrado_en IS NULL AND ${SQL_EN_TIENDA} AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1)
       ORDER BY p.orden, p.nombre`),
@@ -48,7 +49,7 @@ export async function catalogo(env) {
     categorias: cats.results,
     productos: prods.results.map((p) => ({
       id: p.id, name: p.nombre, group: p.categoria_id, description: p.descripcion,
-      cents: p.cotizar ? null : dinero(p.precio), quote: !!p.cotizar, available: hayExistencias(p), stock: p.cantidad ?? null,
+      cents: p.cotizar ? null : dinero(p.precio), quote: !!p.cotizar, available: hayExistencias(p), stock: p.cantidad ?? null, sizes: partirTallas(p.talla),
       img: p.imagen_url || '/assets/images/no-photo.svg', thumb: miniatura(p.imagen_url) || '/assets/images/no-photo.svg',
     })),
     asesoras: [

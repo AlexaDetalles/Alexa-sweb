@@ -5,6 +5,7 @@ import { crearZip, nombreSeguro } from '/admin/zip.js';
 import { armarDescripcion, aISO } from '/admin/social.js';
 import { estimarEnLote } from '/admin/lotes.js';
 import { cuotaSugerida, resumenCredito, enlaceRecordatorio } from '/admin/creditos.js';
+import { listaTallas, coincideTalla, partirTallas } from '/assets/tallas.mjs';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -197,7 +198,7 @@ const FILTROS = [['todos', 'Todos', () => true], ['visibles', 'Visibles', (p) =>
 function productosFiltrados() {
   if (E.filtro === 'papelera') return E.papelera;
   const t = fold(E.texto.trim()), f = FILTROS.find((x) => x[0] === E.filtro)?.[2] ?? (() => true);
-  return E.prods.filter((p) => f(p) && (!E.cat || dentroDe(p.categoria_id, E.cat)) && (!t || fold(`${p.nombre} ${p.id}`).includes(t)));
+  return E.prods.filter((p) => f(p) && (!E.cat || dentroDe(p.categoria_id, E.cat)) && coincideTalla(p.talla, E.talla) && (!t || fold(`${p.nombre} ${p.id}`).includes(t)));
 }
 function pintarProductos() {
   const lista = productosFiltrados(), enPapelera = E.filtro === 'papelera';
@@ -205,6 +206,8 @@ function pintarProductos() {
   $('#chips').innerHTML = FILTROS.map(([k, t, f]) => `<button type="button" class="chip" data-filtro="${k}" aria-pressed="${E.filtro === k}">${t}<b>${E.prods.filter(f).length}</b></button>`).join('')
     + `<button type="button" class="chip" data-filtro="papelera" aria-pressed="${enPapelera}">Papelera<b>${E.papelera.length}</b></button>`;
   $('#filtro-categoria').innerHTML = opcionesCat(E.cat, { vacia: 'Todas las categorías' });
+  $('#filtro-talla').innerHTML = '<option value="">Todas las tallas</option>' + listaTallas(E.prods.map((p) => p.talla)).map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
+  $('#filtro-talla').value = E.talla || '';
   $('#nota-papelera').hidden = !enPapelera;
   const ordenable = !enPapelera && !E.texto.trim() && E.filtro === 'todos';
   $('#lista-productos').innerHTML = lista.map((p, i) => {
@@ -217,7 +220,7 @@ function pintarProductos() {
       p.cotizar && '<span class="etiqueta">Por cotizar</span>',
       p.visible && !enPapelera && !catVisible(p.categoria_id) && '<span class="etiqueta aviso">Su categoría está oculta</span>',
     ].filter(Boolean).join('');
-    const meta = `<span>${esc(p.id)}</span><span>${esc(nombreCat(p.categoria_id))}</span><span class="precio">${p.cotizar ? 'Por cotizar' : esc(dinero(p.precio))}</span>${etiquetas}`;
+    const meta = `<span>${esc(p.id)}</span><span>${esc(nombreCat(p.categoria_id))}</span><span class="precio">${p.cotizar ? 'Por cotizar' : esc(dinero(p.precio))}</span>${p.talla ? `<span>Talla ${esc(p.talla)}</span>` : ''}${etiquetas}`;
     const acciones = enPapelera
       ? `<button type="button" class="boton suave chico" data-accion="restaurar" data-id="${esc(p.id)}">Restaurar</button><button type="button" class="boton suave peligro chico" data-accion="eliminar" data-id="${esc(p.id)}">Eliminar para siempre</button>`
       : `<button type="button" class="icono" data-accion="visible" data-id="${esc(p.id)}" aria-pressed="${p.visible}" aria-label="${p.visible ? 'Ocultar de la tienda' : 'Mostrar en la tienda'}: ${esc(p.nombre)}" title="${p.visible ? 'Visible: toca para ocultar' : 'Oculto: toca para mostrar'}">${ico(p.visible ? 'ojo' : 'ojo-no')}</button>
@@ -230,6 +233,7 @@ function pintarProductos() {
 }
 $('#buscar').addEventListener('input', (ev) => { E.texto = ev.target.value; pintarProductos(); });
 $('#filtro-categoria').addEventListener('change', (ev) => { E.cat = ev.target.value; pintarProductos(); });
+$('#filtro-talla').addEventListener('change', (ev) => { E.talla = ev.target.value; pintarProductos(); });
 $('#chips').addEventListener('click', (ev) => { const b = ev.target.closest('[data-filtro]'); if (b) { E.filtro = b.dataset.filtro; pintarProductos(); } });
 $('#nuevo-producto').addEventListener('click', () => abrirProducto(null));
 
@@ -321,6 +325,10 @@ function abrirMov(p, tipo) {
   const tope = tipo === 'venta' && (p.tipo_stock === 'local1' || p.tipo_stock === 'local2') && p.cantidad !== null ? ` · quedan ${p.cantidad}` : '';
   $('#mov-producto').textContent = `${p.nombre} (${p.id}) · ${TIPOS_STOCK[p.tipo_stock]}${tope}`;
   f.cantidad.value = 1;
+  // Producto con varias tallas: se elige cuál se vendió para que salga de la lista (y de la tienda).
+  const tallas = tipo === 'venta' ? partirTallas(p.talla) : [];
+  $('#mov-talla-campo').hidden = tallas.length < 2;
+  f.talla.innerHTML = '<option value="">— elegir —</option>' + tallas.map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
   f.precio.value = (tipo === 'venta' ? p.precio : p.costo) ?? '';
   f.cuotas.value = 2; f.intervalo.value = 15;
   $('#mov-venta-extra').hidden = tipo !== 'venta'; $('#mov-credito').hidden = true;
@@ -359,6 +367,10 @@ fm().addEventListener('submit', async (ev) => {
   if (!/^\d{1,6}$/.test(f.cantidad.value.trim()) || Number(f.cantidad.value) < 1) return mostrarError('#error-mov', 'La cantidad debe ser un número entero de 1 en adelante.');
   if (f.precio.value.trim() === '') return mostrarError('#error-mov', tipo === 'venta' ? 'Escribe a cuánto vendiste cada unidad.' : 'Escribe cuánto te costó cada unidad.');
   const cuerpo = { tipo, producto_id: p.id, cantidad: Number(f.cantidad.value), [tipo === 'venta' ? 'precio' : 'costo']: f.precio.value.trim(), nota: f.nota.value };
+  if (!$('#mov-talla-campo').hidden && Number(f.cantidad.value) === 1) {
+    if (!f.talla.value) return mostrarError('#error-mov', 'Elige la talla que se vendió (así la tienda deja de ofrecerla).');
+    cuerpo.talla = f.talla.value;
+  }
   if (tipo === 'venta' && puedeFinanzas()) {
     const gastos = [];
     if (f.g_bus.value.trim()) gastos.push({ categoria: 'bus', monto: f.g_bus.value.trim() });

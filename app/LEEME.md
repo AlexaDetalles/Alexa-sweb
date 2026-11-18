@@ -129,3 +129,11 @@ Importante: contraseña de 12+ caracteres; tras 5 intentos fallidos se bloquea 1
 ## Tallas desde la descripción
 
 Si escribes la talla en la descripción («Talla 11 y 12», «tallas 7, 7.5 y 8», «Talla S y XXL», «Unitalla»), al guardar el producto se copia sola al campo **Talla** (el que sale en las imágenes para redes, como «TALLA 11 · 12»). Una talla escrita a mano nunca se pisa. Para los productos que ya existen: *Imágenes para redes* → **Leer tallas de las descripciones**. Lo que no se pueda leer con seguridad (por ejemplo «28-330») se avisa y se escribe a mano. El lector está en `worker/tallas.js`, con sus pruebas en `pruebas/tallas.test.mjs`.
+
+## Tallas: filtro y compra por talla
+
+- **Filtro en el panel** (Productos): lista desplegable «Talla». Un par con varias tallas («11 · 12») sale al filtrar por cualquiera de ellas; un rango («28-30») sale con cualquier número dentro. Cada producto muestra sus tallas en su fila.
+- **Filtro en la tienda** (catálogo y colecciones): aparece solo cuando hay productos con talla (por ejemplo cuando publicas el Stock local 2). También se puede compartir un enlace con `?talla=9`.
+- **Comprar por talla:** si el producto tiene varias tallas, la ficha y la ventana del producto muestran las tallas para elegir una o varias; cada talla elegida es una línea de la bolsa y el mensaje de WhatsApp la nombra («1 × Nike Giannis [CHM-08] · talla 11»). En las tarjetas del catálogo el botón dice «Elegir talla». Con una sola talla no hay nada que elegir: se anota sola.
+- **Vender una talla:** al registrar una venta de un producto con varias tallas, el panel pide cuál se vendió; esa talla sale de la lista (la tienda deja de ofrecerla) y queda anotada en el movimiento. Si anulas la venta, vuelve a escribir la talla en la ficha del producto.
+- El código común está en `public/assets/tallas.mjs` (tienda, panel y Worker) y `public/assets/core.mjs` (bolsa).

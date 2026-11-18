@@ -1,6 +1,7 @@
 // Finanzas del negocio: libro de compras y ventas, resumen (inversión, ventas, ganancia) y las hojas CSV que alimentan la hoja de Google.
 import { falla, json, fechaSql, iguales, TIPOS_STOCK, esLocal } from './util.js';
 import { detalleLote } from './lotes.js';
+import { quitarTalla } from '../public/assets/tallas.mjs';
 import { puede } from './auth.js';
 import { validarGasto, validarCredito, registrarCredito, resumenCobros, datosCreditos, CATEGORIAS_GASTO } from './creditos.js';
 
@@ -25,10 +26,10 @@ const dinero = (n) => Math.round((n || 0) * 100) / 100;
 export async function crearMovimiento(env, d, sesion, ctx) {
   const tipo = d.tipo;
   if (!['compra', 'venta'].includes(tipo)) falla(400, 'Elige si es una compra o una venta.');
-  const p = await env.BD.prepare('SELECT id, nombre, categoria_id, precio, cotizar, costo, cantidad, tipo_stock FROM productos WHERE id = ? AND borrado_en IS NULL').bind(String(d.producto_id ?? '')).first();
+  const p = await env.BD.prepare('SELECT id, nombre, categoria_id, precio, cotizar, costo, cantidad, tipo_stock, talla FROM productos WHERE id = ? AND borrado_en IS NULL').bind(String(d.producto_id ?? '')).first();
   if (!p) falla(400, 'Ese producto ya no existe.');
   const n = entero(d.cantidad, 'Cantidad');
-  const nota = String(d.nota ?? '').trim().slice(0, 200);
+  let nota = String(d.nota ?? '').trim().slice(0, 200);
   const sentencias = [];
   let precio = null, costo, contado = null;
   // Gastos de la venta (bus, envío…) y venta a crédito: solo administradora, porque tocan las finanzas.
@@ -55,6 +56,15 @@ export async function crearMovimiento(env, d, sesion, ctx) {
     if (esLocal(p.tipo_stock) && p.cantidad !== null) {
       if (p.cantidad < n) falla(400, p.cantidad === 0 ? 'No quedan unidades de este producto.' : `Solo quedan ${p.cantidad} unidad${p.cantidad === 1 ? '' : 'es'}.`);
       sentencias.push(env.BD.prepare('UPDATE productos SET cantidad = cantidad - ?, actualizado = ? WHERE id = ?').bind(n, fechaSql(), p.id));
+    }
+    // Si el producto tiene varias tallas y dijiste cuál se vendió, esa talla sale de la lista (así la tienda no la sigue ofreciendo).
+    const vendida = String(d.talla ?? '').trim();
+    if (vendida) {
+      const quedan = quitarTalla(p.talla, vendida);
+      if (quedan === null) falla(400, `La talla ${vendida} ya no está en este producto.`);
+      if (n > 1) falla(400, 'Para quitar una talla vende de una en una (o deja la talla en blanco).');
+      sentencias.push(env.BD.prepare('UPDATE productos SET talla = ? WHERE id = ?').bind(quedan, p.id));
+      nota = `Talla ${vendida.toUpperCase()}${nota ? ` · ${nota}` : ''}`.slice(0, 200);
     }
   }
   sentencias.push(env.BD.prepare(`INSERT INTO movimientos (fecha, tipo, producto_id, producto_nombre, tipo_stock, categoria_id, cantidad, precio_unit, costo_unit, nota, usuario)

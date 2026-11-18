@@ -759,6 +759,28 @@ test('tallas: pasan solas de la descripción al campo Talla y el botón llena la
   assert.equal((await llamar('POST', '/api/admin/tallas', { aplicar: true }, { conSesion: false })).estado, 401);
 });
 
+test('tallas en la tienda: el catálogo manda las tallas y vender una la saca de la lista', async () => {
+  const a = await llamar('POST', '/api/admin/productos', { nombre: 'Par de prueba', categoria_id: 'HP', precio: 1500, descripcion: 'Talla 11 y 12', tipo_stock: 'local1', cantidad: 2 });
+  assert.equal(a.estado, 201);
+  const id = a.datos.id;
+  const enTienda = async () => (await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.productos.find((p) => p.id === id);
+  assert.deepEqual((await enTienda()).sizes, ['11', '12']);
+  // vender sin decir talla: se permite (la lista no cambia); con una talla que no existe, no
+  const mala = await llamar('POST', '/api/admin/movimientos', { tipo: 'venta', producto_id: id, cantidad: 1, precio: 1500, talla: '9' });
+  assert.equal(mala.estado, 400);
+  assert.match(mala.datos.error, /talla 9/i);
+  const doble = await llamar('POST', '/api/admin/movimientos', { tipo: 'venta', producto_id: id, cantidad: 2, precio: 1500, talla: '11' });
+  assert.equal(doble.estado, 400);
+  // vender la 12: sale de la lista y queda anotada en el movimiento
+  const ok = await llamar('POST', '/api/admin/movimientos', { tipo: 'venta', producto_id: id, cantidad: 1, precio: 1500, talla: '12', nota: 'a Ana' });
+  assert.equal(ok.estado, 201);
+  const p = await enTienda();
+  assert.deepEqual(p.sizes, ['11']);
+  assert.equal(p.stock, 1);
+  const hoja = await (await fetch(`${URL_BASE}/api/finanzas/csv/movimientos?clave=${FINANZAS_TOKEN}`)).text();
+  assert.match(hoja, /Talla 12 · a Ana/, 'la nota del movimiento dice qué talla fue');
+});
+
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
   const miCookie = cookie;
   const nueva = 'otra-clave-nueva-456';

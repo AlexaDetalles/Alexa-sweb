@@ -175,6 +175,7 @@
         <div class="herramientas">
           <label class="campo buscar">Buscar<input type="search" id="buscar" placeholder="Nombre o referencia…" autocomplete="off"></label>
           <label class="campo">Categoría<select id="filtro-categoria"></select></label>
+          <label class="campo">Talla<select id="filtro-talla"></select></label>
         </div>
         <div class="chips" id="chips" role="group" aria-label="Filtrar"></div>
         <p class="nota" id="nota-papelera" hidden>Lo que borras se queda aquí 30 días. Puedes restaurarlo o eliminarlo para siempre.</p>
@@ -465,6 +466,7 @@
           <label class="campo">Cantidad<input name="cantidad" inputmode="numeric" value="1" autocomplete="off"></label>
           <label class="campo"><span id="mov-precio-t">Precio de venta (L)</span><input name="precio" inputmode="decimal" autocomplete="off"></label>
         </div>
+        <label class="campo" id="mov-talla-campo" hidden>Talla que se vendió <small>(sale de la lista y la tienda deja de ofrecerla)</small><select name="talla"></select></label>
         <label class="campo">Nota <small>(opcional)</small><input name="nota" maxlength="200" autocomplete="off"></label>
         <div id="mov-venta-extra" hidden>
           <label class="campo" data-requiere="finanzas">Forma de pago<select name="pago"><option value="contado">Al contado</option><option value="credito">A crédito (con deuda)</option></select></label>
