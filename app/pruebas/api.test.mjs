@@ -120,8 +120,11 @@ test('productos: crear con referencia automática, validar, ocultar, agotar, cot
   assert.equal(pub.available, true);
 
   await llamar('PUT', `/api/admin/productos/${id}`, { disponible: false });
-  pub = (await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.productos.find((p) => p.id === id);
-  assert.equal(pub.available, false, 'agotado se sigue viendo, marcado como no disponible');
+  assert.ok(!(await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.productos.some((p) => p.id === id), 'lo agotado no se muestra en la tienda');
+  assert.equal((await fetch(`${URL_BASE}/producto/${id}`)).status, 404, 'ni su ficha');
+  assert.ok((await admin()).productos.some((p) => p.id === id), 'pero el panel sí lo ve');
+  await llamar('PUT', `/api/admin/productos/${id}`, { disponible: true });
+  assert.ok((await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.productos.some((p) => p.id === id), 'al volver a «Hay» reaparece');
 
   await llamar('PUT', `/api/admin/productos/${id}`, { visible: false });
   assert.ok(!(await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.productos.some((p) => p.id === id), 'oculto no sale en la tienda');
@@ -470,10 +473,11 @@ test('cantidades: se agota solo al llegar a 0, avisa si quedan pocas y se puede 
   assert.ok((await (await fetch(`${URL_BASE}/tenis/mujer`)).text()).includes('Últimas 3 unidades'));
   // a 0 se agota sola aunque siga marcado «Hay»
   assert.equal((await llamar('PUT', `/api/admin/productos/${id}`, { cantidad: 0 })).estado, 200);
-  p = await pub(id);
-  assert.deepEqual([p.available, p.stock], [false, 0]);
-  const ficha = await (await fetch(`${URL_BASE}/producto/${id}`)).text();
-  assert.ok(ficha.includes('OutOfStock') && !ficha.includes('schema.org/InStock'));
+  assert.equal(await pub(id), undefined, 'con 0 unidades no sale en la tienda');
+  assert.equal((await fetch(`${URL_BASE}/producto/${id}`)).status, 404);
+  assert.ok(!(await (await fetch(`${URL_BASE}/sitemap.xml`)).text()).includes(`/producto/${id}<`), 'ni en el sitemap');
+  assert.ok(!(await (await fetch(`${URL_BASE}/tenis/mujer`)).text()).includes('Tenis con cantidad'), 'ni en su colección');
+  assert.equal((await admin()).productos.find((x) => x.id === id).cantidad, 0, 'el panel lo sigue viendo');
   // valores no válidos
   for (const malo of [-1, 1.5, 'abc', 1000000]) assert.equal((await llamar('PUT', `/api/admin/productos/${id}`, { cantidad: malo })).estado, 400, `cantidad ${malo}`);
   // vacío = sin control: vuelve a depender solo de «Hay»
@@ -513,7 +517,7 @@ test('finanzas: stock local (compra = inversión), stock aparte (sin inversión)
   assert.equal(r.por_tipo.find((x) => x.tipo_stock === 'aparte').invertido, 0, 'el dropshipping no es inversión');
   assert.equal(r.capital_en_stock - antes.capital_en_stock, 700);
   // «sin stock» se ve «No disponible» en la tienda aunque esté marcado «Hay»
-  assert.equal((await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.productos.find((p) => p.id === sin).available, false);
+  assert.ok(!(await llamar('GET', '/api/catalogo', undefined, { conSesion: false })).datos.productos.some((p) => p.id === sin), '«sin stock» no se muestra en la tienda');
   // anular una venta devuelve las unidades
   assert.equal((await llamar('DELETE', `/api/admin/movimientos/${v.datos.id}`)).estado, 200);
   assert.equal((await admin()).productos.find((p) => p.id === local).cantidad, 10);

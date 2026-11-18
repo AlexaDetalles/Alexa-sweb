@@ -1,5 +1,5 @@
 // Datos de la tienda: lectura pública, escritura del panel, fotos en R2 y mantenimiento semanal.
-import { falla, json, fechaSql, diaHonduras, hayExistencias } from './util.js';
+import { falla, json, fechaSql, diaHonduras, hayExistencias, SQL_EN_TIENDA } from './util.js';
 import { exigirSesion, exigirPermiso, rutasUsuarios } from './auth.js';
 import * as V from './validacion.js';
 import { actividad, limpiarEstadisticas } from './estadisticas.js';
@@ -38,7 +38,7 @@ export async function catalogo(env) {
       WHERE c.activa = 1 AND (p.id IS NULL OR p.activa = 1) ORDER BY c.orden, c.nombre`),
     env.BD.prepare(`SELECT p.id, p.nombre, p.categoria_id, p.descripcion, p.precio, p.cotizar, p.imagen_url, p.disponible, p.cantidad, p.tipo_stock
       FROM productos p JOIN categorias c ON c.id = p.categoria_id LEFT JOIN categorias pa ON pa.id = c.padre_id
-      WHERE p.borrado_en IS NULL AND p.visible = 1 AND (p.tipo_stock <> 'local2' OR (SELECT mostrar_local2 FROM ajustes WHERE id = 1) = 1) AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1)
+      WHERE p.borrado_en IS NULL AND ${SQL_EN_TIENDA} AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1)
       ORDER BY p.orden, p.nombre`),
     env.BD.prepare('SELECT * FROM ajustes WHERE id = 1'),
   ]);

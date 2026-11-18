@@ -69,3 +69,11 @@ export const hayExistencias = (p) => !!p.disponible && p.tipo_stock !== 'sin' &&
 /** Tipos de stock: aparte = dropshipping; local1 = lo tienes y no tiene inversión (costo 0); local2 = comprado con inversión (lote); sin = sin stock. */
 export const TIPOS_STOCK = { aparte: 'Stock aparte', local1: 'Stock local 1', local2: 'Stock local 2', sin: 'Sin stock' };
 export const esLocal = (t) => t === 'local1' || t === 'local2';
+
+/**
+ * Qué se muestra en la tienda (alias p = productos): visible, con existencias y no privado.
+ *  · Lo AGOTADO no se muestra: marcado «Agotado», «Sin stock» o con cantidad 0.
+ *  · El Stock local 2 es privado mientras ajustes.mostrar_local2 = 0.
+ * El panel sí ve todo.
+ */
+export const SQL_EN_TIENDA = "p.visible = 1 AND p.disponible = 1 AND p.tipo_stock <> 'sin' AND (p.cantidad IS NULL OR p.cantidad > 0) AND (p.tipo_stock <> 'local2' OR (SELECT mostrar_local2 FROM ajustes WHERE id = 1) = 1)";

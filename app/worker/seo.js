@@ -1,7 +1,7 @@
 // SEO: sitemap.xml dinámico y una ficha con dirección propia por producto (/producto/<referencia>),
 // con título, descripción, Open Graph y datos estructurados (Product + BreadcrumbList) para buscadores.
 import { sitio } from './correo.js';
-import { hayExistencias } from './util.js';
+import { hayExistencias, SQL_EN_TIENDA } from './util.js';
 
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // JSON dentro de <script type="application/ld+json">: se escapa "<" para que un nombre con "</script>" no rompa la página.
@@ -28,7 +28,7 @@ const ESTATICAS = ['/', '/catalogo', '/perfumes', '/perfumes/hombre', '/perfumes
 export async function sitemap(env) {
   const base = sitio(env);
   const { results } = await env.BD.prepare(`SELECT p.id, p.actualizado FROM productos p JOIN categorias c ON c.id = p.categoria_id LEFT JOIN categorias pa ON pa.id = c.padre_id
-    WHERE p.borrado_en IS NULL AND p.visible = 1 AND (p.tipo_stock <> 'local2' OR (SELECT mostrar_local2 FROM ajustes WHERE id = 1) = 1) AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1) ORDER BY p.orden`).all();
+    WHERE p.borrado_en IS NULL AND ${SQL_EN_TIENDA} AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1) ORDER BY p.orden`).all();
   const hoy = REVISION_PAGINAS;
   const url = (loc, mod, prio) => `<url><loc>${esc(base + loc)}</loc><lastmod>${mod}</lastmod>${prio ? `<priority>${prio}</priority>` : ''}</url>`;
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`
@@ -41,13 +41,13 @@ export async function paginaProducto(req, env, id) {
   const u = new URL(req.url);
   const base = sitio(env);
   const p = await env.BD.prepare(`SELECT p.*, c.nombre AS cat_nombre, c.id AS cat_id FROM productos p JOIN categorias c ON c.id = p.categoria_id LEFT JOIN categorias pa ON pa.id = c.padre_id
-    WHERE p.id = ? AND p.borrado_en IS NULL AND p.visible = 1 AND (p.tipo_stock <> 'local2' OR (SELECT mostrar_local2 FROM ajustes WHERE id = 1) = 1) AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1)`).bind(id).first();
+    WHERE p.id = ? AND p.borrado_en IS NULL AND ${SQL_EN_TIENDA} AND c.activa = 1 AND (pa.id IS NULL OR pa.activa = 1)`).bind(id).first();
   if (!p) {
     const r = await env.ASSETS.fetch(new Request(`${u.origin}/404.html`));
     return new Response(r.body, { status: 404, headers: r.headers });
   }
   const plantilla = await (await env.ASSETS.fetch(new Request(`${u.origin}/assets/producto.tpl.html`))).text();
-  const { results: relacionados } = await env.BD.prepare(`SELECT id, nombre, precio, cotizar, imagen_url FROM productos WHERE categoria_id = ? AND id <> ? AND borrado_en IS NULL AND visible = 1 AND (tipo_stock <> 'local2' OR (SELECT mostrar_local2 FROM ajustes WHERE id = 1) = 1) ORDER BY orden LIMIT 4`).bind(p.cat_id, p.id).all();
+  const { results: relacionados } = await env.BD.prepare(`SELECT id, nombre, precio, cotizar, imagen_url FROM productos p WHERE p.categoria_id = ? AND p.id <> ? AND p.borrado_en IS NULL AND ${SQL_EN_TIENDA} ORDER BY p.orden LIMIT 4`).bind(p.cat_id, p.id).all();
 
   const canonical = `${base}/producto/${encodeURIComponent(p.id)}`;
   const imgRel = p.imagen_url || '/assets/images/hero.webp';

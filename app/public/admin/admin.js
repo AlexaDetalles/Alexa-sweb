@@ -209,7 +209,7 @@ function pintarProductos() {
   $('#lista-productos').innerHTML = lista.map((p, i) => {
     const etiquetas = [
       !p.visible && '<span class="etiqueta aviso">Oculto</span>',
-      !hay(p) && '<span class="etiqueta mal">Sin existencias</span>',
+      !hay(p) && `<span class="etiqueta mal">Agotado${p.visible ? ' · no se ve en la tienda' : ''}</span>`,
       p.cantidad !== null && p.cantidad > 0 && p.cantidad <= POCAS && '<span class="etiqueta aviso">Quedan ' + p.cantidad + '</span>',
       (p.tipo_stock === 'local1' || p.tipo_stock === 'local2') && `<span class="etiqueta ok">${TIPOS_STOCK[p.tipo_stock]}</span>`,
       p.tipo_stock === 'local2' && E.local2Publico === false && '<span class="etiqueta aviso">🔒 Privado</span>',
