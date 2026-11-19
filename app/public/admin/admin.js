@@ -1,11 +1,11 @@
 // Panel de administración de Alexa Detalles: productos, categorías, regalos personalizados y ajustes.
 // Sin librerías. Todo lo que viene de la base de datos pasa por esc() antes de llegar al HTML.
-import { dibujarInstagram, nombreArchivo, crearImagen, esColor, PALETAS } from '/admin/instagram.js';
+import { dibujarInstagram, nombreArchivo, crearImagen, esColor, PALETAS, ESTILOS, FONDOS } from '/admin/instagram.js';
 import { crearZip, nombreSeguro } from '/admin/zip.js';
 import { armarDescripcion, aISO } from '/admin/social.js';
 import { estimarEnLote } from '/admin/lotes.js';
 import { cuotaSugerida, resumenCredito, enlaceRecordatorio } from '/admin/creditos.js';
-import { listaTallas, coincideTalla, partirTallas } from '/assets/tallas.mjs';
+import { listaTallas, coincideTalla, partirTallas, leerTallas } from '/assets/tallas.mjs';
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -14,7 +14,7 @@ const ico = (id) => `<svg class="ico" aria-hidden="true"><use href="#i-${id}"/><
 const fold = (v) => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
 const PERMISOS = { admin: ['catalogo', 'ajustes', 'usuarios', 'estadisticas', 'finanzas'], catalogo: ['catalogo'], atencion: ['ajustes'], lectura: ['estadisticas'] };
-const E = { invFiltro: 'todos', invTexto: '', invCat: '', yo: null, usuarios: [], invitaciones: [], roles: {}, cats: [], prods: [], papelera: [], ops: [], pasos: [], regaloCfg: [], ajustes: {}, vista: 'productos', texto: '', cat: '', filtro: 'todos', publico: 'mujer', foto: null, editando: null, opcion: null, categoria: null };
+const E = { stock: '', invFiltro: 'todos', invTexto: '', invCat: '', yo: null, usuarios: [], invitaciones: [], roles: {}, cats: [], prods: [], papelera: [], ops: [], pasos: [], regaloCfg: [], ajustes: {}, vista: 'productos', texto: '', cat: '', filtro: 'todos', publico: 'mujer', foto: null, editando: null, opcion: null, categoria: null };
 
 // --- avisos, confirmación y llamadas a la API ------------------------------------------
 function avisar(texto, mal = false) {
@@ -200,22 +200,27 @@ const miniatura = (p) => (p.imagen_url ? `<img src="${esc(p.imagen_url.startsWit
 /** Un producto se vende si está en «Hay» y, cuando se cuenta, le queda alguna unidad. */
 const hay = (p) => p.disponible && p.tipo_stock !== 'sin' && (p.cantidad === null || p.cantidad === undefined || p.cantidad > 0);
 const POCAS = 5;
-const FILTROS = [['todos', 'Todos', () => true], ['visibles', 'Visibles', (p) => p.visible], ['ocultos', 'Ocultos', (p) => !p.visible], ['agotados', 'Sin existencias', (p) => !hay(p)], ['sinfoto', 'Sin foto', (p) => !p.imagen_url]];
+const FILTROS = [['todos', 'Todos', () => true], ['confoto', 'Con foto', (p) => !!p.imagen_url], ['sinfoto', 'Sin foto', (p) => !p.imagen_url], ['visibles', 'Visibles', (p) => p.visible], ['ocultos', 'Ocultos', (p) => !p.visible], ['agotados', 'Sin existencias', (p) => !hay(p)]];
+// Tipo de stock: aparte la lista a la mitad de lo que se ve (p. ej. solo el Stock local 2). Se recuerda para la próxima vez.
+const STOCKS = [['', 'Todos los stocks'], ['local2', 'Stock local 2'], ['local1', 'Stock local 1'], ['aparte', 'Stock aparte'], ['sin', 'Sin stock']];
+try { const v = localStorage.getItem('alexa_filtro_stock'); E.stock = STOCKS.some((x) => x[0] === v) ? v : ''; } catch { E.stock = ''; }
 function productosFiltrados() {
   if (E.filtro === 'papelera') return E.papelera;
   const t = fold(E.texto.trim()), f = FILTROS.find((x) => x[0] === E.filtro)?.[2] ?? (() => true);
-  return E.prods.filter((p) => f(p) && (!E.cat || dentroDe(p.categoria_id, E.cat)) && coincideTalla(p.talla, E.talla) && (!t || fold(`${p.nombre} ${p.id}`).includes(t)));
+  return E.prods.filter((p) => f(p) && (!E.stock || p.tipo_stock === E.stock) && (!E.cat || dentroDe(p.categoria_id, E.cat)) && coincideTalla(p.talla, E.talla) && (!t || fold(`${p.nombre} ${p.id}`).includes(t)));
 }
 function pintarProductos() {
   const lista = productosFiltrados(), enPapelera = E.filtro === 'papelera';
   $('#conteo').textContent = `${E.prods.length} en la tienda · ${E.prods.filter((p) => !p.visible).length} ocultos`;
-  $('#chips').innerHTML = FILTROS.map(([k, t, f]) => `<button type="button" class="chip" data-filtro="${k}" aria-pressed="${E.filtro === k}">${t}<b>${E.prods.filter(f).length}</b></button>`).join('')
+  const delStock = E.prods.filter((p) => !E.stock || p.tipo_stock === E.stock); // los números de abajo cuentan solo lo del stock elegido
+  $('#chips-stock').innerHTML = STOCKS.map(([k, t]) => `<button type="button" class="chip chip-stock" data-stock="${k}" aria-pressed="${E.stock === k}">${t}<b>${k ? E.prods.filter((p) => p.tipo_stock === k).length : E.prods.length}</b></button>`).join('');
+  $('#chips').innerHTML = FILTROS.map(([k, t, f]) => `<button type="button" class="chip" data-filtro="${k}" aria-pressed="${E.filtro === k}">${t}<b>${delStock.filter(f).length}</b></button>`).join('')
     + `<button type="button" class="chip" data-filtro="papelera" aria-pressed="${enPapelera}">Papelera<b>${E.papelera.length}</b></button>`;
   $('#filtro-categoria').innerHTML = opcionesCat(E.cat, { vacia: 'Todas las categorías' });
   $('#filtro-talla').innerHTML = '<option value="">Todas las tallas</option>' + listaTallas(E.prods.map((p) => p.talla)).map((t) => `<option value="${esc(t)}">${esc(t)}</option>`).join('');
   $('#filtro-talla').value = E.talla || '';
   $('#nota-papelera').hidden = !enPapelera;
-  const ordenable = !enPapelera && !E.texto.trim() && E.filtro === 'todos';
+  const ordenable = !enPapelera && !E.texto.trim() && E.filtro === 'todos' && !E.stock && !E.talla;
   $('#lista-productos').innerHTML = lista.map((p, i) => {
     const etiquetas = [
       !p.visible && '<span class="etiqueta aviso">Oculto</span>',
@@ -241,6 +246,7 @@ $('#buscar').addEventListener('input', (ev) => { E.texto = ev.target.value; pint
 $('#filtro-categoria').addEventListener('change', (ev) => { E.cat = ev.target.value; pintarProductos(); });
 $('#filtro-talla').addEventListener('change', (ev) => { E.talla = ev.target.value; pintarProductos(); });
 $('#chips').addEventListener('click', (ev) => { const b = ev.target.closest('[data-filtro]'); if (b) { E.filtro = b.dataset.filtro; pintarProductos(); } });
+$('#chips-stock').addEventListener('click', (ev) => { const b = ev.target.closest('[data-stock]'); if (b) { E.stock = b.dataset.stock; try { localStorage.setItem('alexa_filtro_stock', E.stock); } catch { /* da igual */ } pintarProductos(); } });
 $('#nuevo-producto').addEventListener('click', () => abrirProducto(null));
 
 $('#lista-productos').addEventListener('click', async (ev) => {
@@ -467,7 +473,7 @@ async function msGenerar() {
   for (const p of lista) for (const formato of formatos) {
     if (MS.cancelar) throw new Error('Cancelado.');
     $('#ms-progreso').value = salida.length; $('#ms-estado').textContent = `Creando ${salida.length + 1} de ${total}: ${p.nombre}…`;
-    const blob = await crearImagen({ fotoUrl: p.imagen_url, nombre: p.nombre, precio: p.precio, cotizar: p.cotizar, talla: p.talla, paleta: msPaleta, formato }, { calidad: 0.88 });
+    const blob = await crearImagen({ fotoUrl: p.imagen_url, nombre: p.nombre, precio: p.precio, cotizar: p.cotizar, talla: p.talla, paleta: msPaleta, formato, estilo: igEstilo, fondo: igFondo }, { calidad: 0.88 });
     if (!blob) throw new Error(`No pude crear la imagen de «${p.nombre}».`);
     salida.push({ p, formato, blob });
     await new Promise((r) => setTimeout(r)); // deja respirar a la pantalla
@@ -803,6 +809,8 @@ function pintarMargen() {
   $('#margen-info').textContent = ok ? `Ganas ${dinero(precio - costo)} por unidad${precio > 0 ? ` (${Math.round(((precio - costo) / precio) * 100)} % del precio)` : ''}.` : '';
 }
 ['precio', 'costo', 'cotizar'].forEach((n) => fp()[n].addEventListener('input', pintarMargen));
+// La talla escrita en la descripción pasa sola al campo Talla (salvo que ya la hayas puesto tú a mano).
+fp().descripcion.addEventListener('input', () => { const f = fp(), t = leerTallas(f.descripcion.value); if (!f.talla.value.trim() || f.talla.dataset.auto === f.talla.value) { f.talla.value = t; f.talla.dataset.auto = t; } });
 fp().cotizar.addEventListener('change', (ev) => { fp().precio.disabled = ev.target.checked; if (ev.target.checked) fp().precio.value = ''; });
 $('#foto-subir').addEventListener('click', () => $('#foto-archivo').click());
 $('#foto-quitar').addEventListener('click', () => { E.foto = null; pintarFoto(); });
@@ -810,8 +818,15 @@ $('#foto-quitar').addEventListener('click', () => { E.foto = null; pintarFoto();
 // Imagen para Instagram: usa lo que hay ahora en el formulario (foto, nombre, precio) y una talla opcional.
 const paletaGuardada = () => { try { const v = localStorage.getItem('alexa_ig_paleta'); return PALETAS.some((p) => p.id === v) || esColor(v) ? v : 'rojo'; } catch { return 'rojo'; } };
 let igPaleta = paletaGuardada(), msPaleta = igPaleta;
+const prefGenerador = (clave, lista, defecto) => { try { const v = localStorage.getItem(clave); return lista.some((x) => x.id === v) ? v : defecto; } catch { return defecto; } };
+let igEstilo = prefGenerador('alexa_ig_estilo', ESTILOS, 'auto'), igFondo = prefGenerador('alexa_ig_fondo', FONDOS, 'liso');
+for (const [sel, lista] of [['#ig-estilo', ESTILOS], ['#ms-estilo', ESTILOS], ['#ig-fondo', FONDOS], ['#ms-fondo', FONDOS]]) $(sel).innerHTML = lista.map((x) => `<option value="${x.id}">${esc(x.nombre)}</option>`).join('');
+const sincronizarGenerador = () => { $('#ig-estilo').value = $('#ms-estilo').value = igEstilo; $('#ig-fondo').value = $('#ms-fondo').value = igFondo; };
+sincronizarGenerador();
+const cambioGenerador = (clave, valor, alCambiar) => { if (clave === 'estilo') { igEstilo = valor; try { localStorage.setItem('alexa_ig_estilo', valor); } catch { /* da igual */ } } else { igFondo = valor; try { localStorage.setItem('alexa_ig_fondo', valor); } catch { /* da igual */ } } sincronizarGenerador(); alCambiar?.(); };
+for (const p of ['ig', 'ms']) { $(`#${p}-estilo`).addEventListener('change', (ev) => cambioGenerador('estilo', ev.target.value, p === 'ig' ? () => pintarInstagram() : null)); $(`#${p}-fondo`).addEventListener('change', (ev) => cambioGenerador('fondo', ev.target.value, p === 'ig' ? () => pintarInstagram() : null)); }
 const guardarPaleta = (v) => { try { localStorage.setItem('alexa_ig_paleta', v); } catch { /* da igual */ } };
-const datosInstagram = () => { const f = fp(); return { fotoUrl: E.foto, nombre: f.nombre.value, precio: f.precio.value, cotizar: f.cotizar.checked, talla: $('#ig-talla').value, paleta: igPaleta, formato: $('#ig-formato').value }; };
+const datosInstagram = () => { const f = fp(); return { fotoUrl: E.foto, nombre: f.nombre.value, precio: f.precio.value, cotizar: f.cotizar.checked, talla: $('#ig-talla').value, paleta: igPaleta, formato: $('#ig-formato').value, estilo: igEstilo, fondo: igFondo }; };
 /** Selector de paletas + color libre (el que la dueña elija). leer/escribir: dónde se guarda la elegida; alCambiar: qué volver a dibujar. */
 function selectorPaletas(contenedor, entradaColor, leer, escribir, alCambiar) {
   const pintar = () => {
@@ -894,6 +909,8 @@ async function prepararFoto(archivo) {
   if (archivo.size > 30 * 1024 * 1024) throw new Error('Esa foto es demasiado grande. Elige una de menos de 30 MB.');
   let bmp;
   try { bmp = await createImageBitmap(archivo); } catch { throw new Error('No pude leer esa imagen. Prueba con una foto JPG, PNG o WebP.'); }
+  // ¿La foto tiene partes transparentes (es un recorte)? Se mira en una miniatura.
+  const conAlfa = (() => { try { const k = Math.min(1, 64 / Math.max(bmp.width, bmp.height)), w = Math.max(1, Math.round(bmp.width * k)), h = Math.max(1, Math.round(bmp.height * k)); const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(bmp, 0, 0, w, h); const d = x.getImageData(0, 0, w, h).data; let t = 0; for (let i = 3; i < d.length; i += 4) if (d[i] < 250) t++; return t / (w * h) > 0.01; } catch { return false; } })();
   const hacerBlob = (max, tipo, calidad) => new Promise((res) => {
     const k = Math.min(1, max / Math.max(bmp.width, bmp.height)), w = Math.max(1, Math.round(bmp.width * k)), h = Math.max(1, Math.round(bmp.height * k));
     const c = document.createElement('canvas'); c.width = w; c.height = h;
@@ -903,8 +920,9 @@ async function prepararFoto(archivo) {
     c.toBlob(res, tipo, calidad);
   });
   let tipo = 'image/webp', grande = await hacerBlob(1200, tipo, 0.85);
-  if (!grande || grande.type !== 'image/webp') { tipo = 'image/jpeg'; grande = await hacerBlob(1200, tipo, 0.88); }
-  if (grande && grande.size > 1.9 * 1024 * 1024) grande = await hacerBlob(1000, tipo, 0.72);
+  if (!grande || grande.type !== 'image/webp') { tipo = conAlfa ? 'image/png' : 'image/jpeg'; grande = await hacerBlob(1200, tipo, 0.88); } // PNG si es un recorte: el JPEG la pondría sobre blanco
+  if (tipo === 'image/png') { for (const max of [1000, 800, 640, 480]) { if (!grande || grande.size <= 1.9 * 1024 * 1024) break; grande = await hacerBlob(max, tipo); } }
+  else if (grande && grande.size > 1.9 * 1024 * 1024) grande = await hacerBlob(1000, tipo, 0.72);
   const chica = await hacerBlob(600, tipo, 0.82);
   if (!grande || !chica || grande.size > 2 * 1024 * 1024) throw new Error('No pude reducir esa foto. Prueba con otra.');
   return { grande, chica };

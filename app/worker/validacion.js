@@ -3,7 +3,7 @@ import { falla } from './util.js';
 
 export const PUBLICOS = ['mujer', 'hombre'];
 
-const RE_FOTO = /^\/fotos\/productos\/[0-9a-f-]{36}-1200\.(webp|jpg)$/;
+const RE_FOTO = /^\/fotos\/productos\/[0-9a-f-]{36}-1200\.(webp|jpg|png)$/;
 const RE_FOTO_LOCAL = /^\/assets\/images\/[A-Za-z0-9._-]+\.(webp|png|svg)$/;
 export const RE_ID_PRODUCTO = /^[A-Za-z0-9._-]{1,80}$/;
 const RE_ID_CATEGORIA = /^[A-Z0-9]{1,14}$/;

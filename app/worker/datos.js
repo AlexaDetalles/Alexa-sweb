@@ -110,13 +110,15 @@ export async function regalos(env, publico) {
 }
 
 // --- fotos --------------------------------------------------------------------------
-const RE_CLAVE_FOTO = /^(productos\/[0-9a-f-]{36}-(600|1200)\.(webp|jpg)|social\/[0-9a-f-]{36}\.jpg)$/;
+const RE_CLAVE_FOTO = /^(productos\/[0-9a-f-]{36}-(600|1200)\.(webp|jpg|png)|social\/[0-9a-f-]{36}\.jpg)$/;
 const ascii = (b, de, a) => String.fromCharCode(...b.slice(de, a));
-// WebP (RIFF....WEBP) o JPEG (FF D8 FF): la firma se comprueba aquí; el panel nunca manda otra cosa.
-const tipoDeFoto = (b) => (b.length > 12 && ascii(b, 0, 4) === 'RIFF' && ascii(b, 8, 12) === 'WEBP' ? 'webp' : b.length > 12 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff ? 'jpg' : null);
-const TIPOS_FOTO = { webp: 'image/webp', jpg: 'image/jpeg' };
+// WebP (RIFF....WEBP), JPEG (FF D8 FF) o PNG (89 50 4E 47 0D 0A 1A 0A): la firma se comprueba aquí; el panel nunca manda otra cosa.
+// El PNG existe para las fotos recortadas (sin fondo) cuando el navegador no sabe crear WebP (Safari del iPhone): así no pierden la transparencia.
+const PNG_FIRMA = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a];
+const tipoDeFoto = (b) => (b.length > 12 && ascii(b, 0, 4) === 'RIFF' && ascii(b, 8, 12) === 'WEBP' ? 'webp' : b.length > 12 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff ? 'jpg' : b.length > 12 && PNG_FIRMA.every((v, i) => b[i] === v) ? 'png' : null);
+const TIPOS_FOTO = { webp: 'image/webp', jpg: 'image/jpeg', png: 'image/png' };
 
-/** El panel reduce la foto a 1200 y 600 px (WebP; JPEG en navegadores que no crean WebP) y manda las dos del mismo tipo. */
+/** El panel reduce la foto a 1200 y 600 px (WebP; JPEG en navegadores que no crean WebP; PNG si la foto está recortada y no hay WebP) y manda las dos del mismo tipo. */
 async function subirFoto(req, env) {
   const form = await req.formData();
   const id = crypto.randomUUID();
@@ -140,7 +142,7 @@ export async function servirFoto(env, clave) {
   if (!RE_CLAVE_FOTO.test(clave)) return new Response('No encontrada', { status: 404 });
   const obj = await env.FOTOS.get(clave);
   if (!obj) return new Response('No encontrada', { status: 404 });
-  return new Response(obj.body, { headers: { 'Content-Type': TIPOS_FOTO[clave.endsWith('.jpg') ? 'jpg' : 'webp'], 'Cache-Control': 'public, max-age=31536000, immutable', ETag: obj.httpEtag, 'X-Content-Type-Options': 'nosniff' } });
+  return new Response(obj.body, { headers: { 'Content-Type': TIPOS_FOTO[clave.endsWith('.jpg') ? 'jpg' : clave.endsWith('.png') ? 'png' : 'webp'], 'Cache-Control': 'public, max-age=31536000, immutable', ETag: obj.httpEtag, 'X-Content-Type-Options': 'nosniff' } });
 }
 
 /** Borra los archivos de una foto subida, salvo que otro producto (duplicado) todavía la use. */

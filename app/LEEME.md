@@ -147,3 +147,14 @@ Si escribes la talla en la descripción («Talla 11 y 12», «tallas 7, 7.5 y 8�
 ## Pruebas de abuso (qué se probó)
 
 La API aguanta 493 combinaciones de datos absurdos por campo, cuerpos que no son JSON, peticiones sin sesión o desde otro origen, ids raros y 12 ventas simultáneas de la última unidad (pasa solo una; nunca queda negativa). La tienda aguanta textos con código en nombre/descripción/talla (se muestran tal cual, no se ejecutan), una bolsa guardada corrupta o hostil (10 variantes), enlaces con parámetros manipulados y clics seguidos (no pasa del límite de existencias). Los casos que fallaron al probar (nombres con caracteres de control y un lote «vacío» o 0) ahora dan un mensaje claro y tienen prueba en `pruebas/api.test.mjs`.
+
+## Fotos recortadas (sin fondo) y filtros de Stock local 2
+
+- **Subir un recorte:** se sube igual que cualquier foto. Si el navegador no sabe crear WebP (Safari del iPhone), una foto con transparencia se guarda como **PNG** para no ponerla sobre blanco (el servidor acepta WebP, JPEG y PNG; máximo 2 MB por foto, se reduce sola).
+- **Generador de imágenes** (una o muchas): dos opciones nuevas.
+  - **Estilo de la foto:** *Automático* detecta si la foto está recortada (transparente alrededor); *Foto con marco* es la lámina de siempre; *Sin fondo* pone el producto solo, grande, con luz detrás y sombra en el piso. Arriba, chicos: la talla (a la izquierda) y el precio (a la derecha); abajo, el nombre discreto.
+  - **Fondo:** *Liso* (el color de la paleta), *Concreto*, *Madera* o *Tela*. La textura toma el color de la paleta: elige «Otro color» para un azul, un vino o un gris.
+  - Lo que elijas se recuerda para la próxima vez y vale igual para una imagen o para todas (descarga en .zip).
+- **Productos → Stock:** fila de botones *Todos los stocks · Stock local 2 · Stock local 1 · Stock aparte · Sin stock* (se recuerda la última). Debajo, *Con foto* y *Sin foto* (con sus números) cuentan solo dentro del stock elegido.
+- **Talla viva:** al escribir la descripción («Talla 9»), el campo Talla se llena solo; una talla escrita a mano no se pisa.
+- El usuario que sale al pie de las láminas está en `public/admin/instagram.js` (constante `USUARIO`).

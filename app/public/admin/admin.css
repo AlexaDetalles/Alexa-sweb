@@ -343,3 +343,7 @@ progress.barra-pago::-moz-progress-bar { background: var(--ok); }
 /* Dos campos cortos lado a lado también en el celular */
 .rejilla.dos { grid-template-columns: 1fr 1fr; }
 @media (max-width: 760px) { .pestanas button { padding: 10px 6px; font-size: 13px; } .mas-opciones .campo small, .rejilla.dos .campo small { display: block; } }
+
+/* Filtros de la lista de productos: primero el tipo de stock, debajo los demás */
+.chip-stock { font-weight: 700; }
+#chips-stock { margin-bottom: 6px; }

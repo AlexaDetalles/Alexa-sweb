@@ -810,6 +810,25 @@ test('ventas simultáneas de la última unidad: solo una pasa y no queda negativ
   assert.equal((await admin()).productos.find((p) => p.id === a.datos.id).cantidad, 0);
 });
 
+test('fotos recortadas: se acepta PNG (conserva la transparencia) y se sirve como PNG', async () => {
+  const png = () => new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, ...Array.from({ length: 40 }, (_, i) => i)]);
+  const f = new FormData(); f.set('1200', new Blob([png()]), 'a.png'); f.set('600', new Blob([png()]), 'b.png');
+  const r = await llamar('POST', '/api/admin/fotos', f);
+  assert.equal(r.estado, 200);
+  assert.match(r.datos.url, /^\/fotos\/productos\/[0-9a-f-]{36}-1200\.png$/);
+  const p = await llamar('POST', '/api/admin/productos', { nombre: 'Recorte', categoria_id: 'CTA', precio: 100, imagen_url: r.datos.url });
+  assert.equal(p.estado, 201);
+  const grande = await fetch(URL_BASE + r.datos.url), chica = await fetch(URL_BASE + r.datos.url.replace('-1200.', '-600.'));
+  assert.equal(grande.status, 200); assert.equal(grande.headers.get('content-type'), 'image/png');
+  assert.equal(chica.status, 200); assert.equal(chica.headers.get('content-type'), 'image/png');
+  // las dos piezas deben ser del mismo tipo; un PNG falso (sin la firma) no pasa
+  const webp = new Uint8Array([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, 1, 2, 3, 4]);
+  const mezcla = new FormData(); mezcla.set('1200', new Blob([png()]), 'a'); mezcla.set('600', new Blob([webp]), 'b');
+  assert.equal((await llamar('POST', '/api/admin/fotos', mezcla)).estado, 400);
+  const falso = new FormData(); falso.set('1200', new Blob([new Uint8Array(30).fill(7)]), 'a.png'); falso.set('600', new Blob([new Uint8Array(30).fill(7)]), 'b.png');
+  assert.equal((await llamar('POST', '/api/admin/fotos', falso)).estado, 400);
+});
+
 test('contraseña: cambiarla cierra otras sesiones; 5 fallos bloquean', async () => {
   const miCookie = cookie;
   const nueva = 'otra-clave-nueva-456';
