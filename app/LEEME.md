@@ -170,3 +170,8 @@ El generador de imágenes quita solo el fondo blanco o gris muy claro de una fot
 - **Sin fondo (manual)** lo fuerza y además quita los huecos cerrados que también son fondo (el lazo de una correa, el espacio entre el asa y el cuerpo de un bolso). Úsalo cuando Automático deje un hueco blanco.
 - Límites: un producto blanco sobre fondo blanco no se puede recortar bien (usa «Foto con marco»); si el fondo tiene sombras fuertes o degradados, quedará algo de sombra.
 - El código está en `public/admin/instagram.js` (`mascaraFondo`, `aplicarMascara`, `bordeClaro`) con pruebas en `pruebas/fondo-blanco.test.mjs`.
+
+### Productos blancos sobre fondo blanco
+
+Si el borde de la foto es blanco PURO y parejo (255, como las fotos de catálogo), se quita con tolerancia mínima: así un producto blanco con sombreado (la suela de un tenis, una caja blanca) se conserva entero. Si el fondo es claro pero no puro (sombras, degradados), se usa la tolerancia normal y Automático solo recorta cuando el producto contrasta con el fondo. En fondo puro, Automático no quita el «blanco de adentro» (es del producto); el modo manual sí quita los huecos cerrados (lazo de una correa).
+Límites: la sombra que el piso proyecta en la foto original queda como una mancha clara debajo del producto; con «Copiar sujeto» del iPhone no pasa. Un producto con áreas de blanco 255 exacto pegadas al borde (sobreexpuesto) puede perder esas áreas: en ese caso usa «Foto con marco».

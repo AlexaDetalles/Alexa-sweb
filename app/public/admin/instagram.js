@@ -198,6 +198,7 @@ export function mascaraFondo(data, ancho, alto, tol = 34, agresivo = false) {
   }
   // Huecos cerrados que también son fondo (el lazo de una correa, el espacio entre el asa y el cuerpo): se quitan solo si son blancos
   // «de verdad» (caben cuadrados enteros de fondo) Y están pegados al contorno. Un estampado o logo blanco en medio del producto se queda.
+  if (!agresivo && tol <= 12) return { hay: true, mask, fondo, fraccion: quitados / (ancho * alto) }; // fondo blanco puro en Automático: el blanco puro de adentro es del producto
   const M = Math.max(ancho, alto), limite = Math.ceil((agresivo ? 0.15 : 0.06) * M), rA = Math.max(3, Math.round(0.016 * M)), rB = Math.max(2, Math.round(0.005 * M)), cercaB = Math.ceil(0.02 * M);
   const blanco = new Uint8Array(ancho * alto);
   for (let p = 0; p < blanco.length; p++) if (!mask[p] && cerca(p * 4)) blanco[p] = 1;
@@ -266,19 +267,30 @@ export function bordeClaro(data, mask, ancho, alto, claro = 205, margen = 3) {
   return borde ? claros / borde : 0;
 }
 
+/** ¿El borde de la foto es un blanco (o casi) PURO y parejo, como el de las fotos de catálogo? Entonces se puede quitar con muy poca tolerancia y un producto blanco no se come. */
+export function bordePuro(data, ancho, alto) {
+  const borde = [];
+  for (let x = 0; x < ancho; x++) borde.push((x) * 4, ((alto - 1) * ancho + x) * 4);
+  for (let y = 1; y < alto - 1; y++) borde.push(y * ancho * 4, (y * ancho + ancho - 1) * 4);
+  const med = (c) => { const v = borde.map((i) => data[i + c]).sort((a, b) => a - b); return v[v.length >> 1]; };
+  const m = [med(0), med(1), med(2)];
+  if (Math.min(...m) < 245) return false;
+  const cerca = borde.filter((i) => Math.abs(data[i] - m[0]) + Math.abs(data[i + 1] - m[1]) + Math.abs(data[i + 2] - m[2]) <= 9).length;
+  return cerca / borde.length >= 0.98;
+}
+
 /** Pasa la máscara a transparencia con el borde suavizado (sin el halo blanco que deja el recorte a tijera). Devuelve la caja del objeto. */
 export function aplicarMascara(data, mask, ancho, alto, fondo, tol = 34) {
   const alfa = new Uint8Array(ancho * alto).fill(255);
   for (let p = 0; p < mask.length; p++) if (mask[p]) alfa[p] = 0;
-  // en el contorno, lo más parecido al fondo se vuelve más transparente (así desaparece el halo claro del borde)
-  const vecinoFondo = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const xx = x + dx, yy = y + dy; if (xx >= 0 && yy >= 0 && xx < ancho && yy < alto && mask[yy * ancho + xx]) return true; } return false; };
+  // En las dos capas de píxeles pegadas al fondo, lo más parecido al fondo se vuelve transparente: así se va el halo claro que deja la foto.
+  const rampa = (i) => { const dr = data[i] - fondo[0], dg = data[i + 1] - fondo[1], db = data[i + 2] - fondo[2], d = Math.sqrt(dr * dr + dg * dg + db * db); return Math.max(0, Math.min(255, Math.round((255 * (d - tol * 0.5)) / (tol * 4)))); };
+  const toca = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const xx = x + dx, yy = y + dy; if (xx >= 0 && yy >= 0 && xx < ancho && yy < alto && alfa[yy * ancho + xx] < 40) return true; } return false; };
   const contorno = [];
-  for (let y = 0; y < alto; y++) for (let x = 0; x < ancho; x++) {
-    const p = y * ancho + x;
-    if (mask[p] || !vecinoFondo(x, y)) continue;
-    const i = p * 4, dr = data[i] - fondo[0], dg = data[i + 1] - fondo[1], db = data[i + 2] - fondo[2], d = Math.sqrt(dr * dr + dg * dg + db * db);
-    alfa[p] = Math.max(0, Math.min(255, Math.round((255 * d) / (tol * 2.4))));
-    contorno.push(p);
+  for (let capa = 0; capa < 2; capa++) {
+    const nuevos = [];
+    for (let y = 0; y < alto; y++) for (let x = 0; x < ancho; x++) { const p = y * ancho + x; if (alfa[p] >= 40 && !mask[p] && toca(x, y)) nuevos.push(p); }
+    for (const p of nuevos) { alfa[p] = Math.min(alfa[p], rampa(p * 4)); contorno.push(p); }
   }
   // un promedio de 3×3 solo en el contorno: el borde queda suave y no escalonado
   const copia = alfa.slice();
@@ -306,9 +318,11 @@ function quitarFondoBlanco(foto, forzar, clave) {
     const k = Math.min(1, 1200 / Math.max(foto.width, foto.height)), w = Math.max(1, Math.round(foto.width * k)), h = Math.max(1, Math.round(foto.height * k));
     const c = document.createElement('canvas'); c.width = w; c.height = h;
     const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(foto, 0, 0, w, h);
-    const im = x.getImageData(0, 0, w, h), m = mascaraFondo(im.data, w, h, 34, forzar);
-    if (m.hay && (forzar ? m.fraccion >= 0.02 : m.fraccion >= 0.12 && m.fraccion <= 0.9 && bordeClaro(im.data, m.mask, w, h) <= LIMITE_BORDE_CLARO)) {
-      const { alfa, caja } = aplicarMascara(im.data, m.mask, w, h, m.fondo);
+    // Fondo blanco PURO (fotos de catálogo): tolerancia mínima, así un producto blanco (la suela de un tenis) no se come.
+    // Fondo claro pero no puro (sombras, degradados): tolerancia normal, y Automático solo recorta si el producto tiene buen contraste.
+    const im = x.getImageData(0, 0, w, h), puro = bordePuro(im.data, w, h), tol = puro ? 8 : 34, m = mascaraFondo(im.data, w, h, tol, forzar);
+    if (m.hay && (forzar ? m.fraccion >= 0.02 : m.fraccion >= 0.12 && m.fraccion <= 0.9 && (puro || bordeClaro(im.data, m.mask, w, h) <= LIMITE_BORDE_CLARO))) {
+      const { alfa, caja } = aplicarMascara(im.data, m.mask, w, h, m.fondo, tol);
       for (let p = 0; p < alfa.length; p++) im.data[p * 4 + 3] = alfa[p];
       x.putImageData(im, 0, 0);
       const m2 = 2; // un poquito de aire alrededor del objeto

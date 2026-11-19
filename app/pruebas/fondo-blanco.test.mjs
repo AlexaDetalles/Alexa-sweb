@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mascaraFondo, aplicarMascara, bordeClaro } from '../public/admin/instagram.js';
+import { mascaraFondo, aplicarMascara, bordeClaro, bordePuro } from '../public/admin/instagram.js';
 
 // Imagen RGBA de w×h, toda blanca; `pintar(x, y)` devuelve [r, g, b] para cambiar un píxel (o null para dejarlo).
 const imagen = (w, h, pintar) => {
@@ -82,4 +82,27 @@ test('bordeClaro: un producto oscuro casi no tiene contorno claro; uno blanco/pa
   const pastel = imagen(w, h, (x, y) => (dentro(x, y, 40, 40, 260, 260) ? [250, 214, 220] : null));
   const mp = mascaraFondo(pastel, w, h);
   assert.ok(mp.hay && bordeClaro(pastel, mp.mask, w, h) > 0.15, 'el pastel pasa del límite de Automático (0.15)');
+});
+
+test('bordePuro: solo el blanco de catálogo (255 parejo) cuenta como puro', () => {
+  const w = 200, h = 200;
+  assert.equal(bordePuro(imagen(w, h, (x, y) => (dentro(x, y, 50, 50, 150, 150) ? NEGRO : null)), w, h), true);
+  assert.equal(bordePuro(imagen(w, h, (x, y) => (dentro(x, y, 50, 50, 150, 150) ? NEGRO : [232, 232, 234])), w, h), false, 'gris claro: no es puro');
+  assert.equal(bordePuro(imagen(w, h, (x, y) => (dentro(x, y, 50, 50, 150, 150) ? NEGRO : [255, 255, 255])), w, h), true);
+  assert.equal(bordePuro(imagen(w, h, (x, y) => (dentro(x, y, 50, 50, 150, 150) ? NEGRO : [200, 60, 60])), w, h), false);
+});
+
+test('producto blanco (suela de un tenis): con tolerancia baja se conserva; con la normal se come', () => {
+  const w = 300, h = 300, SUELA = [240, 238, 244]; // blanco con sombreado: a unos 25 de distancia del 255 del fondo
+  const d = imagen(w, h, (x, y) => (dentro(x, y, 60, 60, 240, 160) ? NEGRO : dentro(x, y, 50, 160, 250, 215) ? SUELA : null));
+  const fino = mascaraFondo(d, w, h, 8), normal = mascaraFondo(d, w, h, 34);
+  assert.equal(quitado(fino, w, 150, 190), false, 'tolerancia baja: la suela se queda');
+  assert.equal(quitado(fino, w, 10, 10), true, 'y el fondo se va');
+  assert.equal(quitado(normal, w, 150, 190), true, 'tolerancia normal: la suela se come (por eso se usa la baja en fondos puros)');
+});
+
+test('fondo puro en Automático no toca el blanco puro de adentro; el modo manual sí quita los huecos', () => {
+  const w = 300, h = 300, d = imagen(w, h, (x, y) => (dentro(x, y, 40, 40, 260, 260) ? (dentro(x, y, 52, 120, 92, 180) ? BLANCO : NEGRO) : null));
+  assert.equal(quitado(mascaraFondo(d, w, h, 8), w, 70, 150), false, 'Automático: es blanco del producto');
+  assert.equal(quitado(mascaraFondo(d, w, h, 8, true), w, 70, 150), true, 'manual: se quita (lazo de una correa)');
 });
