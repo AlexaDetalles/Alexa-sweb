@@ -162,3 +162,11 @@ La API aguanta 493 combinaciones de datos absurdos por campo, cuerpos que no son
 ## Pegar una imagen copiada
 
 En el formulario de producto, debajo de la foto: el cuadro **«O toca aquí, mantén presionado y elige Pegar»** (sirve con el teclado del celular: copias la imagen, tocas el cuadro y eliges Pegar) y el botón **Pegar imagen copiada** (un toque; si el navegador no lo permite, te manda al cuadro). En computadora, Ctrl+V en cualquier parte del formulario también sube la imagen. La foto pegada pasa por el mismo proceso que una foto subida (se reduce y conserva la transparencia de un recorte).
+
+## Quitar el fondo blanco (fotos normales)
+
+El generador de imágenes quita solo el fondo blanco o gris muy claro de una foto normal (no hace falta recortarla antes): parte del borde de la foto y quita todo lo que tenga ese color y esté conectado con el borde, así el logo blanco, una cremallera clara o un estampado se quedan. El borde se suaviza para que no quede un halo blanco.
+- **Automático** lo hace solo cuando el fondo es claro y parejo, y es prudente: si el producto es blanco o pastel (su contorno se confunde con el fondo) deja la foto con marco, porque ahí el recorte sale con bordes comidos. Con los perfumes del catálogo recorta los de buen contraste (frascos oscuros, dorados, de color) y deja con marco los blancos y pastel.
+- **Sin fondo (manual)** lo fuerza y además quita los huecos cerrados que también son fondo (el lazo de una correa, el espacio entre el asa y el cuerpo de un bolso). Úsalo cuando Automático deje un hueco blanco.
+- Límites: un producto blanco sobre fondo blanco no se puede recortar bien (usa «Foto con marco»); si el fondo tiene sombras fuertes o degradados, quedará algo de sombra.
+- El código está en `public/admin/instagram.js` (`mascaraFondo`, `aplicarMascara`, `bordeClaro`) con pruebas en `pruebas/fondo-blanco.test.mjs`.

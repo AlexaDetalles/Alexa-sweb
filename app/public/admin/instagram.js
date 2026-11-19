@@ -123,9 +123,9 @@ function letras(ctx, linea, x, y, tam, familia, pal, { relleno = true } = {}) {
 
 // --- fotos recortadas (sin fondo) y fondos con textura ------------------------------------------------
 export const ESTILOS = [
-  { id: 'auto', nombre: 'Automático (detecta si la foto está recortada)' },
+  { id: 'auto', nombre: 'Automático (quita el fondo blanco y detecta recortes)' },
   { id: 'marco', nombre: 'Foto con marco' },
-  { id: 'recorte', nombre: 'Sin fondo (el producto solo)' },
+  { id: 'recorte', nombre: 'Sin fondo (quita también los huecos cerrados, como el lazo de una correa)' },
 ];
 export const FONDOS = [
   { id: 'liso', nombre: 'Liso (solo el color)' },
@@ -167,6 +167,157 @@ function analizarFoto(foto) {
     const cw = Math.min(foto.width - cx, Math.ceil(r.caja.w / k) + m * 2), ch = Math.min(foto.height - cy, Math.ceil(r.caja.h / k) + m * 2);
     return { recorte: r.recorte, caja: { x: cx, y: cy, w: Math.max(1, cw), h: Math.max(1, ch) } };
   } catch { return { recorte: false, caja: { x: 0, y: 0, w: foto.width, h: foto.height } }; }
+}
+
+/**
+ * Fondo claro (blanco o casi) de una foto normal: se parte del borde y se «inunda» hacia adentro todo lo que tenga el color del borde.
+ * Solo se quita lo que está conectado con el borde, así el logo blanco, la cremallera clara o los estampados del producto se quedan.
+ * Devuelve { hay, mask (1 = fondo), fondo: [r, g, b], fraccion } o { hay: false } si el borde no es un fondo claro y parejo.
+ * agresivo: también quita huecos cerrados más lejos del contorno (el lazo de una correa). Es lo que hace «Sin fondo» elegido a mano;
+ * en Automático se queda corto a propósito para no perforar un estampado blanco grande (por ejemplo en la manga de una camiseta).
+ */
+export function mascaraFondo(data, ancho, alto, tol = 34, agresivo = false) {
+  const idx = (x, y) => (y * ancho + x) * 4;
+  const borde = [];
+  for (let x = 0; x < ancho; x++) { borde.push(idx(x, 0), idx(x, alto - 1)); }
+  for (let y = 1; y < alto - 1; y++) { borde.push(idx(0, y), idx(ancho - 1, y)); }
+  const mediana = (c) => { const v = borde.map((i) => data[i + c]).sort((a, b) => a - b); return v[v.length >> 1]; };
+  const fondo = [mediana(0), mediana(1), mediana(2)];
+  if (Math.min(...fondo) < 205) return { hay: false }; // solo fondos claros: una escena oscura o de color no se toca
+  const t2 = tol * tol;
+  const cerca = (i) => { const dr = data[i] - fondo[0], dg = data[i + 1] - fondo[1], db = data[i + 2] - fondo[2]; return dr * dr + dg * dg + db * db <= t2; };
+  if (borde.filter(cerca).length / borde.length < 0.9) return { hay: false }; // el borde no es parejo: no se adivina
+  const mask = new Uint8Array(ancho * alto), cola = new Int32Array(ancho * alto);
+  let ini = 0, fin = 0, quitados = 0;
+  const entrar = (x, y) => { const p = y * ancho + x; if (!mask[p] && cerca(p * 4)) { mask[p] = 1; cola[fin++] = p; quitados++; } };
+  for (let x = 0; x < ancho; x++) { entrar(x, 0); entrar(x, alto - 1); }
+  for (let y = 0; y < alto; y++) { entrar(0, y); entrar(ancho - 1, y); }
+  while (ini < fin) {
+    const p = cola[ini++], x = p % ancho, y = (p - x) / ancho;
+    if (x > 0) entrar(x - 1, y); if (x < ancho - 1) entrar(x + 1, y); if (y > 0) entrar(x, y - 1); if (y < alto - 1) entrar(x, y + 1);
+  }
+  // Huecos cerrados que también son fondo (el lazo de una correa, el espacio entre el asa y el cuerpo): se quitan solo si son blancos
+  // «de verdad» (caben cuadrados enteros de fondo) Y están pegados al contorno. Un estampado o logo blanco en medio del producto se queda.
+  const M = Math.max(ancho, alto), limite = Math.ceil((agresivo ? 0.15 : 0.06) * M), rA = Math.max(3, Math.round(0.016 * M)), rB = Math.max(2, Math.round(0.005 * M)), cercaB = Math.ceil(0.02 * M);
+  const blanco = new Uint8Array(ancho * alto);
+  for (let p = 0; p < blanco.length; p++) if (!mask[p] && cerca(p * 4)) blanco[p] = 1;
+  const W1 = ancho + 1, integral = new Int32Array(W1 * (alto + 1));
+  for (let y = 0; y < alto; y++) { let fila = 0; for (let x = 0; x < ancho; x++) { fila += blanco[y * ancho + x]; integral[(y + 1) * W1 + x + 1] = integral[y * W1 + x + 1] + fila; } }
+  const llena = (x, y, r) => { const x0 = x - r, y0 = y - r, x1 = x + r + 1, y1 = y + r + 1; if (x0 < 0 || y0 < 0 || x1 > ancho || y1 > alto) return false; return integral[y1 * W1 + x1] - integral[y0 * W1 + x1] - integral[y1 * W1 + x0] + integral[y0 * W1 + x0] === (2 * r + 1) * (2 * r + 1); };
+  // distancia (en pasos) desde el fondo de afuera, solo hasta `limite`
+  const dist = new Uint16Array(ancho * alto).fill(65535);
+  let c0 = 0, c1 = 0;
+  for (let p = 0; p < mask.length; p++) if (mask[p]) { dist[p] = 0; cola[c1++] = p; }
+  while (c0 < c1) {
+    const p = cola[c0++], d = dist[p]; if (d >= limite) continue;
+    const x = p % ancho, y = (p - x) / ancho;
+    const vecinos = [x > 0 ? p - 1 : -1, x < ancho - 1 ? p + 1 : -1, y > 0 ? p - ancho : -1, y < alto - 1 ? p + ancho : -1];
+    for (const q of vecinos) if (q >= 0 && dist[q] === 65535) { dist[q] = d + 1; cola[c1++] = q; }
+  }
+  // Cada trozo de blanco cerrado se evalúa entero. Se quita si (1) le caben cuadrados enteros de fondo junto al contorno, o
+  // (2) es blanco PURO (el fondo de una foto es 255; el blanco de un logo, una cinta o un estampado fotografiado casi nunca)
+  // y está lo bastante cerca del contorno. Así el lazo de una correa se va y la cinta blanca de una cremallera se queda.
+  const visto = new Uint8Array(ancho * alto), areaMin = Math.max(40, Math.round(0.0008 * ancho * alto));
+  for (let semilla = 0; semilla < blanco.length; semilla++) {
+    if (!blanco[semilla] || visto[semilla]) continue;
+    let a0 = 0, a1 = 0, puros = 0, minDist = 65535, tieneNucleo = false, bx0 = ancho, by0 = alto, bx1 = -1, by1 = -1;
+    visto[semilla] = 1; cola[a1++] = semilla;
+    while (a0 < a1) {
+      const p = cola[a0++], x = p % ancho, y = (p - x) / ancho, i4 = p * 4;
+      if (Math.min(data[i4], data[i4 + 1], data[i4 + 2]) >= 250) puros++;
+      if (dist[p] < minDist) minDist = dist[p];
+      if (x < bx0) bx0 = x; if (x > bx1) bx1 = x; if (y < by0) by0 = y; if (y > by1) by1 = y;
+      if (!tieneNucleo && dist[p] !== 65535 && ((dist[p] <= cercaB && llena(x, y, rB)) || llena(x, y, rA))) tieneNucleo = true;
+      for (const q of [x > 0 ? p - 1 : -1, x < ancho - 1 ? p + 1 : -1, y > 0 ? p - ancho : -1, y < alto - 1 ? p + ancho : -1]) if (q >= 0 && blanco[q] && !visto[q]) { visto[q] = 1; cola[a1++] = q; }
+    }
+    const pureza = puros / a1, grueso = Math.min(bx1 - bx0 + 1, by1 - by0 + 1) >= Math.max(4, Math.round(0.02 * M)); // una costura o una letra son finas
+    if (tieneNucleo || (a1 >= areaMin && grueso && pureza >= 0.85 && minDist <= limite)) for (let k = 0; k < a1; k++) { mask[cola[k]] = 1; blanco[cola[k]] = 0; quitados++; }
+  }
+  return { hay: true, mask, fondo, fraccion: quitados / (ancho * alto) };
+}
+
+/**
+ * Qué fracción del contorno del producto (los píxeles que quedan junto al fondo quitado) es clara. Un producto oscuro o de color vivo da
+ * casi 0; uno blanco o pastel sobre fondo blanco da mucho, y entonces el recorte sale con bordes comidos: ahí Automático no recorta.
+ */
+export function bordeClaro(data, mask, ancho, alto, claro = 205, margen = 3) {
+  // se mide unos píxeles ADENTRO del contorno: el borde mismo siempre es claro porque se mezcla con el fondo al fotografiarlo
+  let actual = mask;
+  for (let paso = 0; paso < margen; paso++) {
+    const siguiente = actual.slice();
+    for (let y = 0; y < alto; y++) for (let x = 0; x < ancho; x++) {
+      const p = y * ancho + x;
+      if (actual[p]) continue;
+      if ((x > 0 && actual[p - 1]) || (x < ancho - 1 && actual[p + 1]) || (y > 0 && actual[p - ancho]) || (y < alto - 1 && actual[p + ancho])) siguiente[p] = 1;
+    }
+    actual = siguiente;
+  }
+  let borde = 0, claros = 0;
+  for (let y = 0; y < alto; y++) {
+    for (let x = 0; x < ancho; x++) {
+      const p = y * ancho + x;
+      if (actual[p]) continue;
+      if (!((x > 0 && actual[p - 1]) || (x < ancho - 1 && actual[p + 1]) || (y > 0 && actual[p - ancho]) || (y < alto - 1 && actual[p + ancho]))) continue;
+      borde++;
+      const i = p * 4;
+      if (Math.min(data[i], data[i + 1], data[i + 2]) >= claro) claros++;
+    }
+  }
+  return borde ? claros / borde : 0;
+}
+
+/** Pasa la máscara a transparencia con el borde suavizado (sin el halo blanco que deja el recorte a tijera). Devuelve la caja del objeto. */
+export function aplicarMascara(data, mask, ancho, alto, fondo, tol = 34) {
+  const alfa = new Uint8Array(ancho * alto).fill(255);
+  for (let p = 0; p < mask.length; p++) if (mask[p]) alfa[p] = 0;
+  // en el contorno, lo más parecido al fondo se vuelve más transparente (así desaparece el halo claro del borde)
+  const vecinoFondo = (x, y) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const xx = x + dx, yy = y + dy; if (xx >= 0 && yy >= 0 && xx < ancho && yy < alto && mask[yy * ancho + xx]) return true; } return false; };
+  const contorno = [];
+  for (let y = 0; y < alto; y++) for (let x = 0; x < ancho; x++) {
+    const p = y * ancho + x;
+    if (mask[p] || !vecinoFondo(x, y)) continue;
+    const i = p * 4, dr = data[i] - fondo[0], dg = data[i + 1] - fondo[1], db = data[i + 2] - fondo[2], d = Math.sqrt(dr * dr + dg * dg + db * db);
+    alfa[p] = Math.max(0, Math.min(255, Math.round((255 * d) / (tol * 2.4))));
+    contorno.push(p);
+  }
+  // un promedio de 3×3 solo en el contorno: el borde queda suave y no escalonado
+  const copia = alfa.slice();
+  for (const p of contorno) {
+    const x = p % ancho, y = (p - x) / ancho; let suma = 0, n = 0;
+    for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const xx = x + dx, yy = y + dy; if (xx >= 0 && yy >= 0 && xx < ancho && yy < alto) { suma += copia[yy * ancho + xx]; n++; } }
+    alfa[p] = Math.round(suma / n);
+  }
+  let minX = ancho, minY = alto, maxX = -1, maxY = -1;
+  for (let y = 0; y < alto; y++) for (let x = 0; x < ancho; x++) { if (alfa[y * ancho + x] > 24) { if (x < minX) minX = x; if (x > maxX) maxX = x; if (y < minY) minY = y; if (y > maxY) maxY = y; } }
+  return { alfa, caja: maxX >= 0 ? { x: minX, y: minY, w: maxX - minX + 1, h: maxY - minY + 1 } : { x: 0, y: 0, w: ancho, h: alto } };
+}
+
+const LIMITE_BORDE_CLARO = 0.15; // en Automático: más contorno claro que esto = producto blanco/pastel, mejor con marco
+const sinFondoCache = new Map();
+/**
+ * Quita el fondo claro de una foto normal y devuelve { canvas, caja } (el objeto con transparencia alrededor), o null si no hay un fondo claro y parejo.
+ * forzar: con «Sin fondo» elegido a mano se acepta cualquier cantidad de fondo; en Automático solo si sobra bastante fondo y bastante objeto.
+ */
+function quitarFondoBlanco(foto, forzar, clave) {
+  const llave = `${clave || ''}|${forzar ? 1 : 0}`;
+  if (clave && sinFondoCache.has(llave)) return sinFondoCache.get(llave);
+  let r = null;
+  try {
+    const k = Math.min(1, 1200 / Math.max(foto.width, foto.height)), w = Math.max(1, Math.round(foto.width * k)), h = Math.max(1, Math.round(foto.height * k));
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const x = c.getContext('2d', { willReadFrequently: true }); x.drawImage(foto, 0, 0, w, h);
+    const im = x.getImageData(0, 0, w, h), m = mascaraFondo(im.data, w, h, 34, forzar);
+    if (m.hay && (forzar ? m.fraccion >= 0.02 : m.fraccion >= 0.12 && m.fraccion <= 0.9 && bordeClaro(im.data, m.mask, w, h) <= LIMITE_BORDE_CLARO)) {
+      const { alfa, caja } = aplicarMascara(im.data, m.mask, w, h, m.fondo);
+      for (let p = 0; p < alfa.length; p++) im.data[p * 4 + 3] = alfa[p];
+      x.putImageData(im, 0, 0);
+      const m2 = 2; // un poquito de aire alrededor del objeto
+      const cx = Math.max(0, caja.x - m2), cy = Math.max(0, caja.y - m2);
+      r = { canvas: c, caja: { x: cx, y: cy, w: Math.min(w - cx, caja.w + m2 * 2), h: Math.min(h - cy, caja.h + m2 * 2) } };
+    }
+  } catch { r = null; }
+  if (clave) { if (sinFondoCache.size >= 6) sinFondoCache.delete(sinFondoCache.keys().next().value); sinFondoCache.set(llave, r); }
+  return r;
 }
 
 // Texturas: ruido de valor generado una sola vez (en gris medio) y mezclado con «overlay» sobre el color de la paleta, así conserva su tono.
@@ -306,7 +457,9 @@ export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotiza
   await cargarFuentes();
   const foto = await cargarFoto(fotoUrl);
   const analisis = foto && estilo !== 'marco' ? analizarFoto(foto) : null;
-  const recorte = !!foto && (estilo === 'recorte' || (estilo !== 'marco' && analisis?.recorte));
+  let recorte = !!foto && (estilo === 'recorte' || (estilo !== 'marco' && analisis?.recorte)), origen = foto, caja = analisis?.caja;
+  // Foto normal con fondo blanco: se le quita el fondo y se trata como recorte.
+  if (foto && estilo !== 'marco' && !analisis?.recorte) { const q = quitarFondoBlanco(foto, estilo === 'recorte', fotoUrl); if (q) { origen = q.canvas; caja = q.caja; recorte = true; } }
   // Historia: lienzo vertical 9:16 (1080×1920). La composición de siempre queda centrada, dentro de las zonas que no tapa la app (arriba 250 px, abajo 320 px).
   const H = formato === 'historia' ? ALTO_HISTORIA : ALTO, dy = formato === 'historia' ? 250 : 0;
   canvas.width = ANCHO * ESCALA; canvas.height = H * ESCALA;
@@ -324,7 +477,7 @@ export async function dibujarInstagram(canvas, { fotoUrl, nombre, precio, cotiza
   ctx.setTransform(ESCALA, 0, 0, ESCALA, 0, dy * ESCALA); // desde aquí todo se dibuja con el desplazamiento de la historia
 
   const textos = { nombre, precio, cotizar, talla };
-  if (recorte) dibujarRecorte(ctx, foto, analisis?.caja ?? { x: 0, y: 0, w: foto.width, h: foto.height }, pal, textos);
+  if (recorte) dibujarRecorte(ctx, origen, caja ?? { x: 0, y: 0, w: origen.width, h: origen.height }, pal, textos);
   else dibujarMarco(ctx, foto, pal, textos);
   ctx.fillStyle = pal.suave; ctx.font = '700 24px AlexaGrotesk, sans-serif'; ctx.textAlign = 'center'; ctx.letterSpacing = '8px';
   ctx.fillText(`TIENDAS ALEXA · ${USUARIO}`, ANCHO / 2 + 4, ALTO - 44); ctx.letterSpacing = '0px';
