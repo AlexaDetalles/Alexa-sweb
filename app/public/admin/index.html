@@ -345,10 +345,12 @@
           <div class="foto-botones">
             <input type="file" id="foto-archivo" accept="image/*" hidden>
             <button type="button" class="boton suave" id="foto-subir"><svg class="ico"><use href="#i-foto"/></svg><span id="foto-subir-t">Subir foto</span></button>
+            <button type="button" class="boton suave" id="foto-pegar-boton" hidden>Pegar imagen copiada</button>
             <button type="button" class="boton suave peligro" id="foto-quitar" hidden>Quitar foto</button>
             <p class="suave" id="foto-estado" role="status"></p>
           </div>
         </div>
+        <div class="foto-pegar" id="foto-pegar" contenteditable="true" role="textbox" aria-label="Pegar una imagen copiada" spellcheck="false" autocapitalize="none" data-vacio="O toca aquí, mantén presionado y elige Pegar"></div>
         <label class="campo">Nombre<input name="nombre" maxlength="120" required></label>
         <label class="campo">Categoría<select name="categoria_id" required></select></label>
         <div class="rejilla dos">

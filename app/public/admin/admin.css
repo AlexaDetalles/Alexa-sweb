@@ -347,3 +347,9 @@ progress.barra-pago::-moz-progress-bar { background: var(--ok); }
 /* Filtros de la lista de productos: primero el tipo de stock, debajo los demás */
 .chip-stock { font-weight: 700; }
 #chips-stock { margin-bottom: 6px; }
+
+/* Cuadro para pegar una imagen copiada */
+.foto-pegar { min-height: 52px; padding: 12px 14px; border: 2px dashed var(--linea, #d7cfc3); border-radius: 10px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 14px; color: var(--muted); caret-color: transparent; user-select: text; -webkit-user-select: text; }
+.foto-pegar:empty::before { content: attr(data-vacio); pointer-events: none; }
+.foto-pegar:focus { outline: none; border-color: var(--wine); }
+.foto-pegar img { max-width: 60px; max-height: 60px; }

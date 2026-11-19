@@ -158,3 +158,7 @@ La API aguanta 493 combinaciones de datos absurdos por campo, cuerpos que no son
 - **Productos → Stock:** fila de botones *Todos los stocks · Stock local 2 · Stock local 1 · Stock aparte · Sin stock* (se recuerda la última). Debajo, *Con foto* y *Sin foto* (con sus números) cuentan solo dentro del stock elegido.
 - **Talla viva:** al escribir la descripción («Talla 9»), el campo Talla se llena solo; una talla escrita a mano no se pisa.
 - El usuario que sale al pie de las láminas está en `public/admin/instagram.js` (constante `USUARIO`).
+
+## Pegar una imagen copiada
+
+En el formulario de producto, debajo de la foto: el cuadro **«O toca aquí, mantén presionado y elige Pegar»** (sirve con el teclado del celular: copias la imagen, tocas el cuadro y eliges Pegar) y el botón **Pegar imagen copiada** (un toque; si el navegador no lo permite, te manda al cuadro). En computadora, Ctrl+V en cualquier parte del formulario también sube la imagen. La foto pegada pasa por el mismo proceso que una foto subida (se reduce y conserva la transparencia de un recorte).

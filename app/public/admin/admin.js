@@ -927,9 +927,8 @@ async function prepararFoto(archivo) {
   if (!grande || !chica || grande.size > 2 * 1024 * 1024) throw new Error('No pude reducir esa foto. Prueba con otra.');
   return { grande, chica };
 }
-$('#foto-archivo').addEventListener('change', async (ev) => {
-  const archivo = ev.target.files[0]; ev.target.value = '';
-  if (!archivo) return;
+/** Sube la foto de un producto (de un archivo o de lo que se pegó). */
+async function subirFotoProducto(archivo) {
   const estado = $('#foto-estado'), boton = $('#foto-subir');
   boton.disabled = true; estado.textContent = 'Preparando la foto…'; mostrarError('#error-producto');
   try {
@@ -940,7 +939,56 @@ $('#foto-archivo').addEventListener('change', async (ev) => {
     pintarFoto(); estado.textContent = 'Foto lista. Recuerda guardar el producto.';
   } catch (e) { estado.textContent = ''; mostrarError('#error-producto', e.message); }
   boton.disabled = false;
+}
+$('#foto-archivo').addEventListener('change', (ev) => { const archivo = ev.target.files[0]; ev.target.value = ''; if (archivo) subirFotoProducto(archivo); });
+
+// --- pegar una imagen copiada (por ejemplo «Copiar sujeto» del iPhone) --------------------------------
+const esImagen = (f) => f && String(f.type).startsWith('image/');
+/** La imagen de un pegado: un archivo directo o, si el navegador la insertó en el cuadro como <img>, esa imagen. */
+async function imagenPegada(ev, caja) {
+  const cd = ev.clipboardData;
+  const directo = [...(cd?.files ?? [])].find(esImagen) || [...(cd?.items ?? [])].find((i) => i.kind === 'file' && String(i.type).startsWith('image/'))?.getAsFile();
+  if (directo) return directo;
+  await new Promise((r) => setTimeout(r, 80)); // da tiempo a que el navegador inserte lo pegado
+  const img = caja?.querySelector('img');
+  if (img?.src) { // el panel no deja usar fetch con data:/blob:, así que la imagen se lee dibujándola en un lienzo
+    try {
+      await img.decode();
+      const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+      c.getContext('2d').drawImage(img, 0, 0);
+      const blob = await new Promise((res) => c.toBlob(res, 'image/png'));
+      if (blob) return new File([blob], 'pegada.png', { type: 'image/png' });
+    } catch { /* una imagen de otro sitio no se puede leer: se avisa abajo */ }
+  }
+  return null;
+}
+const cajaPegar = $('#foto-pegar');
+// el cuadro solo sirve para pegar: lo que se escriba con el teclado no entra
+cajaPegar.addEventListener('beforeinput', (ev) => { if (!/^insertFromPaste|^insertFromDrop/.test(ev.inputType)) ev.preventDefault(); });
+cajaPegar.addEventListener('paste', async (ev) => {
+  const archivo = await imagenPegada(ev, cajaPegar);
+  cajaPegar.innerHTML = '';
+  if (archivo) subirFotoProducto(archivo); else $('#foto-estado').textContent = 'No encontré una imagen en lo que pegaste. Copia la imagen y vuelve a intentar.';
 });
+// con teclado de computadora, Ctrl+V en cualquier parte del formulario también sirve (si lo copiado es una imagen)
+$('#dlg-producto').addEventListener('paste', (ev) => {
+  if (ev.target.closest('#foto-pegar')) return;
+  const archivo = [...(ev.clipboardData?.files ?? [])].find(esImagen);
+  if (archivo) { ev.preventDefault(); subirFotoProducto(archivo); }
+});
+// un toque: pide la imagen al portapapeles (en el iPhone aparece el aviso «Pegar»); si no se puede, manda al cuadro
+if (navigator.clipboard?.read) {
+  $('#foto-pegar-boton').hidden = false;
+  $('#foto-pegar-boton').addEventListener('click', async () => {
+    try {
+      for (const item of await navigator.clipboard.read()) {
+        const tipo = item.types.find((t) => t.startsWith('image/'));
+        if (tipo) { subirFotoProducto(new File([await item.getType(tipo)], 'pegada', { type: tipo })); return; }
+      }
+      $('#foto-estado').textContent = 'No hay ninguna imagen copiada todavía.';
+    } catch { $('#foto-estado').textContent = 'Toca el cuadro de abajo, mantén presionado y elige Pegar.'; cajaPegar.focus(); }
+  });
+}
 
 fp().addEventListener('submit', async (ev) => {
   ev.preventDefault();
