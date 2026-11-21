@@ -304,53 +304,60 @@ def reel5():
 
 
 def reel6():
-    """6-ProximoDrop · 22 s. Cada sonido cae en el cuadro donde aparece su texto o tarjeta (ver src/Drop.tsx)."""
-    F = 660
+    """6-ProximoDrop · 24 s a 120 pulsos por minuto (un pulso cada 15 cuadros). Cada sonido cae en el cuadro donde entra su texto, tarjeta o corte (ver src/Drop.tsx)."""
+    F = 720
     m = Mezcla(F)
-    base(m, F, 0.22)
-    m.poner(colchon(T(300) + 0.5, Am), 0, 1, mojado=True)
-    m.poner(colchon(T(360) + 1.0, AM, ataque=0.4, soltar=1.8), T(300), 1, mojado=True)
-    pulsos(m, 20, 180, 20, 0.5)
-    pulsos(m, 200, 540, 20, 0.45, doble=False)
-    # 1 · gancho
-    m.poner(ping(E5), T(6), 0.28, mojado=True)
-    m.poner(ping(A5), T(16), 0.28, mojado=True)
-    # 2 · cuatro tarjetas que caen (cada aterrizaje: golpe seco + nota que sube)
-    m.poner(subida(T(14)), T(60), 0.25, mojado=True)
-    for f, nota in [(74, A4), (94, Cs5), (114, E5), (134, A5)]:
-        m.poner(bombo(1.0), T(f), 0.7)
-        m.poner(papel(0.2), T(f - 6), 0.3, mojado=True)
-        m.poner(ping(nota), T(f + 2), 0.3, mojado=True)
-    # 3 · «drop» detrás del reloj
-    m.poner(subida(T(30)), T(156), 0.4, mojado=True)
-    m.poner(ping(E5), T(184), 0.26, mojado=True)
-    m.poner(golpe(), T(188), 0.7)
-    m.poner(papel(0.5), T(198), 0.3, mojado=True)
-    m.poner(campana(E5), T(206), 0.24, mojado=True)
-    m.poner(ping(A4), T(232), 0.22, mojado=True)
-    # 4 · celular
-    m.poner(subida(T(18)), T(290), 0.3, mojado=True)
-    m.poner(ping(A4), T(304), 0.28, mojado=True)
-    m.poner(ping(Cs5), T(312), 0.28, mojado=True)
-    m.poner(papel(0.4), T(310), 0.3, mojado=True)
-    for f, nota in [(352, E5), (366, A5), (380, E5)]:   # los tres aros de las categorías
-        m.poner(tic(3200, 0.05), T(f), 0.3)
-        m.poner(ping(nota), T(f), 0.22, mojado=True)
-    # 5 · llamado a la acción
-    m.poner(ping(A4), T(444), 0.28, mojado=True)
-    m.poner(ping(E5), T(452), 0.28, mojado=True)
-    m.poner(ping(Cs5), T(464), 0.26, mojado=True)
-    m.poner(campana(E5), T(480), 0.24, mojado=True)    # el botón aparece
-    m.poner(tic(2400, 0.06), T(510), 0.4)              # el botón se oprime
-    # 6 · la marca se arma
-    m.poner(golpe(), T(540), 0.55)
-    m.poner(ping(A4), T(546), 0.26, mojado=True)
+    base(m, F, 0.16)
+    m.poner(colchon(T(330) + 0.5, Am), 0, 1, mojado=True)
+    m.poner(colchon(T(390) + 1.0, AM, ataque=0.4, soltar=1.8), T(330), 1, mojado=True)
+    for f in range(15, F - 30, 15):                       # bombo en cada pulso y «tic» a contratiempo
+        m.poner(bombo(1.0), T(f), 0.42)
+        m.poner(tic(3000, 0.04), T(f + 7), 0.14, pan=0.3 if (f // 15) % 2 else -0.3)
+    cortes = [30, 60, 105, 240, 270, 330, 360, 390, 420, 480, 540, 600, 630]
+    for f in cortes:                                      # un soplido corto en cada corte
+        m.poner(papel(0.22), T(f - 4), 0.32, mojado=True)
+    # 1-2 · gancho
+    m.poner(ping(E5), T(2), 0.3, mojado=True); m.poner(ping(A5), T(9), 0.3, mojado=True)
+    m.poner(ping(Cs5), T(31), 0.3, mojado=True); m.poner(golpe(), T(33), 0.5)
+    # 3 · ventana, «algo nuevo» y la cartera
+    m.poner(ping(A4), T(62), 0.28, mojado=True); m.poner(ping(Cs5), T(64), 0.26, mojado=True); m.poner(ping(E5), T(68), 0.26, mojado=True)
+    m.poner(campana(E5), T(72), 0.2, mojado=True)
+    # 4 · cuatro tarjetas que caen (aterrizaje: golpe + nota; salida: soplido)
+    for ini, nota in [(105, A4), (138, Cs5), (171, E5), (204, A5)]:
+        m.poner(bombo(1.0), T(ini + 3), 0.6)
+        m.poner(ping(nota), T(ini + 4), 0.3, mojado=True)
+        m.poner(papel(0.25), T(ini + 28), 0.25, mojado=True)
+    # 5-6 · «Un nuevo drop de Tiendas Alexa»
+    m.poner(ping(A4), T(241), 0.28, mojado=True)
+    m.poner(golpe(), T(270), 0.6); m.poner(ping(E5), T(272), 0.3, mojado=True)
+    m.poner(ping(A5), T(278), 0.26, mojado=True); m.poner(campana(Cs5), T(284), 0.2, mojado=True)
+    # 7 · botón con tres aros
+    m.poner(ping(A4), T(332), 0.3, mojado=True)
+    for f in (338, 343, 348):
+        m.poner(tic(2200, 0.06), T(f), 0.3)
+    # 8 · tarjetas de interfaz y buscador
+    for f, nota in [(362, A4), (365, Cs5), (368, E5), (371, A5)]:
+        m.poner(ping(nota), T(f), 0.26, mojado=True)
+    # 9 · mensaje
+    m.poner(ping(E5), T(391), 0.28, mojado=True); m.poner(campana(A4), T(399), 0.2, mojado=True)
+    # 10 · «Llega en estas semanas»
+    m.poner(subida(T(12)), T(408), 0.3, mojado=True)
+    m.poner(ping(A4), T(425), 0.28, mojado=True); m.poner(ping(Cs5), T(430), 0.28, mojado=True)
+    # 11-12 · «Elige desde tu celular», «Pide por WhatsApp»
+    for ini in (480, 540):
+        m.poner(ping(E5), T(ini + 1), 0.28, mojado=True); m.poner(ping(A5), T(ini + 6), 0.28, mojado=True)
+        m.poner(papel(0.4), T(ini + 4), 0.25, mojado=True)
+    # 13 · «Solo elige y pide»
+    for f, nota in [(600, A4), (604, Cs5), (609, E5)]:
+        m.poner(ping(nota), T(f), 0.3, mojado=True)
+    m.poner(golpe(), T(604), 0.45)
+    # 14 · la marca se arma
+    m.poner(golpe(), T(632), 0.6); m.poner(ping(A4), T(634), 0.28, mojado=True)
     for i, nota in enumerate([A4, Cs5, E5, A5, Cs5 * 2]):
-        m.poner(ping(nota), T(558 + i * 4), 0.24, mojado=True)
-    m.poner(campana(E5), T(578), 0.24, mojado=True)
-    m.poner(ping(A5), T(598), 0.28, mojado=True)      # «Muy pronto.»
-    m.poner(campana(A4), T(604), 0.22, mojado=True)
-    m.poner(ping(E5), T(626), 0.22, mojado=True)
+        m.poner(ping(nota), T(640 + i * 3), 0.26, mojado=True)
+    m.poner(campana(E5), T(656), 0.24, mojado=True)
+    m.poner(ping(A5), T(666), 0.3, mojado=True); m.poner(campana(A4), T(668), 0.24, mojado=True)
+    m.poner(ping(E5), T(690), 0.22, mojado=True)
     return m
 
 

@@ -9,7 +9,7 @@ Seis reels verticales 1080×1920 a 30 fps con la identidad de la web (vino, crem
 | 3-CuentaRegresiva | 6,7 s | Fecha y hora, con tic-tac |
 | 4-Anuncio | 14,7 s | El que se promociona |
 | 5-Apertura | 13,3 s | Día del drop, con fotos y precios reales |
-| 6-ProximoDrop | 22 s | Anuncio SIN fecha de un nuevo drop (ropa, accesorios, tenis y más), con voz en off opcional |
+| 6-ProximoDrop | 24 s | Anuncio SIN fecha de un nuevo drop (ropa, accesorios, tenis y más), estilo «pop» de bloques planos, con voz en off opcional |
 
 ## Uso
 ```
@@ -27,7 +27,7 @@ Para Apertura (también lleva `incentivo`): `{"piezas":[{"img":"img/mi-foto.webp
 90 pulsos por minuto: un pulso cada 20 cuadros. Los tiempos `at` de `src/Reels.tsx` coinciden con los sonidos de `audio/musica.py`. Si mueves uno, mueve el otro.
 
 ## 6-ProximoDrop (anuncio del próximo drop, con voz)
-Tarjetas que caen («Ropa», «Accesorios», «Tenis», «y más…»), «drop» que pasa por detrás de un reloj real del catálogo, la web en un celular (con los botones Ropa, Tenis y Accesorios resaltados) y la marca que se arma. Todo lo que aún no existe va solo por props:
+Estilo de bloques planos que se alternan (vino y blanco), tipografía redonda y gruesa (Fredoka) con UNA palabra de acento por frase, cortes de ~1 s sobre pulsos de 120 BPM, ventana redondeada con foto, tarjetas que caen sobre una colina (Ropa, Accesorios, Tenis, «y más…»), tarjetas de interfaz, mensaje de WhatsApp, celular con la web real y la marca que se arma. Está tomado, escena por escena, del ritmo y la estructura de un anuncio conceptual de referencia; no usa su metraje, personajes ni audio. Todo lo que aún no existe va solo por props:
 ```
 python3 audio/musica.py                                   # música original (escribe 6-ProximoDrop-sinvoz.wav)
 pip install piper-tts                                     # una vez

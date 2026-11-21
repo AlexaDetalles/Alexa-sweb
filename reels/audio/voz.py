@@ -19,17 +19,21 @@ pub = os.path.join(aqui, '..', 'public', 'audio')
 # (segundo en que empieza, texto que se dice). Lo que aparece en pantalla es lo mismo: sirve de subtítulo.
 # «alexa shop punto ce ce» solo es la pronunciación; en pantalla va alexashop.cc.
 LINEAS = [
-    (0.30, '¿Ya viste lo que se viene?'),
-    (2.42, 'Ropa.'),
-    (3.12, 'Accesorios.'),
-    (4.00, 'Tenis.'),
-    (4.66, 'Y más.'),
-    (6.15, 'Un nuevo drop,'),
-    (7.55, 'de Tiendas Alexa.'),
-    (10.30, 'Llega en estas semanas.'),
-    (14.85, 'Entra a alexa shop punto ce ce, y escríbenos por WhatsApp.'),
-    (18.70, 'Alexa.'),
-    (19.85, 'Muy pronto.'),
+    (0.15, '¿Ya viste lo que se viene?'),
+    (2.10, 'Algo nuevo.'),
+    (3.72, 'Ropa.'),
+    (4.82, 'Accesorios.'),
+    (5.92, 'Tenis.'),
+    (7.00, 'Y más.'),
+    (8.10, 'Un nuevo drop de Tiendas Alexa.'),
+    (11.15, 'Entra a alexa shop punto ce ce,'),
+    (13.20, 'y escríbenos.'),
+    (14.25, 'Llega en estas semanas.'),
+    (16.10, 'Elige desde tu celular,'),
+    (18.10, 'y pide por WhatsApp.'),
+    (20.00, 'Solo elige y pide.'),
+    (21.85, 'Alexa.'),
+    (22.60, 'Muy pronto.'),
 ]
 
 
