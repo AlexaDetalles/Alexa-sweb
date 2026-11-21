@@ -4,7 +4,7 @@ Sirve para anuncios de Meta sin problemas de derechos de música.
 Tempo fijo: 90 pulsos por minuto = un pulso cada 20 cuadros a 30 fps. Los cortes de escena y las líneas de texto
 de reels/src/Reels.tsx caen en esos pulsos, y cada «ping» de este archivo coincide con una línea de texto que aparece.
 
-Uso:  python3 audio/musica.py        → escribe public/audio/<reel>.wav (y los mismos .mp3 en out/audio/)
+Uso:  python3 audio/musica.py        → escribe public/audio/<reel>.wav (el reel 6 sale como 6-ProximoDrop-sinvoz.wav; audio/voz.py le suma la voz y crea 6-ProximoDrop.wav) (y los mismos .mp3 en out/audio/)
 """
 import os
 import subprocess
@@ -303,12 +303,63 @@ def reel5():
     return m
 
 
+def reel6():
+    """6-ProximoDrop · 22 s. Cada sonido cae en el cuadro donde aparece su texto o tarjeta (ver src/Drop.tsx)."""
+    F = 660
+    m = Mezcla(F)
+    base(m, F, 0.22)
+    m.poner(colchon(T(300) + 0.5, Am), 0, 1, mojado=True)
+    m.poner(colchon(T(360) + 1.0, AM, ataque=0.4, soltar=1.8), T(300), 1, mojado=True)
+    pulsos(m, 20, 180, 20, 0.5)
+    pulsos(m, 200, 540, 20, 0.45, doble=False)
+    # 1 · gancho
+    m.poner(ping(E5), T(6), 0.28, mojado=True)
+    m.poner(ping(A5), T(16), 0.28, mojado=True)
+    # 2 · cuatro tarjetas que caen (cada aterrizaje: golpe seco + nota que sube)
+    m.poner(subida(T(14)), T(60), 0.25, mojado=True)
+    for f, nota in [(74, A4), (94, Cs5), (114, E5), (134, A5)]:
+        m.poner(bombo(1.0), T(f), 0.7)
+        m.poner(papel(0.2), T(f - 6), 0.3, mojado=True)
+        m.poner(ping(nota), T(f + 2), 0.3, mojado=True)
+    # 3 · «drop» detrás del reloj
+    m.poner(subida(T(30)), T(156), 0.4, mojado=True)
+    m.poner(ping(E5), T(184), 0.26, mojado=True)
+    m.poner(golpe(), T(188), 0.7)
+    m.poner(papel(0.5), T(198), 0.3, mojado=True)
+    m.poner(campana(E5), T(206), 0.24, mojado=True)
+    m.poner(ping(A4), T(232), 0.22, mojado=True)
+    # 4 · celular
+    m.poner(subida(T(18)), T(290), 0.3, mojado=True)
+    m.poner(ping(A4), T(304), 0.28, mojado=True)
+    m.poner(ping(Cs5), T(312), 0.28, mojado=True)
+    m.poner(papel(0.4), T(310), 0.3, mojado=True)
+    for f, nota in [(352, E5), (366, A5), (380, E5)]:   # los tres aros de las categorías
+        m.poner(tic(3200, 0.05), T(f), 0.3)
+        m.poner(ping(nota), T(f), 0.22, mojado=True)
+    # 5 · llamado a la acción
+    m.poner(ping(A4), T(444), 0.28, mojado=True)
+    m.poner(ping(E5), T(452), 0.28, mojado=True)
+    m.poner(ping(Cs5), T(464), 0.26, mojado=True)
+    m.poner(campana(E5), T(480), 0.24, mojado=True)    # el botón aparece
+    m.poner(tic(2400, 0.06), T(510), 0.4)              # el botón se oprime
+    # 6 · la marca se arma
+    m.poner(golpe(), T(540), 0.55)
+    m.poner(ping(A4), T(546), 0.26, mojado=True)
+    for i, nota in enumerate([A4, Cs5, E5, A5, Cs5 * 2]):
+        m.poner(ping(nota), T(558 + i * 4), 0.24, mojado=True)
+    m.poner(campana(E5), T(578), 0.24, mojado=True)
+    m.poner(ping(A5), T(598), 0.28, mojado=True)      # «Muy pronto.»
+    m.poner(campana(A4), T(604), 0.22, mojado=True)
+    m.poner(ping(E5), T(626), 0.22, mojado=True)
+    return m
+
+
 if __name__ == '__main__':
     aqui = os.path.dirname(os.path.abspath(__file__))
     destino = os.path.join(aqui, '..', 'public', 'audio')
     mp3 = os.path.join(aqui, '..', 'out', 'audio')
     os.makedirs(mp3, exist_ok=True)
-    for nombre, fn in [('1-AlgoViene', reel1), ('2-Closet', reel2), ('3-CuentaRegresiva', reel3), ('4-Anuncio', reel4), ('5-Apertura', reel5)]:
+    for nombre, fn in [('1-AlgoViene', reel1), ('2-Closet', reel2), ('3-CuentaRegresiva', reel3), ('4-Anuncio', reel4), ('5-Apertura', reel5), ('6-ProximoDrop-sinvoz', reel6)]:
         ruta = os.path.join(destino, nombre + '.wav')
         fn().terminar(ruta)
         subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', ruta, '-b:a', '192k', os.path.join(mp3, nombre + '.mp3')], check=True)
