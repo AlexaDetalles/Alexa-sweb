@@ -22,21 +22,21 @@ pub = os.path.join(aqui, '..', 'public', 'audio')
 
 # (segundo en que empieza, texto). Lo que aparece en pantalla es lo mismo: sirve de subtítulo.
 LINEAS = [
-    (0.15, '¿Ya viste lo que se viene?'),
-    (2.05, 'Algo nuevo.'),
-    (3.65, 'La ropa,'),
-    (4.75, 'los accesorios,'),
-    (5.85, 'los tenis,'),
-    (6.95, 'y mucho más.'),
-    (8.05, 'Un nuevo drop de Tiendas Alexa.'),
-    (11.10, 'Entra a nuestra web,'),
-    (12.60, 'y escríbenos por WhatsApp.'),
-    (14.55, 'Llega en estas semanas.'),
-    (16.10, 'Elige desde tu celular,'),
-    (18.10, 'y pide por WhatsApp.'),
-    (20.00, 'Solo elige y pide.'),
-    (21.85, 'Alexa.'),
-    (22.60, 'Muy pronto.'),
+    (0.20, '¿Ya viste lo que se viene?'),
+    (2.60, 'Algo nuevo.'),
+    (4.95, 'La ropa,'),
+    (6.05, 'los accesorios,'),
+    (7.15, 'los tenis,'),
+    (8.25, 'y mucho más.'),
+    (9.45, 'Un nuevo drop de Tiendas Alexa.'),
+    (12.90, 'Entra a nuestra web,'),
+    (14.15, 'y escríbenos por WhatsApp.'),
+    (15.95, 'Llega en estas semanas.'),
+    (17.95, 'Elige desde tu celular,'),
+    (19.75, 'y pide por WhatsApp.'),
+    (21.20, 'Solo elige y pide.'),
+    (23.20, 'Alexa.'),
+    (24.15, 'Muy pronto.'),
 ]
 
 

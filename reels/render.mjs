@@ -30,7 +30,7 @@ for (const id of ids.length ? ids : todas) {
     continue;
   }
   const salida = path.join(aqui, 'out', `${opt('salida') || id}.mp4`);
-  await renderMedia({composition: comp, serveUrl: sitio, codec: 'h264', crf: 18, pixelFormat: 'yuv420p', outputLocation: salida, inputProps: props, concurrency: 2, ...comun,
+  await renderMedia({composition: comp, serveUrl: sitio, codec: 'h264', crf: 18, pixelFormat: 'yuv420p', outputLocation: salida, inputProps: props, concurrency: 3, ...comun,
     onProgress: ({progress}) => process.stdout.write(`\r${id} ${(progress * 100).toFixed(0)}%   `)});
   console.log(`\nlisto ${salida}`);
 }
