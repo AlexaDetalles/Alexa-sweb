@@ -4,7 +4,7 @@ Sirve para anuncios de Meta sin problemas de derechos de música.
 Tempo fijo: 90 pulsos por minuto = un pulso cada 20 cuadros a 30 fps. Los cortes de escena y las líneas de texto
 de reels/src/Reels.tsx caen en esos pulsos, y cada «ping» de este archivo coincide con una línea de texto que aparece.
 
-Uso:  python3 audio/musica.py        → escribe public/audio/<reel>.wav (el reel 6 sale como 6-ProximoDrop-sinvoz.wav; audio/voz.py le suma la voz y crea 6-ProximoDrop.wav) (y los mismos .mp3 en out/audio/)
+Uso:  python3 audio/musica.py        → escribe public/audio/<reel>.wav (la música del reel 6 sale de audio/musica_pop.py) (y los mismos .mp3 en out/audio/)
 """
 import os
 import subprocess
@@ -303,70 +303,12 @@ def reel5():
     return m
 
 
-def reel6():
-    """6-ProximoDrop · 24 s a 120 pulsos por minuto (un pulso cada 15 cuadros). Cada sonido cae en el cuadro donde entra su texto, tarjeta o corte (ver src/Drop.tsx)."""
-    F = 720
-    m = Mezcla(F)
-    base(m, F, 0.16)
-    m.poner(colchon(T(330) + 0.5, Am), 0, 1, mojado=True)
-    m.poner(colchon(T(390) + 1.0, AM, ataque=0.4, soltar=1.8), T(330), 1, mojado=True)
-    for f in range(15, F - 30, 15):                       # bombo en cada pulso y «tic» a contratiempo
-        m.poner(bombo(1.0), T(f), 0.42)
-        m.poner(tic(3000, 0.04), T(f + 7), 0.14, pan=0.3 if (f // 15) % 2 else -0.3)
-    cortes = [30, 60, 105, 240, 270, 330, 360, 390, 420, 480, 540, 600, 630]
-    for f in cortes:                                      # un soplido corto en cada corte
-        m.poner(papel(0.22), T(f - 4), 0.32, mojado=True)
-    # 1-2 · gancho
-    m.poner(ping(E5), T(2), 0.3, mojado=True); m.poner(ping(A5), T(9), 0.3, mojado=True)
-    m.poner(ping(Cs5), T(31), 0.3, mojado=True); m.poner(golpe(), T(33), 0.5)
-    # 3 · ventana, «algo nuevo» y la cartera
-    m.poner(ping(A4), T(62), 0.28, mojado=True); m.poner(ping(Cs5), T(64), 0.26, mojado=True); m.poner(ping(E5), T(68), 0.26, mojado=True)
-    m.poner(campana(E5), T(72), 0.2, mojado=True)
-    # 4 · cuatro tarjetas que caen (aterrizaje: golpe + nota; salida: soplido)
-    for ini, nota in [(105, A4), (138, Cs5), (171, E5), (204, A5)]:
-        m.poner(bombo(1.0), T(ini + 3), 0.6)
-        m.poner(ping(nota), T(ini + 4), 0.3, mojado=True)
-        m.poner(papel(0.25), T(ini + 28), 0.25, mojado=True)
-    # 5-6 · «Un nuevo drop de Tiendas Alexa»
-    m.poner(ping(A4), T(241), 0.28, mojado=True)
-    m.poner(golpe(), T(270), 0.6); m.poner(ping(E5), T(272), 0.3, mojado=True)
-    m.poner(ping(A5), T(278), 0.26, mojado=True); m.poner(campana(Cs5), T(284), 0.2, mojado=True)
-    # 7 · botón con tres aros
-    m.poner(ping(A4), T(332), 0.3, mojado=True)
-    for f in (338, 343, 348):
-        m.poner(tic(2200, 0.06), T(f), 0.3)
-    # 8 · tarjetas de interfaz y buscador
-    for f, nota in [(362, A4), (365, Cs5), (368, E5), (371, A5)]:
-        m.poner(ping(nota), T(f), 0.26, mojado=True)
-    # 9 · mensaje
-    m.poner(ping(E5), T(391), 0.28, mojado=True); m.poner(campana(A4), T(399), 0.2, mojado=True)
-    # 10 · «Llega en estas semanas»
-    m.poner(subida(T(12)), T(408), 0.3, mojado=True)
-    m.poner(ping(A4), T(425), 0.28, mojado=True); m.poner(ping(Cs5), T(430), 0.28, mojado=True)
-    # 11-12 · «Elige desde tu celular», «Pide por WhatsApp»
-    for ini in (480, 540):
-        m.poner(ping(E5), T(ini + 1), 0.28, mojado=True); m.poner(ping(A5), T(ini + 6), 0.28, mojado=True)
-        m.poner(papel(0.4), T(ini + 4), 0.25, mojado=True)
-    # 13 · «Solo elige y pide»
-    for f, nota in [(600, A4), (604, Cs5), (609, E5)]:
-        m.poner(ping(nota), T(f), 0.3, mojado=True)
-    m.poner(golpe(), T(604), 0.45)
-    # 14 · la marca se arma
-    m.poner(golpe(), T(632), 0.6); m.poner(ping(A4), T(634), 0.28, mojado=True)
-    for i, nota in enumerate([A4, Cs5, E5, A5, Cs5 * 2]):
-        m.poner(ping(nota), T(640 + i * 3), 0.26, mojado=True)
-    m.poner(campana(E5), T(656), 0.24, mojado=True)
-    m.poner(ping(A5), T(666), 0.3, mojado=True); m.poner(campana(A4), T(668), 0.24, mojado=True)
-    m.poner(ping(E5), T(690), 0.22, mojado=True)
-    return m
-
-
 if __name__ == '__main__':
     aqui = os.path.dirname(os.path.abspath(__file__))
     destino = os.path.join(aqui, '..', 'public', 'audio')
     mp3 = os.path.join(aqui, '..', 'out', 'audio')
     os.makedirs(mp3, exist_ok=True)
-    for nombre, fn in [('1-AlgoViene', reel1), ('2-Closet', reel2), ('3-CuentaRegresiva', reel3), ('4-Anuncio', reel4), ('5-Apertura', reel5), ('6-ProximoDrop-sinvoz', reel6)]:
+    for nombre, fn in [('1-AlgoViene', reel1), ('2-Closet', reel2), ('3-CuentaRegresiva', reel3), ('4-Anuncio', reel4), ('5-Apertura', reel5)]:
         ruta = os.path.join(destino, nombre + '.wav')
         fn().terminar(ruta)
         subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', ruta, '-b:a', '192k', os.path.join(mp3, nombre + '.mp3')], check=True)

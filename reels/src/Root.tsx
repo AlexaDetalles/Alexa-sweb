@@ -14,5 +14,6 @@ export const Root: React.FC = () => (
     <Composition id="4-Anuncio" component={Anuncio} durationInFrames={440} defaultProps={porDefecto} {...base} />
     <Composition id="5-Apertura" component={Apertura} durationInFrames={aperturaFrames(aperturaPorDefecto.piezas.length)} defaultProps={aperturaPorDefecto} {...base} />
     <Composition id="6-ProximoDrop" component={ProximoDrop} durationInFrames={DROP_FRAMES} defaultProps={dropPorDefecto} {...base} />
+    <Composition id="6-ProximoDrop-16x9" component={ProximoDrop} durationInFrames={DROP_FRAMES} defaultProps={dropPorDefecto} width={1920} height={1080} fps={30} />
   </>
 );

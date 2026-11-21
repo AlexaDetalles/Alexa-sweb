@@ -14,7 +14,7 @@ const aqui = path.dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
 const opt = (n) => args.find((a) => a.startsWith(`--${n}=`))?.split('=')[1];
 const ids = args.filter((a) => !a.startsWith('--'));
-const todas = ['1-AlgoViene', '2-Closet', '3-CuentaRegresiva', '4-Anuncio', '5-Apertura', '6-ProximoDrop'];
+const todas = ['1-AlgoViene', '2-Closet', '3-CuentaRegresiva', '4-Anuncio', '5-Apertura', '6-ProximoDrop', '6-ProximoDrop-16x9'];
 const props = opt('props') ? JSON.parse(readFileSync(path.resolve(opt('props')), 'utf8')) : undefined;
 const navegador = ['/opt/pw-browsers/chromium'].find((p) => existsSync(p)); // si existe, evita descargar otro Chrome
 const comun = {...(navegador ? {browserExecutable: navegador} : {}), chromiumOptions: {gl: 'angle'}};
