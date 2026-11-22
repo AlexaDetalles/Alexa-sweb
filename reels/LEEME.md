@@ -26,17 +26,16 @@ Para Apertura (también lleva `incentivo`): `{"piezas":[{"img":"img/mi-foto.webp
 ## Sincronía
 90 pulsos por minuto: un pulso cada 20 cuadros. Los tiempos `at` de `src/Reels.tsx` coinciden con los sonidos de `audio/musica.py`. Si mueves uno, mueve el otro.
 
-## 6-ProximoDrop (anuncio del próximo drop, con voz)
-Sale en 9:16 (`6-ProximoDrop`, 1080×1920) y en 16:9 (`6-ProximoDrop-16x9`, 1920×1080, como el video de referencia), a 60 fps. Está construido a partir del análisis, fotograma a fotograma, de un anuncio conceptual de referencia; se imitó la manera de mover las cosas, no su contenido (ni su metraje, personajes, audio o textos).
+## 6-ProximoDrop (anuncio del próximo drop, con la voz real)
+Sale en 9:16 (`6-ProximoDrop`) y en 16:9 (`6-ProximoDrop-16x9`), a 60 fps, 25,2 s. Va guiado por la **locución real** (voz «Cami» de ElevenLabs, `audio/voz-cami.mp3`): cada escena y cada animación caen en la palabra que se dice (los tiempos están en `K`, en `src/Drop.tsx`). Usa las fotos reales de las prendas del drop (`public/img/drop/`) y la marca de la tienda (Vino, Dorado, Crema; Cormorant Garamond y Space Grotesk).
 
-**Transiciones** (todas en `src/Drop.tsx`; no hay un solo corte seco: cada escena entra mientras la anterior se va):
-barrido líquido con franja translúcida · letras en escalera con desenfoque · fundido a foto que se encoge hasta una ventana redondeada · texto que pasa por detrás de un recorte de producto · cinta de satén que cruza la pantalla · colina que se deforma sin parar con una mascota que rebota y levanta polvo · tarjetas que nacen de un destello, giran y se disuelven · palabras que se suman y recentran la línea · un punto que se vuelve icono y el icono que se vuelve la interfaz · máquina de escribir · tarjeta que se arma pieza por pieza (borde que se traza, precio que sube) · ventana que entra deslizando con desenfoque de movimiento · celular que sube con la web real desplazándose por dentro y el diseño que se espeja · palabras que saltan · iris circular · marca que se arma, con el tacón cayendo como el punto del logo.
+Escenas: «¿Sigues buscando qué estrenar sin ver lo mismo de siempre?» (la misma foto repetida, con glitch) · «Tenis, bolsos o ese outfit…» (una foto por palabra) · «Encontrar tu estilo no debería ser complicado» («complicado» se tacha) · «Sólo entra a AlexaShop.cc» (la dirección se escribe con la voz, celular con la web real) · «El nuevo drop pronto estará disponible…» (ventana con las prendas, sello PRONTO) · «Piezas nuevas listas para ti» (mosaico con palomitas y corazón) · «Sin vueltas, pides directo por WhatsApp» (la línea con vueltas se endereza hasta el chat) · «Sólo entra y elige Alexa» (iris y logo).
 
-Los tiempos de cada momento están en `K` (`src/Drop.tsx`); `audio/musica_pop.py` y `audio/voz.py` usan esos mismos números. Todo lo que aún no existe va solo por props.
+Transiciones (sin cortes secos; verificado midiendo el movimiento cuadro a cuadro): barrido líquido, cinta de satén, empuje, ventana que desliza con desenfoque, mosaico que gira, iris. Se inspiran en el análisis de un anuncio de referencia; no se usó su metraje, personajes, audio ni textos.
 ```
 python3 audio/musica_pop.py                                   # música original (pop, 120 BPM) → 6-ProximoDrop-sinvoz.wav
 pip install kokoro-onnx faster-whisper                        # una vez
-python3 audio/voz.py --kokoro RUTA_MODELOS --voz ef_dora      # voz natural + mezcla → 6-ProximoDrop.wav
+python3 audio/voz.py --real audio/voz-cami.mp3                # mezcla la locución real con la música → 6-ProximoDrop.wav
 python3 audio/verificar_voz.py public/audio/6-ProximoDrop.wav # comprueba que se entienda (objetivo: ≥ 0,95)
 node render.mjs 6-ProximoDrop-16x9 --props=props-drop.json --salida=6-ProximoDrop-16x9     # ≈2-3 min
 node render.mjs 6-ProximoDrop-16x9 --props=props-drop-sin-voz.json --salida=6-ProximoDrop-16x9-sin-voz
@@ -47,3 +46,5 @@ Modelos de Kokoro (una vez): `kokoro-v1.0.onnx` y `voices-v1.0.bin` de https://g
 
 ### Qué salió del análisis de la voz (21 nov 2026)
 Se transcribió cada frase con reconocimiento de voz y se comparó con el texto. Piper `es_MX-claude-high` acertó el 74 % (fallaba en palabras sueltas como «Accesorios», «Tenis», «Y más» y al leer la dirección web); Kokoro `ef_dora`, el 97 %, y sobre la mezcla final con la música, el 100 % (15 de 15 frases). Reglas: frases de 3 palabras o más, no leer direcciones web en voz alta, la música baja ~10 dB y pierde 1-4 kHz bajo la voz.
+
+**Imágenes que mejorarían el video** (para un generador premium): `IMAGENES-PARA-MEJORAR-EL-VIDEO.md`.

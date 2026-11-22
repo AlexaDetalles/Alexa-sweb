@@ -1,7 +1,9 @@
 """Voz en off del reel 6-ProximoDrop. Sintetiza cada frase, la coloca en su segundo exacto, baja y «ahueca» la música mientras habla
 y deja public/audio/6-ProximoDrop.wav (con voz). La versión sin voz es 6-ProximoDrop-sinvoz.wav (audio/musica_pop.py).
 
-Motor recomendado: Kokoro (Apache-2.0), voces en español ef_dora (mujer), em_alex y em_santa (hombre). En la prueba del 21 nov 2026 (reconocimiento de voz
+Locución real (la que se usa en el video publicado): voz «Cami» de ElevenLabs, ya con su tiempo.
+  python3 audio/voz.py --real audio/voz-cami.mp3
+Motor gratuito alternativo: Kokoro (Apache-2.0), voces en español ef_dora (mujer), em_alex y em_santa (hombre). En la prueba del 21 nov 2026 (reconocimiento de voz
 sobre cada frase) ef_dora acertó el 97 % de las frases; Piper es_MX-claude-high, el 74 %, y fallaba en palabras sueltas y en leer la dirección web.
   pip install kokoro-onnx
   modelos (una vez):  https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.0  → kokoro-v1.0.onnx y voices-v1.0.bin
@@ -21,22 +23,15 @@ aqui = os.path.dirname(os.path.abspath(__file__))
 pub = os.path.join(aqui, '..', 'public', 'audio')
 
 # (segundo en que empieza, texto). Lo que aparece en pantalla es lo mismo: sirve de subtítulo.
-LINEAS = [
-    (0.20, '¿Ya viste lo que se viene?'),
-    (2.60, 'Algo nuevo.'),
-    (4.95, 'La ropa,'),
-    (6.05, 'los accesorios,'),
-    (7.15, 'los tenis,'),
-    (8.25, 'y mucho más.'),
-    (9.45, 'Un nuevo drop de Tiendas Alexa.'),
-    (12.90, 'Entra a nuestra web,'),
-    (14.15, 'y escríbenos por WhatsApp.'),
-    (15.95, 'Llega en estas semanas.'),
-    (17.95, 'Elige desde tu celular,'),
-    (19.75, 'y pide por WhatsApp.'),
-    (21.20, 'Solo elige y pide.'),
-    (23.20, 'Alexa.'),
-    (24.15, 'Muy pronto.'),
+LINEAS = [  # frases de la locución real (voz «Cami», ElevenLabs) y el segundo en que empieza cada una; sirven para verificar la mezcla
+    (0.00, '¿Sigues buscando qué estrenar sin ver lo mismo de siempre?'),
+    (4.42, 'Tenis, bolsos o ese outfit que llama la atención.'),
+    (8.34, 'Encontrar tu estilo no debería ser complicado.'),
+    (11.30, 'Sólo entra a AlexaShop.cc.'),
+    (14.04, 'El nuevo drop pronto estará disponible en nuestra página web.'),
+    (17.26, 'Piezas nuevas listas para ti.'),
+    (19.48, 'Sin vueltas, pides directo por WhatsApp.'),
+    (22.04, 'Sólo entra y elige Alexa.'),
 ]
 
 
@@ -55,11 +50,11 @@ def escribir(ruta, s):
         w.writeframes((np.clip(s, -1, 1) * 32767).astype('<i2').tobytes())
 
 
-def limpiar(ruta_in, ruta_out):
+def limpiar(ruta_in, ruta_out, recortar=True):
     """Remuestrea a 44,1 kHz, recorta silencios, quita graves de ruido, compresión suave y nivel de voz estable."""
+    recorte = 'silenceremove=start_periods=1:start_threshold=-45dB:stop_periods=1:stop_threshold=-45dB:stop_duration=0.15,' if recortar else ''
     subprocess.run(['ffmpeg', '-y', '-loglevel', 'error', '-i', ruta_in, '-ar', str(SR), '-ac', '1', '-af',
-                    'silenceremove=start_periods=1:start_threshold=-45dB:stop_periods=1:stop_threshold=-45dB:stop_duration=0.15,'
-                    'highpass=f=90,acompressor=threshold=-20dB:ratio=3:attack=5:release=80,loudnorm=I=-17:TP=-2:LRA=7', ruta_out], check=True)
+                    recorte + 'highpass=f=80,acompressor=threshold=-20dB:ratio=2.5:attack=5:release=90,loudnorm=I=-17:TP=-2:LRA=9', ruta_out], check=True)
 
 
 def sintetizar_piper(modelo, velocidad, tmp):
@@ -119,7 +114,7 @@ def main():
     voz = np.zeros(n)
     with tempfile.TemporaryDirectory() as tmp:
         if a.real:
-            f = os.path.join(tmp, 'real.wav'); limpiar(a.real, f)
+            f = os.path.join(tmp, 'real.wav'); limpiar(a.real, f, recortar=False)   # sin recortar: la locución ya trae su tiempo
             x, _ = leer(f); voz[:min(n, len(x))] = x[:n]
         else:
             if a.kokoro:

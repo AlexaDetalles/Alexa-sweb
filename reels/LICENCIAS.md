@@ -8,7 +8,8 @@
 | Pictogramas, mascota, colina, cinta e iris (perchero, tenis, más, bolsa…) | Dibujados en SVG/CSS dentro de `src/Drop.tsx` | Propios |
 | Foto del reloj (`reloj-dorado-recorte.webp`) | Producto RLA-11 del catálogo de Alexa, con el fondo blanco quitado | Material de Alexa |
 | Música | Sintetizada desde cero por `audio/musica_pop.py` (sin muestras ni canciones de terceros) | Propia |
-| Voz en off | Kokoro-82M (pesos Apache-2.0) con el paquete `kokoro-onnx` (MIT), voz `ef_dora`. Descargados de la página de lanzamientos de kokoro-onnx; confirma sus términos vigentes antes de un uso comercial grande | Apache-2.0 |
-| Tipografía del reel 6 | Fredoka 600 y 700 (SIL OFL, `public/fonts/LICENSE-fredoka.txt`) | OFL |
+| Voz en off | Locución «Cami - Warm & Energetic Spanish» (eleven_v4) generada por la dueña con su cuenta de ElevenLabs (`audio/voz-cami.mp3`). Vale la licencia de su plan de pago; revisa sus Términos si el video es para un cliente | Plan de ElevenLabs |
+| Tipografías del reel 6 | Cormorant Garamond y Space Grotesk (SIL OFL, en `public/fonts/`) | OFL |
+| Fotos de las prendas del drop (`public/img/drop/`) | Fotos propias de Tiendas Alexa (generador del carrusel «New Drop»); muestran marcas de terceros: solo para promocionar en la tienda | Material de Alexa |
 
 Las transiciones y el ritmo se inspiran en el análisis de un anuncio conceptual de terceros (barridos, tarjetas, interfaz, celular, marca que se arma). Es la técnica, no su contenido: no se usó su metraje, personajes, audio ni textos. No se usó su audio, imagen, personajes ni textos.
