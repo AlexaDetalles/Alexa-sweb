@@ -54,3 +54,4 @@ Se transcribió cada frase con reconocimiento de voz y se comparó con el texto.
 - Son fotos de productos de terceros (Nike, Levi's, Reebok, New Balance, US Polo): mostrarlas solo si la tienda realmente los vende.
 - Transiciones nuevas: zoom con onda de choque, cinta de satén con tenis, empuje vertical, barrido con desenfoque, zoom al mosaico, barrido líquido, iris.
 - Render: `node render.mjs 6-ProximoDrop-16x9 --props=props-drop.json --salida=6-ProximoDrop-16x9` (y `6-ProximoDrop` para 9:16). Tarda ~10 min cada uno.
+- v6: la chica (ilustración 3D generada con IA por la tienda, Gemini) en 5 tomas: cama (gancho), calle («llama la atención»), clóset («encontrar tu estilo»), mano con pantalla verde (el chat de WhatsApp va dentro con homografía cuadro a cuadro) y bolsa (cierre). Cuadros en `public/img/chica/`; recortes con BiRefNet desde el video de fondo blanco. Es imagen de campaña, no una clienta real.
