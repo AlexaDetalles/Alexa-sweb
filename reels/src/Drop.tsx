@@ -222,47 +222,105 @@ const ProdVuelo: React.FC<{t: number; cx: number; cy: number; v: Vuelo; sombra?:
   );
 };
 
+// ---------- tomas de video de la chica (secuencias de cuadros a 24 fps, ilustración 3D generada con IA para la campaña) ----------
+// Se guardan como cuadros webp para que el render sea exacto cuadro a cuadro; entre dos cuadros se funde el siguiente (cámara lenta suave).
+type TomaId = 'cama' | 'calle' | 'mano' | 'closet' | 'bolsa';
+// x, y, w, h: recorte dentro del cuadro original de 1280×720 (las tomas con fondo ocupan el cuadro entero)
+const TOMA: Record<TomaId, {x: number; y: number; w: number; h: number}> = {
+  cama: {x: 0, y: 0, w: 1280, h: 720}, calle: {x: 0, y: 0, w: 1280, h: 720}, mano: {x: 0, y: 0, w: 1280, h: 720},
+  closet: {x: 0, y: 0, w: 1280, h: 720}, bolsa: {x: 0, y: 0, w: 1280, h: 720},
+};
+const cuadroToma = (t: number, t0: number, vel: number) => {
+  const f = Math.max(0, Math.min(47, (t - t0) * 24 * vel));
+  const i = Math.min(46, Math.floor(f));
+  return {i, fr: f - i};
+};
+const urlToma = (id: TomaId, i: number) => staticFile(`img/chica/${id}/${String(i).padStart(2, '0')}.webp`);
+/** Dibuja la toma (cuadro i fundido con i+1) llenando su caja. */
+const Toma: React.FC<{id: TomaId; t: number; t0: number; vel: number; style?: React.CSSProperties}> = ({id, t, t0, vel, style}) => {
+  const {i, fr} = cuadroToma(t, t0, vel);
+  const im: React.CSSProperties = {position: 'absolute', left: 0, top: 0, width: '100%', height: '100%'};
+  return (
+    <div style={{position: 'absolute', ...style}}>
+      <Img src={urlToma(id, i)} style={im} />
+      {fr > 0.02 ? <Img src={urlToma(id, i + 1)} style={{...im, opacity: fr}} /> : null}
+    </div>
+  );
+};
+/** Toma con fondo: a pantalla completa en 16:9; en 9:16 dentro de una tarjeta, con la misma toma desenfocada de fondo. */
+const TomaFondo: React.FC<{id: TomaId; t: number; t0: number; vel: number; fx: number; ax?: number; zoom?: number; tarjeta?: {x: number; y: number; w: number; h: number}; children?: React.ReactNode}> = ({id, t, t0, vel, fx, ax = 0.5, zoom = 1, tarjeta, children}) => {
+  const {w, h, L, k} = useD();
+  const caja = L || !tarjeta ? {x: 0, y: 0, w, h} : tarjeta;
+  const H0 = Math.max(caja.h, (caja.w * 9) / 16) * zoom, W0 = (H0 * 16) / 9;
+  const left = Math.min(0, Math.max(caja.w - W0, caja.w * ax - fx * W0));
+  const top = (caja.h - H0) / 2;
+  const dentro = <Toma id={id} t={t} t0={t0} vel={vel} style={{left, top, width: W0, height: H0}} />;
+  if (L || !tarjeta) return <AbsoluteFill style={{overflow: 'hidden'}}>{dentro}{children}</AbsoluteFill>;
+  const Hb = h * 1.05, Wb = (Hb * 16) / 9;
+  return (
+    <AbsoluteFill style={{overflow: 'hidden', background: P.night}}>
+      <div style={{position: 'absolute', inset: 0, filter: `blur(${34 * k}px) brightness(.55) saturate(1.2)`, transform: 'scale(1.1)'}}>
+        <Toma id={id} t={t} t0={t0} vel={vel} style={{left: w / 2 - fx * Wb, top: (h - Hb) / 2, width: Wb, height: Hb}} />
+      </div>
+      <div style={{position: 'absolute', left: caja.x, top: caja.y, width: caja.w, height: caja.h, borderRadius: 44 * k, overflow: 'hidden', boxShadow: `0 ${40 * k}px ${90 * k}px rgba(0,0,0,.45), 0 0 0 ${4 * k}px rgba(210,168,81,.85)`}}>
+        {dentro}
+        {children}
+      </div>
+    </AbsoluteFill>
+  );
+};
+/** Recorte (fondo transparente) con alto en px de pantalla, anclado por su borde inferior. */
+const Recorte: React.FC<{id: TomaId; t: number; t0: number; vel: number; alto: number; cx: number; base: number; style?: React.CSSProperties}> = ({id, t, t0, vel, alto, cx, base, style}) => {
+  const m = TOMA[id];
+  const s = alto / m.h, ww = m.w * s;
+  return <Toma id={id} t={t} t0={t0} vel={vel} style={{left: cx - ww / 2, top: base - alto, width: ww, height: alto, ...style}} />;
+};
+// esquinas de la pantalla verde en cada cuadro de la toma «mano» (detectadas con croma, en px del cuadro de 1280×720)
+const PANTALLA: Pt[][] = [[[418,114],[649,84],[811,587],[566,625]],[[418,114],[649,84],[811,587],[566,625]],[[418,114],[649,84],[811,587],[566,625]],[[420,112],[649,84],[809,589],[566,625]],[[420,112],[649,84],[811,586],[568,627]],[[420,112],[647,82],[811,586],[568,627]],[[420,112],[653,86],[811,586],[568,627]],[[420,112],[653,86],[809,588],[568,627]],[[422,110],[651,84],[813,583],[568,626]],[[422,110],[649,82],[813,583],[566,623]],[[418,112],[655,86],[813,583],[568,625]],[[418,112],[651,82],[813,583],[568,625]],[[420,110],[649,80],[811,584],[570,626]],[[422,108],[657,86],[811,584],[566,621]],[[418,110],[651,80],[813,581],[568,623]],[[420,108],[649,78],[813,581],[568,623]],[[422,106],[653,80],[811,583],[566,619]],[[422,106],[651,78],[813,580],[566,619]],[[421,106],[649,76],[813,580],[568,621]],[[420,106],[653,78],[813,579],[568,621]],[[422,104],[651,76],[813,579],[566,617]],[[422,104],[655,78],[813,579],[568,619]],[[424,102],[653,76],[813,578],[568,619]],[[420,104],[651,74],[815,575],[570,620]],[[420,104],[655,76],[813,577],[568,617]],[[422,102],[653,74],[813,577],[568,617]],[[422,102],[653,74],[813,577],[570,619]],[[424,100],[657,76],[813,577],[568,615]],[[424,100],[655,74],[813,576],[568,615]],[[420,102],[653,72],[813,576],[570,617]],[[422,100],[653,72],[813,576],[570,617]],[[422,100],[651,70],[815,573],[572,618]],[[422,100],[657,74],[815,573],[568,613]],[[422,100],[657,74],[815,573],[568,613]],[[422,100],[655,72],[815,573],[568,613]],[[422,100],[655,72],[815,573],[568,613]],[[422,100],[657,74],[815,573],[572,618]],[[422,100],[651,70],[815,573],[572,619]],[[422,100],[653,72],[813,576],[570,617]],[[422,100],[653,72],[813,576],[570,617]],[[421,102],[655,74],[813,576],[568,615]],[[424,100],[657,76],[813,577],[568,615]],[[422,102],[653,74],[813,577],[570,619]],[[422,102],[655,76],[813,577],[568,617]],[[422,102],[651,74],[815,575],[568,617]],[[420,104],[653,76],[813,578],[570,620]],[[420,104],[655,78],[813,578],[570,621]],[[422,104],[651,76],[813,579],[568,619]]];
+/** Homografía: lleva el rectángulo W×H a un cuadrilátero (sup-izq, sup-der, inf-der, inf-izq) → matrix3d de CSS. */
+const homografia = (W: number, H: number, q: Pt[]) => {
+  const [[x0, y0], [x1, y1], [x2, y2], [x3, y3]] = q;
+  const dx1 = x1 - x2, dx2 = x3 - x2, dx3 = x0 - x1 + x2 - x3, dy1 = y1 - y2, dy2 = y3 - y2, dy3 = y0 - y1 + y2 - y3;
+  const den = dx1 * dy2 - dx2 * dy1;
+  const g = (dx3 * dy2 - dx2 * dy3) / den, hh = (dx1 * dy3 - dx3 * dy1) / den;
+  const a = x1 - x0 + g * x1, b = x3 - x0 + hh * x3, c = x0, d = y1 - y0 + g * y1, e = y3 - y0 + hh * y3, f = y0;
+  return `matrix3d(${a / W},${d / W},0,${g / W},${b / H},${e / H},0,${hh / H},0,0,1,0,${c},${f},0,1)`;
+};
+
 // =====================================================================================================
 // 1 · «¿Sigues buscando qué estrenar sin ver lo mismo de siempre?» (0 – 4,3 s)
 // =====================================================================================================
 type PalT = [string, number, boolean?];
 const Hook: React.FC<{t: number}> = ({t}) => {
   const {w, h, L, k} = useD();
-  const lineas: PalT[][] = L
-    ? [[['¿Sigues', 0.0], ['buscando', 0.44]], [['qué', 0.84], ['estrenar', 1.26, true]], [['sin', 1.88], ['ver', 2.48], ['lo', 2.72], ['mismo', 2.86], ['de', 3.18], ['siempre?', 3.4, true]]]
-    : [[['¿Sigues', 0.0], ['buscando', 0.44]], [['qué', 0.84], ['estrenar', 1.26, true]], [['sin', 1.88], ['ver', 2.48], ['lo', 2.72], ['mismo', 2.86]], [['de', 3.18], ['siempre?', 3.4, true]]];
-  const cols = L ? 5 : 3, rows = L ? 3 : 5;
-  const tw = w / cols, th = h / rows;
-  const glitch = t > 3.38 && t < 3.72;
+  const lineas: PalT[][] = [[['¿Sigues', 0.0], ['buscando', 0.44]], [['qué', 0.84], ['estrenar', 1.26, true]], [['sin', 1.88], ['ver', 2.48], ['lo', 2.72], ['mismo', 2.86]], [['de', 3.18], ['siempre?', 3.4, true]]];
+  const s = L ? 132 : 116;
+  const glitch = t > 3.38 && t < 3.66;
   const destello = Math.max(0, 1 - Math.abs(t - 3.42) * 9);
-  const [sx, sy] = temblor(t, [[3.4, 7 * k]]);
+  const [sx, sy] = temblor(t, [[3.4, 9 * k]]);
+  const tarjeta = {x: 60 * k, y: 0.055 * h, w: w - 120 * k, h: 0.53 * h};
+  const kb = 1.06 + 0.05 * pr(t, 0, 4.4, eInOut);   // empuje lento de cámara
+  const sep = glitch ? (random(`hg${Math.floor(t * 30)}`) - 0.5) * 26 * k : 0;
+  const fondo = (id: string, extra?: React.CSSProperties) => (
+    <AbsoluteFill key={id} style={{transform: `scale(${kb})`, transformOrigin: L ? '30% 40%' : '50% 30%', ...extra}}>
+      <TomaFondo id="cama" t={t} t0={0} vel={0.55} fx={0.27} ax={L ? 0.3 : 0.5} zoom={L ? 1 : 1.12} tarjeta={tarjeta} />
+    </AbsoluteFill>
+  );
   return (
-    <AbsoluteFill style={{background: `radial-gradient(circle at 25% 18%, #5e1f30 0%, ${P.deep} 55%, ${P.night} 100%)`, transform: `translate(${sx}px, ${sy}px) scale(${1.02 + t * 0.01})`}}>
-      <Bokeh t={t} n={12} alfa={0.2} />
-      <div style={{position: 'absolute', top: 0, bottom: 0, left: lerp(-0.4 * w, 1.3 * w, pr(t, 0.0, 1.2, eInOut)), width: 0.3 * w, background: 'linear-gradient(100deg, rgba(255,255,255,0), rgba(255,236,200,.16), rgba(255,255,255,0))', transform: 'skewX(-18deg)'}} />
-      {/* «lo mismo de siempre»: el mismo tenis repetido en filas que corren */}
-      <AbsoluteFill style={{opacity: 1 - pr(t, 3.6, 0.4, eInOut), overflow: 'hidden'}}>
-        {Array.from({length: rows * (cols + 2)}).map((_, i) => {
-          const r = Math.floor(i / (cols + 2)), c = i % (cols + 2);
-          const at = 2.25 + 0.03 * (r * cols + (c % cols));
-          const dir = r % 2 ? 1 : -1;
-          const jx = glitch ? (random(`gx${i}${Math.floor(t * 30)}`) - 0.5) * 50 * k : 0;
-          const off = (((t - 2.2) * 70 * k * dir) % tw);
-          const base = (c - 1) * tw + off + (r % 2 ? 0.5 * tw : 0);
-          return (
-            <div key={i} style={{position: 'absolute', left: base + jx, top: r * th + th * 0.12, width: tw * 0.82, opacity: cl((t - at) / 0.3) * 0.3, filter: `grayscale(1) brightness(${glitch ? 1.5 : 0.85})`}}>
-              <Prod id="tenis-gris" w={(tw * 0.82) / k} />
-            </div>
-          );
-        })}
-      </AbsoluteFill>
-      <AbsoluteFill style={{background: 'linear-gradient(90deg, rgba(27,17,20,.78) 0%, rgba(27,17,20,.3) 100%)'}} />
-      <AbsoluteFill style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', paddingLeft: (L ? 150 : 80) * k, gap: (L ? 4 : 2) * k}}>
+    <AbsoluteFill style={{background: P.night, transform: `translate(${sx}px, ${sy}px)`}}>
+      {fondo('a', {opacity: pr(t, 0, 0.5)})}
+      {glitch ? <>{fondo('r', {left: sep, mixBlendMode: 'screen', opacity: 0.45, filter: 'sepia(1) hue-rotate(-50deg) saturate(4)'})}{fondo('b', {left: -sep, mixBlendMode: 'screen', opacity: 0.35, filter: 'sepia(1) hue-rotate(170deg) saturate(3)'})}</> : null}
+      {L ? <AbsoluteFill style={{background: 'linear-gradient(270deg, rgba(27,17,20,.9) 0%, rgba(27,17,20,.72) 38%, rgba(27,17,20,0) 68%)'}} />
+        : <AbsoluteFill style={{background: `linear-gradient(180deg, rgba(27,17,20,0) 52%, ${P.night} 64%)`}} />}
+      <Bokeh t={t} n={10} alfa={0.18} />
+      <AbsoluteFill style={L
+        ? {display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', paddingLeft: 0.56 * w, gap: 2 * k}
+        : {display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', paddingLeft: 80 * k, paddingTop: 0.64 * h, gap: 0}}>
         {lineas.map((ln, i) => (
-          <div key={i} style={{display: 'flex', gap: 0.24 * (L ? 164 : 140) * k, alignItems: 'baseline'}}>
+          <div key={i} style={{display: 'flex', gap: 0.24 * s * k, alignItems: 'baseline'}}>
             {ln.map(([txt, at, acento], j) => (
               <Rev key={j} t={t} at={at} dur={0.65}>
-                {acento ? <Oro s={L ? 170 : 146} t={t}>{txt}</Oro> : <H s={L ? 164 : 140} color={P.cream}>{txt}</H>}
+                {acento ? <Oro s={s * 1.05} t={t}>{txt}</Oro> : <H s={s} color={P.cream}>{txt}</H>}
               </Rev>
             ))}
           </div>
@@ -333,14 +391,47 @@ const Grupos: React.FC<{t: number}> = ({t}) => {
 };
 
 // =====================================================================================================
+// 2b · «…ese outfit que llama la atención.» (6,3 – 8,9 s): se abre un círculo desde el grupo «Outfit» hacia la calle
+// =====================================================================================================
+const T_CALLE = 6.26;
+const Calle: React.FC<{t: number}> = ({t}) => {
+  const {w, h, L, k} = useD();
+  const foco = pr(t, K.llama, 0.6, eInOut);
+  const tarjeta = {x: 60 * k, y: 0.05 * h, w: w - 120 * k, h: 0.66 * h};
+  const gx = w / 2, gy = L ? 0.5 * h : tarjeta.y + tarjeta.h * 0.5;
+  const s = L ? 112 : 104;
+  const pal: [string, number, boolean?][] = [['que', 6.7], ['llama', 6.88, true], ['la', 7.08], ['atención', 7.2, true]];
+  const q = cl((t - K.llama) / 1.1);
+  return (
+    <AbsoluteFill style={{background: P.night}}>
+      <AbsoluteFill style={{transform: `scale(${1.12 - 0.08 * pr(t, T_CALLE, 1.2, eOut5) + 0.05 * foco})`, transformOrigin: `50% ${L ? 45 : 35}%`}}>
+        <TomaFondo id="calle" t={t} t0={T_CALLE} vel={0.78} fx={0.5} zoom={L ? 1 : 1.08} tarjeta={tarjeta} />
+      </AbsoluteFill>
+      {/* foco de luz: el resto se oscurece y ella queda iluminada */}
+      <AbsoluteFill style={{background: `radial-gradient(ellipse ${L ? 26 : 46}% ${L ? 60 : 40}% at 50% ${(gy / h) * 100}%, rgba(27,17,20,0) 40%, rgba(27,17,20,.62) 100%)`, opacity: foco}} />
+      {L ? <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(27,17,20,0) 62%, rgba(27,17,20,.75) 100%)'}} /> : null}
+      {q > 0 && q < 1 ? <div style={{position: 'absolute', left: gx - 420 * k * (0.5 + q), top: gy - 420 * k * (0.5 + q), width: 840 * k * (0.5 + q), height: 840 * k * (0.5 + q), borderRadius: '50%', border: `${7 * k * (1 - q)}px solid ${P.gold}`, opacity: 1 - q}} /> : null}
+      <Destellos t={t} t0={K.llama} x={gx} y={gy} n={30} fuerza={640} vida={1.3} />
+      <div style={{position: 'absolute', left: 0, right: 0, top: L ? undefined : tarjeta.y + tarjeta.h + 46 * k, bottom: L ? 0.07 * h : undefined, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 18 * k}}>
+        <Pal t={t} at={T_CALLE + 0.25} dur={0.45} dy={24} blur={6}>
+          <div style={{background: P.wine, borderRadius: 99, padding: `${12 * k}px ${38 * k}px`, boxShadow: `0 ${12 * k}px ${28 * k}px rgba(0,0,0,.35)`}}><Lab s={26} color={P.cream}>Outfit</Lab></div>
+        </Pal>
+        <div style={{display: 'flex', gap: 0.22 * s * k, alignItems: 'baseline', flexWrap: 'wrap', justifyContent: 'center', maxWidth: w - 100 * k}}>
+          {pal.map(([txt, at, oro], i) => <Rev key={i} t={t} at={at} dur={0.6}>{oro ? <Oro s={s * 1.06} t={t}>{txt}</Oro> : <H s={s} color={P.cream}>{txt}</H>}</Rev>)}
+        </div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// =====================================================================================================
 // 3 · «Encontrar tu estilo no debería ser complicado.» (8 – 11,5 s): profundidad de campo con productos desenfocados
 // =====================================================================================================
 const Estilo: React.FC<{t: number}> = ({t}) => {
   const {w, h, L, k} = useD();
-  const s = L ? 168 : 140;
-  const lineas: PalT[][] = L
-    ? [[['Encontrar', 8.34], ['tu', 8.78], ['estilo', 8.9, true]], [['no', 9.28], ['debería', 9.72], ['ser', 10.16], ['complicado.', 10.34]]]
-    : [[['Encontrar', 8.34]], [['tu', 8.78], ['estilo', 8.9, true]], [['no', 9.28], ['debería', 9.72]], [['ser', 10.16], ['complicado.', 10.34]]];
+  const s = L ? 140 : 128;
+  const lineas: PalT[][] = [[['Encontrar', 8.34]], [['tu', 8.78], ['estilo', 8.9, true]], [['no', 9.28], ['debería', 9.72]], [['ser', 10.16], ['complicado.', 10.34]]];
+  const sube = spr(t, 8.15, 5.5, 9);
   const tacha = pr(t, K.tachon, 0.32, eInOut);
   const apaga = pr(t, K.tachon + 0.15, 0.4, eOut);
   const a = t - 8;
@@ -360,7 +451,12 @@ const Estilo: React.FC<{t: number}> = ({t}) => {
         ))}
         <Bokeh t={t} n={14} alfa={0.3} />
         <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(27,17,20,.35) 0%, rgba(27,17,20,.55) 100%)'}} />
-        <AbsoluteFill style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: L ? 'flex-start' : 'center', paddingLeft: (L ? 150 : 0) * k, gap: 8 * k}}>
+        {/* ella, recortada, decide entre dos blusas */}
+        <div style={{position: 'absolute', left: (L ? 0.73 : 0.5) * w - 0.5 * w, top: 0, width: w, height: h, transform: `translateY(${(1 - Math.min(1.02, sube)) * 160 * k}px)`, opacity: cl(sube * 1.6)}}>
+          <div style={{position: 'absolute', left: 0.5 * w - (L ? 520 : 470) * k, top: h - (L ? 0.95 : 0.52) * h, width: (L ? 1040 : 940) * k, height: (L ? 0.95 : 0.52) * h, borderRadius: '50%', background: 'radial-gradient(ellipse at 50% 55%, rgba(210,168,81,.32) 0%, rgba(210,168,81,0) 65%)'}} />
+          <Recorte id="closet" t={t} t0={8.0} vel={0.56} alto={(L ? 0.95 : 0.52) * h} cx={0.5 * w} base={h + 2} style={{filter: `drop-shadow(0 0 ${30 * k}px rgba(210,168,81,.28))`}} />
+        </div>
+        <AbsoluteFill style={{display: 'flex', flexDirection: 'column', justifyContent: L ? 'center' : 'flex-start', alignItems: L ? 'flex-start' : 'center', paddingLeft: (L ? 150 : 0) * k, paddingTop: L ? 0 : 0.08 * h, gap: 4 * k}}>
           {lineas.map((ln, i) => (
             <div key={i} style={{display: 'flex', gap: 0.24 * s * k, alignItems: 'baseline'}}>
               {ln.map(([txt, at, acento], j) => {
@@ -593,81 +689,99 @@ const Piezas: React.FC<{t: number}> = ({t}) => {
 // =====================================================================================================
 const Whatsapp: React.FC<{t: number}> = ({t}) => {
   const {w, h, L, k} = useD();
-  const dibuja = pr(t, 19.6, 0.8, eInOut);
-  const endereza = pr(t, K.directo - 0.15, 0.55, eInOut);
-  const largo = (L ? 0.84 : 0.8) * w;
-  const x0 = L ? 0.08 * w : 0.1 * w;
-  const y0 = L ? 0.73 * h : 0.55 * h;
-  const amp = lerp(1, 0, endereza);
-  const pts: string[] = [];
-  const n = 140;
-  for (let i = 0; i <= Math.floor(n * dibuja); i++) {
-    const s = i / n;
-    pts.push(`${(x0 + s * largo + Math.sin(s * Math.PI * 9) * 64 * k * amp).toFixed(1)},${(y0 + Math.cos(s * Math.PI * 9) * 64 * k * amp - 64 * k * amp).toFixed(1)}`);
-  }
-  const chatP = spr(t, 20.3, 6, 13);
+  const T0 = 19.1, VEL = 0.69;
+  // dónde cae la toma en pantalla
+  const caja = L ? {x: 0, y: 0, w, h} : {x: 60 * k, y: 0.3 * h, w: w - 120 * k, h: 0.65 * h};
+  const zoom = L ? 1.1 : 1.0, fx = 0.48, ax = L ? 0.36 : 0.5;
+  const H0 = Math.max(caja.h, (caja.w * 9) / 16) * zoom, W0 = (H0 * 16) / 9;
+  const left = Math.min(0, Math.max(caja.w - W0, caja.w * ax - fx * W0)), top = (caja.h - H0) / 2;
+  const kb = 1 + 0.03 * pr(t, T0, 3, eInOut);
+  // esquinas de la pantalla verde en este instante (interpoladas entre cuadros) y algo agrandadas: lo que sobra lo tapa el marco
+  const {i, fr} = cuadroToma(t, T0, VEL);
+  const q0 = PANTALLA[i], q1 = PANTALLA[i + 1];
+  const qq = q0.map((p, j) => [lerp(p[0], q1[j][0], fr), lerp(p[1], q1[j][1], fr)] as Pt);
+  const cx = qq.reduce((a, p) => a + p[0], 0) / 4, cy = qq.reduce((a, p) => a + p[1], 0) / 4;
+  const quad = qq.map(([x, y]) => [left + ((cx + (x - cx) * 1.07) / 1280) * W0, top + ((cy + (y - cy) * 1.05) / 720) * H0] as Pt);
+  const CW = 460, CH = 1000;
+  const enQuad = (u: number, v: number): Pt => {
+    const a = quad[0], b = quad[1], c = quad[2], d = quad[3];
+    const x1 = lerp(a[0], b[0], u), y1 = lerp(a[1], b[1], u), x2 = lerp(d[0], c[0], u), y2 = lerp(d[1], c[1], u);
+    return [caja.x + lerp(x1, x2, v), caja.y + lerp(y1, y2, v)];
+  };
+  // momentos del chat
   const texto = 'Hola Alexa, quiero ver el nuevo drop';
-  const escrito = texto.slice(0, Math.floor(Math.max(0, t - 20.85) / 0.018));
-  const envia = spr(t, K.whatsapp, 5, 17);
-  const cw = (L ? 660 : 900) * k;
-  const chatX = L ? 0.52 * w : w / 2 - cw / 2, chatY = L ? 0.2 * h : 0.62 * h;
-  const vol = pr(t, 20.55, 0.55, eInOut5);
-  const volAnt = pr(t - FRAME, 20.55, 0.55, eInOut5);
-  const px = lerp(w + 150 * k, chatX + 90 * k, vol), py = lerp(-0.1 * h, chatY + 150 * k, vol) - 120 * k * Math.sin(Math.PI * vol);
+  const escrito = t >= K.whatsapp ? '' : texto.slice(0, Math.floor(Math.max(0, t - 20.85) / 0.012));
+  const envia = spr(t, K.whatsapp, 6, 14);
+  const vol = pr(t, 20.45, 0.6, eInOut5), volAnt = pr(t - FRAME, 20.45, 0.6, eInOut5);
+  const [dx, dy] = enQuad(0.3, 0.84);
+  const ini: Pt = [L ? w + 200 * k : w + 150 * k, L ? 0.1 * h : 0.2 * h];
+  const px = lerp(ini[0], dx, vol), py = lerp(ini[1], dy, vol) - 160 * k * Math.sin(Math.PI * vol);
+  const pxA = lerp(ini[0], dx, volAnt);
+  const [ex, ey] = enQuad(0.6, 0.62);
   const [sx, sy] = temblor(t, [[K.whatsapp, 6 * k]]);
-  return (
-    <AbsoluteFill style={{background: '#fff', transform: `translate(${sx}px, ${sy}px)`}}>
-      <div style={{position: 'absolute', right: -0.1 * w, bottom: -0.3 * h, width: 0.7 * w, height: 0.7 * w, borderRadius: '50%', background: 'radial-gradient(circle, rgba(246,211,218,.6) 0%, rgba(246,211,218,0) 70%)'}} />
-      <div style={{position: 'absolute', left: L ? 150 * k : 0, right: L ? 0.5 * w : 0, top: L ? 0.14 * h : 0.07 * h, display: 'flex', flexDirection: 'column', alignItems: L ? 'flex-start' : 'center', gap: 4 * k}}>
-        <div style={{display: 'flex', gap: 0.24 * 130 * k, alignItems: 'baseline'}}>
-          <Rev t={t} at={K.vueltas}><H s={L ? 170 : 134}>Sin</H></Rev>
-          <Rev t={t} at={19.68}><H s={L ? 170 : 134} color={P.wine}>vueltas,</H></Rev>
-        </div>
-        <div style={{display: 'flex', gap: 0.22 * 100 * k, alignItems: 'baseline', marginTop: 10 * k}}>
-          <Rev t={t} at={K.pides}><H s={L ? 120 : 100} color={P.muted} weight={500}>pides</H></Rev>
-          <Rev t={t} at={K.directo}><Oro s={L ? 136 : 112} t={t}>directo</Oro></Rev>
-        </div>
+  const chat = (
+    <div style={{position: 'absolute', left: 0, top: 0, width: CW, height: CH, transformOrigin: '0 0', transform: homografia(CW, CH, quad), background: '#efe6da', overflow: 'hidden', fontFamily: SANS}}>
+      <div style={{position: 'absolute', inset: 0, opacity: 0.08, backgroundImage: `radial-gradient(${P.wine} 1.5px, transparent 1.6px)`, backgroundSize: '22px 22px'}} />
+      <div style={{position: 'absolute', left: 0, right: 0, top: 0, height: 178, background: P.wine, display: 'flex', alignItems: 'flex-end', padding: '0 22px 20px', gap: 16}}>
+        <div style={{width: 70, height: 70, borderRadius: '50%', background: P.deep, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `3px solid ${P.gold}`}}><Img src={staticFile('img/logo-mark.svg')} style={{height: 46, width: 'auto'}} /></div>
+        <div><div style={{fontFamily: SERIF, fontWeight: 600, fontSize: 38, color: '#fff', lineHeight: 1}}>Tiendas Alexa</div><div style={{fontSize: 19, color: P.goldSoft, marginTop: 6}}>en línea</div></div>
       </div>
-      <svg width={w} height={h} style={{position: 'absolute', left: 0, top: 0, overflow: 'visible'}}>
-        <polyline points={pts.join(' ')} fill="none" stroke={P.wine} strokeWidth={8 * k} strokeLinecap="round" strokeLinejoin="round" />
-        {endereza > 0.9 ? <path d={`M ${x0 + largo - 30 * k} ${y0 - 22 * k} L ${x0 + largo + 6 * k} ${y0} L ${x0 + largo - 30 * k} ${y0 + 22 * k}`} fill="none" stroke={P.wine} strokeWidth={8 * k} strokeLinecap="round" strokeLinejoin="round" /> : null}
-      </svg>
-      <div style={{position: 'absolute', left: chatX, top: chatY, width: cw, transform: `scale(${0.6 + 0.4 * Math.min(1.04, chatP)})`, opacity: Math.min(1, chatP * 1.6), transformOrigin: 'left center'}}>
-        <div style={{background: P.card, borderRadius: 40 * k, border: `${5 * k}px solid ${P.wine}`, padding: `${30 * k}px ${34 * k}px`, boxShadow: `0 ${30 * k}px ${70 * k}px rgba(85,32,42,.22)`}}>
-          <div style={{display: 'flex', alignItems: 'center', gap: 18 * k, marginBottom: 22 * k}}>
-            <div style={{width: 76 * k, height: 76 * k, borderRadius: '50%', background: P.deep, display: 'flex', alignItems: 'center', justifyContent: 'center'}}><Img src={staticFile('img/logo-mark.svg')} style={{height: 52 * k, width: 'auto'}} /></div>
-            <div><H s={38} color={P.ink}>Tiendas Alexa</H><Lab s={16} color={P.muted} track={0.18} weight={400} style={{marginTop: 4 * k}}>WhatsApp</Lab></div>
-          </div>
-          <div style={{minHeight: 190 * k, display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end'}}>
-            {vol >= 1 ? (
-              <div style={{background: P.wine, color: '#fff', borderRadius: `${28 * k}px ${28 * k}px ${6 * k}px ${28 * k}px`, padding: `${14 * k}px`, fontFamily: SANS, fontSize: 28 * k, lineHeight: 1.35, maxWidth: '88%', transform: `translateY(${-Math.min(1, envia) * 8 * k}px)`}}>
-                <div style={{background: P.card, borderRadius: 18 * k, height: 130 * k, display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: 10 * k}}><Prod id="bolso-negro" w={120} /></div>
-                {escrito}<span style={{color: P.gold, opacity: envia < 0.1 ? 1 : 0}}>|</span>
-              </div>
-            ) : null}
-          </div>
-          <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: 14 * k, alignItems: 'center', gap: 12 * k}}>
-            {t > K.whatsapp ? <Lab s={18} color={P.muted} weight={400} track={0.12}>✓✓ Enviado</Lab> : null}
-            <div style={{width: 78 * k, height: 78 * k, borderRadius: '50%', background: P.gold, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${1 + 0.2 * Math.sin(Math.min(1, envia) * Math.PI)})`}}>
-              <svg viewBox="0 0 24 24" width={36 * k} height={36 * k} fill={P.night}><path d="M3 20 L21 12 L3 4 L3 10 L15 12 L3 14 Z" /></svg>
-            </div>
-          </div>
+      {/* mensaje enviado */}
+      {t >= K.whatsapp ? (
+        <div style={{position: 'absolute', right: 22, bottom: 128 + 40 * (1 - Math.min(1, envia)), width: 330, opacity: cl(envia * 2), transform: `scale(${0.8 + 0.2 * Math.min(1.05, envia)})`, transformOrigin: '100% 100%', background: P.wine, borderRadius: '26px 26px 6px 26px', padding: 12, boxShadow: '0 8px 18px rgba(85,32,42,.25)'}}>
+          <div style={{background: P.card, borderRadius: 18, height: 220, display: 'flex', alignItems: 'center', justifyContent: 'center'}}><Img src={src('bolso-negro')} style={{height: 190, width: 'auto'}} /></div>
+          <div style={{color: '#fff', fontSize: 25, lineHeight: 1.3, padding: '10px 6px 2px'}}>{texto}</div>
+          <div style={{color: P.goldSoft, fontSize: 17, textAlign: 'right', padding: '0 6px'}}>21:32 ✓✓</div>
         </div>
-      </div>
-      {vol > 0 && vol < 1 ? (
-        <MB sx={Math.abs(px - lerp(w + 150 * k, chatX + 90 * k, volAnt)) * 0.5} sy={0} style={{position: 'absolute', left: px - 60 * k, top: py - 60 * k, transform: `rotate(${(1 - vol) * 40}deg) scale(${lerp(1.7, 0.5, vol)})`}}>
-          <Prod id="bolso-negro" w={240} />
-        </MB>
       ) : null}
-      <div style={{position: 'absolute', left: L ? 150 * k : 0, right: L ? 0.5 * w : 0, bottom: 0.08 * h, display: 'flex', justifyContent: L ? 'flex-start' : 'center'}}>
-        <Pal t={t} at={K.whatsapp - 0.08} dur={0.5} dy={40}>
-          <div style={{display: 'flex', alignItems: 'center', gap: 22 * k}}>
-            <svg viewBox="0 0 24 24" width={76 * k} height={76 * k}><circle cx="12" cy="12" r="12" fill={P.wine} /><path d="M12 4.2a7.8 7.8 0 0 0-6.7 11.8L4.2 19.8l3.9-1a7.8 7.8 0 1 0 3.9-14.6z" fill="none" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round" /><path d="M9.2 8.6c.2-.4.5-.4.7-.4h.3c.2 0 .3.1.4.3l.6 1.4c.1.2 0 .3-.1.5l-.4.5c-.1.1-.1.2 0 .3.5.8 1.1 1.4 1.9 1.8.2.1.3.1.4 0l.5-.6c.1-.2.3-.2.5-.1l1.4.7c.2.1.3.2.2.4-.1.6-.6 1.2-1.3 1.3-.5.1-1.2 0-2.3-.5-1.7-.8-2.9-2.1-3.5-3.3-.4-.8-.3-1.5.1-2z" fill="#fff" /></svg>
-            <H s={L ? 96 : 88} color={P.wine}>WhatsApp</H>
+      {/* adjunto listo para enviar */}
+      {vol >= 1 && t < K.whatsapp ? (
+        <div style={{position: 'absolute', left: 22, bottom: 120, width: 170, height: 170, borderRadius: 20, background: P.card, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 16px rgba(0,0,0,.15)', transform: `scale(${Math.min(1.05, spr(t, 20.45 + 0.6, 7, 16))})`, transformOrigin: '0 100%'}}><Img src={src('bolso-negro')} style={{height: 140, width: 'auto'}} /></div>
+      ) : null}
+      {/* barra para escribir */}
+      <div style={{position: 'absolute', left: 16, right: 16, bottom: 26, height: 82, display: 'flex', gap: 12, alignItems: 'center'}}>
+        <div style={{flex: 1, height: 78, borderRadius: 40, background: '#fff', display: 'flex', alignItems: 'center', padding: '0 24px', fontSize: 24, color: P.ink, whiteSpace: 'nowrap', overflow: 'hidden'}}>
+          {escrito ? <>{escrito}<span style={{color: P.wine, opacity: Math.floor(t * 6) % 2 ? 1 : 0.2}}>|</span></> : <span style={{color: '#a99'}}>Mensaje</span>}
+        </div>
+        <div style={{width: 78, height: 78, borderRadius: '50%', background: P.gold, display: 'flex', alignItems: 'center', justifyContent: 'center', transform: `scale(${1 + 0.25 * Math.sin(Math.min(1, envia) * Math.PI)})`}}>
+          <svg viewBox="0 0 24 24" width={36} height={36} fill={P.night}><path d="M3 20 L21 12 L3 4 L3 10 L15 12 L3 14 Z" /></svg>
+        </div>
+      </div>
+    </div>
+  );
+  const toma = (
+    <div style={{position: 'absolute', left: caja.x, top: caja.y, width: caja.w, height: caja.h, overflow: 'hidden', borderRadius: L ? 0 : 44 * k, boxShadow: L ? undefined : `0 ${40 * k}px ${90 * k}px rgba(85,32,42,.35), 0 0 0 ${4 * k}px rgba(210,168,81,.85)`, transform: `scale(${kb})`}}>
+      {chat}
+      <Toma id="mano" t={t} t0={T0} vel={VEL} style={{left, top, width: W0, height: H0}} />
+    </div>
+  );
+  return (
+    <AbsoluteFill style={{background: P.paper, transform: `translate(${sx}px, ${sy}px)`}}>
+      {!L ? <div style={{position: 'absolute', right: -0.2 * w, top: -0.1 * h, width: 0.9 * w, height: 0.9 * w, borderRadius: '50%', background: 'radial-gradient(circle, rgba(246,211,218,.7) 0%, rgba(246,211,218,0) 70%)'}} /> : null}
+      {toma}
+      {L ? <AbsoluteFill style={{background: 'linear-gradient(270deg, rgba(247,241,232,.97) 0%, rgba(247,241,232,.9) 30%, rgba(247,241,232,0) 52%)'}} /> : null}
+      <div style={{position: 'absolute', left: L ? 0.6 * w : 0, right: 0, top: L ? 0 : 0.05 * h, bottom: L ? 0 : undefined, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: L ? 'flex-start' : 'center', gap: 4 * k}}>
+        <div style={{display: 'flex', gap: 0.24 * 130 * k, alignItems: 'baseline'}}>
+          <Rev t={t} at={K.vueltas}><H s={L ? 150 : 128}>Sin</H></Rev>
+          <Rev t={t} at={19.68}><H s={L ? 150 : 128} color={P.wine}>vueltas,</H></Rev>
+        </div>
+        <div style={{display: 'flex', gap: 0.22 * 100 * k, alignItems: 'baseline', marginTop: 6 * k}}>
+          <Rev t={t} at={K.pides}><H s={L ? 112 : 100} color={P.muted} weight={500}>pides</H></Rev>
+          <Rev t={t} at={K.directo}><Oro s={L ? 126 : 112} t={t}>directo</Oro></Rev>
+        </div>
+        <Pal t={t} at={K.whatsapp - 0.08} dur={0.5} dy={30} style={{marginTop: 18 * k}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: 18 * k, background: P.wine, borderRadius: 99, padding: `${12 * k}px ${34 * k}px ${12 * k}px ${14 * k}px`, boxShadow: `0 ${14 * k}px ${30 * k}px rgba(85,32,42,.3)`}}>
+            <svg viewBox="0 0 24 24" width={58 * k} height={58 * k}><circle cx="12" cy="12" r="12" fill={P.cream} /><path d="M12 4.2a7.8 7.8 0 0 0-6.7 11.8L4.2 19.8l3.9-1a7.8 7.8 0 1 0 3.9-14.6z" fill="none" stroke={P.wine} strokeWidth="1.5" strokeLinejoin="round" /><path d="M9.2 8.6c.2-.4.5-.4.7-.4h.3c.2 0 .3.1.4.3l.6 1.4c.1.2 0 .3-.1.5l-.4.5c-.1.1-.1.2 0 .3.5.8 1.1 1.4 1.9 1.8.2.1.3.1.4 0l.5-.6c.1-.2.3-.2.5-.1l1.4.7c.2.1.3.2.2.4-.1.6-.6 1.2-1.3 1.3-.5.1-1.2 0-2.3-.5-1.7-.8-2.9-2.1-3.5-3.3-.4-.8-.3-1.5.1-2z" fill={P.wine} /></svg>
+            <Lab s={30} color={P.cream} track={0.16}>WhatsApp</Lab>
           </div>
         </Pal>
       </div>
-      <Destellos t={t} t0={K.whatsapp} x={chatX + cw - 80 * k} y={chatY + 330 * k} n={24} fuerza={520} />
+      {vol > 0 && vol < 1 ? (
+        <MB sx={Math.abs(px - pxA) * 0.5} sy={0} style={{position: 'absolute', left: px - 130 * k, top: py - 140 * k, transform: `rotate(${(1 - vol) * 40}deg) scale(${lerp(1.5, 0.4, vol)})`}}>
+          <Prod id="bolso-negro" w={260} style={{filter: 'drop-shadow(0 30px 30px rgba(0,0,0,.35))'}} />
+        </MB>
+      ) : null}
+      <Destellos t={t} t0={K.whatsapp} x={ex} y={ey} n={26} fuerza={520} />
     </AbsoluteFill>
   );
 };
@@ -684,6 +798,9 @@ const Final: React.FC<{t: number; incentivo: string}> = ({t, incentivo}) => {
   const cae = q < 0 ? 0 : 1 - Math.exp(-q * 7) * Math.cos(q * 20);
   const letras = 'Alexa'.split('');
   const [sx, sy] = temblor(t, [[caeAt, 10 * k], [K.alexa, 5 * k]]);
+  const sube = spr(t, 22.1, 5.5, 9);
+  const galto = (L ? 0.9 : 0.46) * h, gcx = (L ? 0.21 : 0.5) * w;
+  const tcx = L ? 0.68 * w : 0.5 * w, tcy = L ? 0.44 * h : 0.27 * h;
   return (
     <AbsoluteFill style={{clipPath: `circle(${r}px at 50% 50%)`}}>
       <AbsoluteFill style={{background: `radial-gradient(circle at 50% 38%, #5e1f30 0%, ${P.deep} 50%, ${P.night} 100%)`, transform: `translate(${sx}px, ${sy}px)`}}>
@@ -691,9 +808,14 @@ const Final: React.FC<{t: number; incentivo: string}> = ({t, incentivo}) => {
         <div style={{position: 'absolute', left: w / 2 - 0.7 * w, top: -0.3 * h, width: 1.4 * w, height: 1.6 * h, background: `conic-gradient(from ${t * 12}deg at 50% 40%, rgba(255,226,170,0) 0deg, rgba(255,226,170,.14) 20deg, rgba(255,226,170,0) 45deg, rgba(255,226,170,0) 180deg, rgba(255,226,170,.1) 200deg, rgba(255,226,170,0) 225deg)`, filter: `blur(${10 * k}px)`}} />
         {[0, 1, 2].map((i) => {
           const qq = cl((t - caeAt - i * 0.12) / 1.1);
-          return qq > 0 && qq < 1 ? <div key={i} style={{position: 'absolute', left: w / 2 - 700 * k * qq, top: h * 0.42 - 700 * k * qq, width: 1400 * k * qq, height: 1400 * k * qq, borderRadius: '50%', border: `${5 * k * (1 - qq)}px solid ${P.gold}`, opacity: (1 - qq) * 0.7}} /> : null;
+          return qq > 0 && qq < 1 ? <div key={i} style={{position: 'absolute', left: tcx - 700 * k * qq, top: tcy - 700 * k * qq, width: 1400 * k * qq, height: 1400 * k * qq, borderRadius: '50%', border: `${5 * k * (1 - qq)}px solid ${P.gold}`, opacity: (1 - qq) * 0.7}} /> : null;
         })}
-        <AbsoluteFill style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: 4 * k}}>
+        {/* ella, feliz con su bolsa */}
+        <div style={{position: 'absolute', inset: 0, transform: `translateY(${(1 - Math.min(1.02, sube)) * 220 * k}px)`, opacity: cl(sube * 1.8)}}>
+          <div style={{position: 'absolute', left: gcx - 560 * k, top: h - galto * 0.95, width: 1120 * k, height: galto, borderRadius: '50%', background: 'radial-gradient(ellipse at 50% 50%, rgba(210,168,81,.35) 0%, rgba(210,168,81,0) 62%)'}} />
+          <Recorte id="bolsa" t={t} t0={21.95} vel={0.6} alto={galto} cx={gcx} base={h + 2} style={{filter: `drop-shadow(0 0 ${34 * k}px rgba(210,168,81,.3))`}} />
+        </div>
+        <AbsoluteFill style={{display: 'flex', flexDirection: 'column', justifyContent: L ? 'center' : 'flex-start', alignItems: 'center', gap: 4 * k, paddingLeft: L ? 0.36 * w : 0, paddingTop: L ? 0 : 0.07 * h}}>
           <div style={{display: 'flex', gap: 22 * k, alignItems: 'baseline', marginBottom: 6 * k}}>
             <Rev t={t} at={22.04}><H s={L ? 76 : 72} color={P.goldSoft} italic weight={500}>Sólo</H></Rev>
             <Rev t={t} at={22.34}><H s={L ? 76 : 72} color={P.cream} weight={500}>entra</H></Rev>
@@ -773,6 +895,18 @@ export const ProximoDrop: React.FC<DropProps> = ({fecha, hora, incentivo, voz}) 
           <AbsoluteFill style={{background: '#fff', opacity: Math.max(0, 0.5 - Math.abs(p1 - 0.35) * 2.4)}} />
         </>
       ) : null}
+      {/* 2 → 2b: se abre un círculo desde el grupo «Outfit» hacia la calle */}
+      {t >= T_CALLE && t < 9.1 ? (() => {
+        const pc = pr(t, T_CALLE, 0.62, eInOut5);
+        const ox = (w > h ? 0.81 : 0.5) * w, oy = (w > h ? 0.45 : 0.8) * h;
+        const rc = pc * Math.hypot(Math.max(ox, w - ox), Math.max(oy, h - oy)) * 1.02;
+        return (
+          <>
+            <AbsoluteFill style={{clipPath: pc < 1 ? `circle(${rc}px at ${ox}px ${oy}px)` : undefined}}><Calle t={t} /></AbsoluteFill>
+            {pc > 0 && pc < 1 ? <svg width={w} height={h} style={{position: 'absolute', left: 0, top: 0}}><circle cx={ox} cy={oy} r={rc} fill="none" stroke={P.gold} strokeWidth={14 * k * (1 - pc) + 3 * k} /><circle cx={ox} cy={oy} r={rc * 0.86} fill="none" stroke="#fff" strokeWidth={3 * k} opacity={0.5 * (1 - pc)} /></svg> : null}
+          </>
+        );
+      })() : null}
       {/* 2 → 3: cinta de satén con el New Balance */}
       {t >= K.cinta ? <AbsoluteFill style={{clipPath: qc < 1 ? clipEstilo : undefined, transform: `translateY(${-pe * h}px)`}}><MB sx={0} sy={Math.sin(Math.PI * pe) * 40 * k}><Capa t={t} de={K.cinta} hasta={K.empuje + 0.6}><Estilo t={t} /></Capa></MB></AbsoluteFill> : null}
       {t >= K.cinta && t < K.cinta + 1.0 ? (
