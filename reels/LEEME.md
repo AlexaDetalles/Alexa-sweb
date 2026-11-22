@@ -48,3 +48,9 @@ Modelos de Kokoro (una vez): `kokoro-v1.0.onnx` y `voices-v1.0.bin` de https://g
 Se transcribió cada frase con reconocimiento de voz y se comparó con el texto. Piper `es_MX-claude-high` acertó el 74 % (fallaba en palabras sueltas como «Accesorios», «Tenis», «Y más» y al leer la dirección web); Kokoro `ef_dora`, el 97 %, y sobre la mezcla final con la música, el 100 % (15 de 15 frases). Reglas: frases de 3 palabras o más, no leer direcciones web en voz alta, la música baja ~10 dB y pierde 1-4 kHz bajo la voz.
 
 **Imágenes que mejorarían el video** (para un generador premium): `IMAGENES-PARA-MEJORAR-EL-VIDEO.md`.
+
+## Video 6 · «Se viene un nuevo drop» (v5, con las 8 fotos de producto)
+- Fotos usadas: las 8 que mandó la tienda (bolsos, tenis y slings), recortadas con BiRefNet y guardadas en `public/img/prod/` (`*-orig.jpg` = original, `<id>.webp` = recorte). Reemplazan a las fotos de celular de `public/img/drop/`.
+- Son fotos de productos de terceros (Nike, Levi's, Reebok, New Balance, US Polo): mostrarlas solo si la tienda realmente los vende.
+- Transiciones nuevas: zoom con onda de choque, cinta de satén con tenis, empuje vertical, barrido con desenfoque, zoom al mosaico, barrido líquido, iris.
+- Render: `node render.mjs 6-ProximoDrop-16x9 --props=props-drop.json --salida=6-ProximoDrop-16x9` (y `6-ProximoDrop` para 9:16). Tarda ~10 min cada uno.
