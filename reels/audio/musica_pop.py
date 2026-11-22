@@ -274,6 +274,8 @@ def construir():
     for t0, nt in ((4.42, 520), (5.34, 620), (6.38, 740)):
         p.poner(pop(nt, 0.2), t0, 0.32); p.poner(impacto(), t0, 0.28); p.poner(tic(3000), t0 + 0.18, 0.12)
     sw(6.7, 0.6, 500, 3500, 0.2); p.poner(chispas(), 6.88, 0.2, mojado=True); p.poner(campanita(NOTA['C6']), 6.9, 0.18, mojado=True)
+    for tt in (4.84, 5.76, 6.8):                                  # destellos al aterrizar cada grupo
+        p.poner(chispas(), tt, 0.16, mojado=True)
     sw(7.9, 0.95, 400, 5200, 0.42)                                # cinta de satén
     p.poner(impacto(), 8.3, 0.5); p.poner(chispas(), 8.35, 0.16, mojado=True)
     # ---- 3 · «Encontrar tu estilo no debería ser complicado.»
@@ -292,6 +294,7 @@ def construir():
         p.poner(tic(3600 + 120 * i, 0.025), 12.98 + i * 0.1, 0.12, pan=0.2)
     p.poner(pop(480, 0.2), 13.4, 0.3); p.poner(campanita(NOTA['C6']), 13.42, 0.2, mojado=True)
     # ---- 5 · «El nuevo drop pronto estará disponible en nuestra página web.»
+    sw(12.95, 0.5, 900, 2600, 0.12)                               # el cursor viaja
     sw(13.85, 0.75, 5200, 500, 0.4)
     palabra(14.04, 420)
     p.poner(impacto(), 14.32, 0.5); p.poner(campanita(NOTA['E5'] * 2), 14.34, 0.2, mojado=True); p.poner(chispas(), 14.4, 0.14, mojado=True)
@@ -311,6 +314,9 @@ def construir():
     sw(19.6, 0.8, 1200, 2200, 0.1)                                # la línea que se dibuja
     sw(20.55, 0.6, 700, 3800, 0.34)                               # se endereza
     p.poner(pop(520, 0.2), 20.3, 0.28)
+    sw(20.55, 0.55, 700, 4200, 0.3)                               # el bolso vuela al chat
+    for i in range(8):                                            # ola de saltitos en el mosaico
+        p.poner(pop(500 + 40 * i, 0.1), 18.78 + 0.06 * i, 0.14)
     for i in range(35):
         p.poner(tic(2900 + 40 * (i % 7), 0.02), 20.6 + i * 0.02, 0.07, pan=0.2)
     p.poner(pop(700, 0.2), 21.32, 0.3); p.poner(chispas(), 21.34, 0.18, mojado=True); p.poner(campanita(NOTA['C6']), 21.36, 0.18, mojado=True)
