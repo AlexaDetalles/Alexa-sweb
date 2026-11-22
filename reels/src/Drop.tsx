@@ -73,7 +73,7 @@ const MB: React.FC<{sx: number; sy: number; children: React.ReactNode; style?: R
   const id = 'mb' + useId().replace(/[^a-zA-Z0-9]/g, '');
   const on = sx > 0.5 || sy > 0.5;
   return (
-    <div style={{...style, filter: on ? `url(#${id})` : undefined}}>
+    <div style={{...(style ?? {position: 'absolute', left: 0, top: 0, width: '100%', height: '100%'}), filter: on ? `url(#${id})` : undefined}}>
       {on ? <svg width="0" height="0" style={{position: 'absolute'}}><filter id={id} x="-60%" y="-60%" width="220%" height="220%" colorInterpolationFilters="sRGB"><feGaussianBlur stdDeviation={`${sx.toFixed(2)} ${sy.toFixed(2)}`} /></filter></svg> : null}
       {children}
     </div>
@@ -793,7 +793,7 @@ export const ProximoDrop: React.FC<DropProps> = ({fecha, hora, incentivo, voz}) 
         </>
       ) : null}
       {/* 3 → 4: el texto sube y entra el celular; luego el barrido lateral hacia la escena del carrusel */}
-      <Capa t={t} de={K.empuje - 0.05} hasta={15.1} style={{transform: `translate(${p4 * w}px, ${t < 12 ? (1 - pe) * h : 0}px)`}}>
+      <Capa t={t} de={K.empuje - 0.05} hasta={15.1} style={{background: P.paper, transform: `translate(${p4 * w}px, ${t < 12 ? (1 - pe) * h : 0}px)`}}>
         <MB sx={Math.sin(Math.PI * p4) * 46 * k} sy={t < 12 ? Math.sin(Math.PI * pe) * 40 * k : 0}><Web t={t} /></MB>
       </Capa>
       {/* 5 → 6 */}
