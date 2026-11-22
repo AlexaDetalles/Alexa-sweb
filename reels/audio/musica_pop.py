@@ -276,6 +276,7 @@ def construir():
     sw(6.7, 0.6, 500, 3500, 0.2); p.poner(chispas(), 6.88, 0.2, mojado=True); p.poner(campanita(NOTA['C6']), 6.9, 0.18, mojado=True)
     for tt in (4.84, 5.76, 6.8):                                  # destellos al aterrizar cada grupo
         p.poner(chispas(), tt, 0.16, mojado=True)
+    sw(6.18, 0.62, 500, 4600, 0.34)                               # se abre el círculo hacia la calle
     sw(7.9, 0.95, 400, 5200, 0.42)                                # cinta de satén
     p.poner(impacto(), 8.3, 0.5); p.poner(chispas(), 8.35, 0.16, mojado=True)
     # ---- 3 · «Encontrar tu estilo no debería ser complicado.»

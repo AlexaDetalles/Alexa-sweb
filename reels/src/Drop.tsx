@@ -228,7 +228,7 @@ type TomaId = 'cama' | 'calle' | 'mano' | 'closet' | 'bolsa';
 // x, y, w, h: recorte dentro del cuadro original de 1280×720 (las tomas con fondo ocupan el cuadro entero)
 const TOMA: Record<TomaId, {x: number; y: number; w: number; h: number}> = {
   cama: {x: 0, y: 0, w: 1280, h: 720}, calle: {x: 0, y: 0, w: 1280, h: 720}, mano: {x: 0, y: 0, w: 1280, h: 720},
-  closet: {x: 0, y: 0, w: 1280, h: 720}, bolsa: {x: 0, y: 0, w: 1280, h: 720},
+  closet: {x: 161, y: 12, w: 992, h: 708}, bolsa: {x: 205, y: 0, w: 823, h: 720},
 };
 const cuadroToma = (t: number, t0: number, vel: number) => {
   const f = Math.max(0, Math.min(47, (t - t0) * 24 * vel));
@@ -294,7 +294,7 @@ type PalT = [string, number, boolean?];
 const Hook: React.FC<{t: number}> = ({t}) => {
   const {w, h, L, k} = useD();
   const lineas: PalT[][] = [[['¿Sigues', 0.0], ['buscando', 0.44]], [['qué', 0.84], ['estrenar', 1.26, true]], [['sin', 1.88], ['ver', 2.48], ['lo', 2.72], ['mismo', 2.86]], [['de', 3.18], ['siempre?', 3.4, true]]];
-  const s = L ? 132 : 116;
+  const s = L ? 112 : 116;
   const glitch = t > 3.38 && t < 3.66;
   const destello = Math.max(0, 1 - Math.abs(t - 3.42) * 9);
   const [sx, sy] = temblor(t, [[3.4, 9 * k]]);
@@ -303,7 +303,7 @@ const Hook: React.FC<{t: number}> = ({t}) => {
   const sep = glitch ? (random(`hg${Math.floor(t * 30)}`) - 0.5) * 26 * k : 0;
   const fondo = (id: string, extra?: React.CSSProperties) => (
     <AbsoluteFill key={id} style={{transform: `scale(${kb})`, transformOrigin: L ? '30% 40%' : '50% 30%', ...extra}}>
-      <TomaFondo id="cama" t={t} t0={0} vel={0.55} fx={0.27} ax={L ? 0.3 : 0.5} zoom={L ? 1 : 1.12} tarjeta={tarjeta} />
+      <TomaFondo id="cama" t={t} t0={0} vel={0.55} fx={L ? 0.46 : 0.42} ax={L ? 0.3 : 0.5} zoom={L ? 1.25 : 1.12} tarjeta={tarjeta} />
     </AbsoluteFill>
   );
   return (
@@ -314,7 +314,7 @@ const Hook: React.FC<{t: number}> = ({t}) => {
         : <AbsoluteFill style={{background: `linear-gradient(180deg, rgba(27,17,20,0) 52%, ${P.night} 64%)`}} />}
       <Bokeh t={t} n={10} alfa={0.18} />
       <AbsoluteFill style={L
-        ? {display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', paddingLeft: 0.56 * w, gap: 2 * k}
+        ? {display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-start', paddingLeft: 0.53 * w, gap: 2 * k}
         : {display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'flex-start', paddingLeft: 80 * k, paddingTop: 0.64 * h, gap: 0}}>
         {lineas.map((ln, i) => (
           <div key={i} style={{display: 'flex', gap: 0.24 * s * k, alignItems: 'baseline'}}>
@@ -453,8 +453,8 @@ const Estilo: React.FC<{t: number}> = ({t}) => {
         <AbsoluteFill style={{background: 'linear-gradient(180deg, rgba(27,17,20,.35) 0%, rgba(27,17,20,.55) 100%)'}} />
         {/* ella, recortada, decide entre dos blusas */}
         <div style={{position: 'absolute', left: (L ? 0.73 : 0.5) * w - 0.5 * w, top: 0, width: w, height: h, transform: `translateY(${(1 - Math.min(1.02, sube)) * 160 * k}px)`, opacity: cl(sube * 1.6)}}>
-          <div style={{position: 'absolute', left: 0.5 * w - (L ? 520 : 470) * k, top: h - (L ? 0.95 : 0.52) * h, width: (L ? 1040 : 940) * k, height: (L ? 0.95 : 0.52) * h, borderRadius: '50%', background: 'radial-gradient(ellipse at 50% 55%, rgba(210,168,81,.32) 0%, rgba(210,168,81,0) 65%)'}} />
-          <Recorte id="closet" t={t} t0={8.0} vel={0.56} alto={(L ? 0.95 : 0.52) * h} cx={0.5 * w} base={h + 2} style={{filter: `drop-shadow(0 0 ${30 * k}px rgba(210,168,81,.28))`}} />
+          <div style={{position: 'absolute', left: 0.5 * w - (L ? 520 : 470) * k, top: h - (L ? 0.95 : 0.57) * h, width: (L ? 1040 : 940) * k, height: (L ? 0.95 : 0.57) * h, borderRadius: '50%', background: 'radial-gradient(ellipse at 50% 55%, rgba(210,168,81,.32) 0%, rgba(210,168,81,0) 65%)'}} />
+          <Recorte id="closet" t={t} t0={8.0} vel={0.56} alto={(L ? 0.95 : 0.57) * h} cx={0.5 * w} base={h + 2} style={{filter: `drop-shadow(0 0 ${30 * k}px rgba(210,168,81,.28))`}} />
         </div>
         <AbsoluteFill style={{display: 'flex', flexDirection: 'column', justifyContent: L ? 'center' : 'flex-start', alignItems: L ? 'flex-start' : 'center', paddingLeft: (L ? 150 : 0) * k, paddingTop: L ? 0 : 0.08 * h, gap: 4 * k}}>
           {lineas.map((ln, i) => (
