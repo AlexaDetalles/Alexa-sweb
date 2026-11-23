@@ -29,12 +29,13 @@ export async function registrarVista(req, env, d) {
 
   const ruta = normalizar(d.ruta);
   if (typeof d.ruta === 'string' && ruta.length <= 120 && RE_RUTA.test(ruta) && !d.evento) {
-    // Las fichas de producto solo cuentan si el producto existe: nadie puede llenar la base con direcciones inventadas.
-    const ok = !ruta.startsWith('/producto/') || await env.BD.prepare('SELECT 1 FROM productos WHERE id = ?').bind(decodeURIComponent(ruta.slice(10))).first();
-    if (ok) sql.push(env.BD.prepare('INSERT INTO visitas (dia, ruta, vistas) VALUES (?, ?, 1) ON CONFLICT (dia, ruta) DO UPDATE SET vistas = vistas + 1').bind(dia, ruta));
+    // Las fichas de producto solo cuentan si el producto existe (nadie llena la base con direcciones inventadas):
+    // la comprobación va dentro del mismo INSERT, sin una consulta aparte.
+    if (ruta.startsWith('/producto/')) sql.push(env.BD.prepare('INSERT INTO visitas (dia, ruta, vistas) SELECT ?1, ?2, 1 WHERE EXISTS (SELECT 1 FROM productos WHERE id = ?3) ON CONFLICT (dia, ruta) DO UPDATE SET vistas = vistas + 1').bind(dia, ruta, decodeURIComponent(ruta.slice(10))));
+    else sql.push(env.BD.prepare('INSERT INTO visitas (dia, ruta, vistas) VALUES (?, ?, 1) ON CONFLICT (dia, ruta) DO UPDATE SET vistas = vistas + 1').bind(dia, ruta));
   }
-  if (typeof d.producto === 'string' && /^[\w.-]{1,80}$/.test(d.producto) && await env.BD.prepare('SELECT 1 FROM productos WHERE id = ?').bind(d.producto).first()) {
-    sql.push(env.BD.prepare('INSERT INTO vistas_producto (dia, producto_id, vistas) VALUES (?, ?, 1) ON CONFLICT (dia, producto_id) DO UPDATE SET vistas = vistas + 1').bind(dia, d.producto));
+  if (typeof d.producto === 'string' && /^[\w.-]{1,80}$/.test(d.producto)) {
+    sql.push(env.BD.prepare('INSERT INTO vistas_producto (dia, producto_id, vistas) SELECT ?1, ?2, 1 WHERE EXISTS (SELECT 1 FROM productos WHERE id = ?2) ON CONFLICT (dia, producto_id) DO UPDATE SET vistas = vistas + 1').bind(dia, d.producto));
   }
   if (EVENTOS.includes(d.evento)) {
     sql.push(env.BD.prepare('INSERT INTO eventos (dia, tipo, cantidad) VALUES (?, ?, 1) ON CONFLICT (dia, tipo) DO UPDATE SET cantidad = cantidad + 1').bind(dia, d.evento));

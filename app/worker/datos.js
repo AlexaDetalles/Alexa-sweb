@@ -17,18 +17,18 @@ const dinero = (n) => (n === null || n === undefined ? null : Math.round(n * 100
 // --- caché del borde para las lecturas públicas ----------------------------------------
 // La clave es fija (no depende del dominio por el que se entre), así el panel puede borrarla desde cualquiera.
 const claveCache = (ruta) => new Request(`https://cache.alexashop.internal/${ruta}`);
-export async function conCache(ruta, generar) {
+export async function conCache(ruta, generar, segundos = 300) {
   const cache = caches.default;
   let resp = await cache.match(claveCache(ruta));
   if (!resp) {
     resp = await generar();
-    if (resp.status === 200) { const copia = new Response(resp.clone().body, resp); copia.headers.set('Cache-Control', 'public, max-age=60'); await cache.put(claveCache(ruta), copia); }
+    if (resp.status === 200) { const copia = new Response(resp.clone().body, resp); copia.headers.set('Cache-Control', `public, max-age=${segundos}`); await cache.put(claveCache(ruta), copia); }
   }
   const salida = new Response(resp.body, resp);
   salida.headers.set('Cache-Control', 'no-cache'); // el navegador pregunta siempre; el borde responde sin tocar la base
   return salida;
 }
-export const purgarCache = () => Promise.all(['catalogo', 'regalos/mujer', 'regalos/hombre'].map((r) => caches.default.delete(claveCache(r))));
+export const purgarCache = () => Promise.all(['catalogo', 'sitemap', 'regalos/mujer', 'regalos/hombre'].map((r) => caches.default.delete(claveCache(r))));
 
 // --- lectura pública (la tienda) -----------------------------------------------------
 /** GET /api/catalogo: categorías activas, productos visibles y los WhatsApp de las asesoras. */

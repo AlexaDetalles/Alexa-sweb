@@ -44,7 +44,7 @@ async function api(req, env, ruta, ctx) {
   // Contra ataques desde otros sitios (CSRF): toda escritura debe venir de esta misma web.
   const lectura = ['GET', 'HEAD'].includes(req.method);
   if (!lectura && req.headers.get('Origin') !== new URL(req.url).origin) falla(403, 'Origen no permitido.');
-  // Lecturas públicas: caché de 60 s en el borde (protege la base de abuso y de picos); el panel la borra al guardar.
+  // Lecturas públicas: caché de 5 min en el borde (protege la base de abuso y de picos); el panel la borra al guardar.
   if (lectura && ruta === 'catalogo') return conCache('catalogo', () => catalogo(env));
   if (lectura && ruta.startsWith('regalos/')) return conCache(ruta, () => regalos(env, ruta.slice(8)));
   // Hojas para la hoja de Google (IMPORTDATA): solo con la clave secreta en la dirección.
@@ -71,8 +71,8 @@ export default {
     if (hostname.startsWith('www.') && ['GET', 'HEAD'].includes(req.method)) return Response.redirect(req.url.replace('//www.', '//'), 301);
     try {
       if (pathname.startsWith('/api/')) return conCabeceras(await api(req, env, pathname.slice(5), ctx));
-      if (pathname === '/sitemap.xml' && ['GET', 'HEAD'].includes(req.method)) return conCabeceras(await sitemap(env));
-      if (pathname.startsWith('/producto/') && ['GET', 'HEAD'].includes(req.method)) return conCabeceras(await paginaProducto(req, env, decodeURIComponent(pathname.slice(10)).replace(/\/$/, '')));
+      if (pathname === '/sitemap.xml' && ['GET', 'HEAD'].includes(req.method)) return conCabeceras(await conCache('sitemap', () => sitemap(env), 3600));
+      if (pathname.startsWith('/producto/') && ['GET', 'HEAD'].includes(req.method)) return conCabeceras(await conCache(`producto/${pathname.slice(10).replace(/\/$/, '')}`, () => paginaProducto(req, env, decodeURIComponent(pathname.slice(10)).replace(/\/$/, '')), 120));
       if (pathname.startsWith('/fotos/') && req.method === 'GET') return conCabeceras(await servirFoto(env, decodeURIComponent(pathname.slice(7))));
       if (['GET', 'HEAD'].includes(req.method)) {
         // Direcciones antiguas y «.html» → 301 a la dirección limpia (conserva ?consulta).
